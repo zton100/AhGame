@@ -9,6 +9,7 @@ import 'package:abyss_relic/systems/build/build_service.dart';
 import 'package:abyss_relic/systems/build/equipment_compare_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
+import 'package:abyss_relic/systems/drop/drop_pool_service.dart';
 import 'package:abyss_relic/systems/equipment/affix_effect_resolver.dart';
 import 'package:abyss_relic/systems/equipment/affix_roll_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
@@ -312,5 +313,20 @@ void main() {
     expect(inventory.acceptedDrops, hasLength(1));
     expect(inventory.rejectedDrops, isEmpty);
     expect(inventory.state.equipmentInstanceIds, [equipment.instanceId]);
+  });
+
+  test('seed drop pool can roll a loot drop', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final drops = DropPoolService(result.database).roll(
+      poolId: 'drop_chapter_1',
+      seed: 100,
+    );
+
+    expect(drops, hasLength(1));
+    expect(drops.single.refId, isNotEmpty);
+    expect(drops.single.quantity, greaterThan(0));
   });
 }

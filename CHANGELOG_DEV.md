@@ -854,6 +854,42 @@
 
 ### Remaining
 
-- Generate `LootDrop` results from `drop_pools.json` with deterministic weights and quantities.
 - Store full generated equipment instances once inventory ownership expands beyond ids.
+- Build equipment page/card UI from inventory contents.
+
+## S07 Drop Pool Rolling - 2026-06-23
+
+### Added files
+
+- `lib/systems/drop/drop_pool_service.dart`
+- `test/drop_pool_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `DropPoolService` to roll weighted entries from `drop_pools`.
+- Added deterministic seed behavior.
+- Added quantity range rolling.
+- Mapped equipment entries to equipment loot drops and material entries to material loot drops.
+- Kept unsupported entries, such as future soul cores, as safe `other` loot drops.
+- Verified seed `drop_chapter_1` can roll a loot drop.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\drop_pool_service_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Materialize equipment template drops into full generated `EquipmentInstance` values before adding them to inventory.
+- Add material seed data when material economy starts.
 - Build equipment page/card UI from inventory contents.
