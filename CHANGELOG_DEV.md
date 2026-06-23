@@ -706,5 +706,43 @@
 ### Remaining
 
 - Move build archetypes to JSON config if designers need live tuning.
-- Add Issue 024 build scoring and equipment comparison using `BuildAssessment`.
 - Surface current build label and tag weights in the future BD UI.
+
+## S08 Build Equipment Scoring - 2026-06-23
+
+### Added files
+
+- `lib/systems/build/build_score_service.dart`
+- `lib/systems/build/equipment_compare_service.dart`
+- `test/build_score_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `BuildScoreService` to score equipment against a current `BuildAssessment`.
+- Kept BD match score separate from raw attack score.
+- Matched equipment template tags and rolled affix tags against current build tag weights.
+- Penalized rejected tags such as fire/burn on a poison-shadow build.
+- Added mixed-build conservative behavior so unclear builds do not force a recommendation.
+- Added `EquipmentCompareService` for candidate vs equipped match-score and attack deltas.
+- Verified seed Exile poison equipment receives a positive BD match score.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\build_score_service_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Add equipment card/detail view models that expose match score, deltas, matched tags, rejected tags, and recommendation.
+- Connect scoring to future inventory/filter systems.
+- Move rejected-tag relationships to config if designers need live tuning.

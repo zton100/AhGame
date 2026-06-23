@@ -1,4 +1,5 @@
 import 'package:abyss_relic/models/affix_config.dart';
+import 'package:abyss_relic/systems/build/build_score_service.dart';
 import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/build/build_service.dart';
@@ -204,5 +205,38 @@ void main() {
 
     expect(assessment.buildId, 'poison_shadow');
     expect(assessment.isMixed, isFalse);
+  });
+
+  test('seed equipment can be scored against current build', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+    final templateService = EquipmentTemplateService(result.database);
+    final qualityService = QualityService(result.database);
+    final equipment = EquipmentGenerationService(
+      templateService: templateService,
+      qualityService: qualityService,
+      affixRollService: AffixRollService(result.database),
+    ).generate(
+      templateId: 'rusted_blade',
+      qualityId: 'rare',
+      classId: 'exile',
+      level: 1,
+      seed: 100,
+    );
+    final assessment = BuildService(result.database).assess(
+      classId: 'exile',
+      skillIds: const ['toxic_slash'],
+      equipment: [equipment],
+    );
+
+    final score = BuildScoreService(result.database).scoreEquipment(
+      equipment: equipment,
+      assessment: assessment,
+    );
+
+    expect(score.matchScore, greaterThan(0));
+    expect(score.matchedTags, contains('poison'));
+    expect(score.attackScore, greaterThan(0));
   });
 }
