@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/save/player_save_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/inventory_state.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
+import '../../systems/inventory/equipment_inventory_action_service.dart';
 import 'equipment_card_view_model.dart';
 import 'equipment_page_view_model.dart';
 
@@ -55,9 +57,11 @@ class _EquipmentPageState extends ConsumerState<EquipmentPage> {
         final viewModel = const EquipmentPageViewModelFactory().create(
           inventory: inventory,
           database: result.database,
+          classId: saveData.playerProgress.currentClassId,
         );
         return _EquipmentPageContent(
           viewModel: viewModel,
+          database: result.database,
           debugAction: _DebugGenerateButton(
             isGenerating: _isGeneratingTestEquipment,
             onPressed: _isGeneratingTestEquipment
@@ -107,10 +111,12 @@ class _EquipmentPageState extends ConsumerState<EquipmentPage> {
 class _EquipmentPageContent extends StatelessWidget {
   const _EquipmentPageContent({
     required this.viewModel,
+    required this.database,
     required this.debugAction,
   });
 
   final EquipmentPageViewModel viewModel;
+  final GameDatabase database;
   final Widget debugAction;
 
   @override
@@ -154,7 +160,7 @@ class _EquipmentPageContent extends StatelessWidget {
         ],
         const SizedBox(height: 12),
         for (final item in viewModel.items) ...[
-          _EquipmentCard(item: item),
+          _EquipmentCard(item: item, database: database),
           const SizedBox(height: 12),
         ],
       ],
@@ -163,9 +169,13 @@ class _EquipmentPageContent extends StatelessWidget {
 }
 
 class _EquipmentCard extends StatelessWidget {
-  const _EquipmentCard({required this.item});
+  const _EquipmentCard({
+    required this.item,
+    required this.database,
+  });
 
   final EquipmentPageItemViewModel item;
+  final GameDatabase database;
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +234,19 @@ class _EquipmentCard extends StatelessWidget {
                 matchedTags: card.matchedTags,
                 rejectedTags: card.rejectedTags,
               ),
+              if (item.isLocked || item.isEquipped) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (item.isEquipped)
+                      const _Chip(label: '已穿戴', color: AppTheme.primary),
+                    if (item.isLocked)
+                      const _Chip(label: '已锁定', color: AppTheme.danger),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -237,18 +260,25 @@ class _EquipmentCard extends StatelessWidget {
   ) {
     showDialog<void>(
       context: context,
-      builder: (context) => _EquipmentDetailDialog(item: item),
+      builder: (context) => _EquipmentDetailDialog(
+        item: item,
+        database: database,
+      ),
     );
   }
 }
 
-class _EquipmentDetailDialog extends StatelessWidget {
-  const _EquipmentDetailDialog({required this.item});
+class _EquipmentDetailDialog extends ConsumerWidget {
+  const _EquipmentDetailDialog({
+    required this.item,
+    required this.database,
+  });
 
   final EquipmentPageItemViewModel item;
+  final GameDatabase database;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final card = item.card;
     final qualityColor = Color(card.qualityColorValue);
 
@@ -298,11 +328,102 @@ class _EquipmentDetailDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
+          onPressed: () => _equip(context, ref),
+          child: const Text('穿戴'),
+        ),
+        TextButton(
+          onPressed: () => _toggleLock(context, ref),
+          child: Text(item.isLocked ? '解锁' : '锁定'),
+        ),
+        TextButton(
+          onPressed: () => _salvage(context, ref),
+          child: const Text('分解'),
+        ),
+        TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('关闭'),
         ),
       ],
     );
+  }
+
+  Future<void> _equip(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(playerSaveProvider.notifier).equipEquipment(
+            database: database,
+            instanceId: item.equipment.instanceId,
+          );
+      if (!context.mounted) {
+        return;
+      }
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('已穿戴装备')),
+      );
+    } on Object catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('穿戴失败：$error')),
+      );
+    }
+  }
+
+  Future<void> _toggleLock(BuildContext context, WidgetRef ref) async {
+    try {
+      final controller = ref.read(playerSaveProvider.notifier);
+      if (item.isLocked) {
+        await controller.unlockEquipment(item.equipment.instanceId);
+      } else {
+        await controller.lockEquipment(item.equipment.instanceId);
+      }
+      if (!context.mounted) {
+        return;
+      }
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(item.isLocked ? '已解锁装备' : '已锁定装备')),
+      );
+    } on Object catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('锁定操作失败：$error')),
+      );
+    }
+  }
+
+  Future<void> _salvage(BuildContext context, WidgetRef ref) async {
+    try {
+      final result = await ref
+          .read(playerSaveProvider.notifier)
+          .salvageEquipment(item.equipment.instanceId);
+      if (!context.mounted) {
+        return;
+      }
+      if (!result.accepted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_salvageFailureMessage(result.reason))),
+        );
+        return;
+      }
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('分解成功，获得 ${_materialsText(result.gainedMaterials)}'),
+        ),
+      );
+    } on Object catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('分解失败：$error')),
+      );
+    }
   }
 }
 
@@ -509,6 +630,29 @@ class _EquipmentMessage extends StatelessWidget {
       ),
     );
   }
+}
+
+String _salvageFailureMessage(EquipmentInventoryActionReason reason) {
+  switch (reason) {
+    case EquipmentInventoryActionReason.locked:
+      return '已锁定装备不能分解';
+    case EquipmentInventoryActionReason.equipped:
+      return '已穿戴装备不能分解';
+    case EquipmentInventoryActionReason.notFound:
+      return '装备不存在，无法分解';
+    case EquipmentInventoryActionReason.salvaged:
+      return '分解失败';
+  }
+}
+
+String _materialsText(List<MaterialStack> materials) {
+  if (materials.isEmpty) {
+    return '无材料';
+  }
+
+  return materials
+      .map((material) => '${material.materialId} x${material.quantity}')
+      .join(', ');
 }
 
 String _affixLine(EquipmentAffixViewModel affix) {

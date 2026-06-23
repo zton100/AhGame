@@ -1,6 +1,9 @@
 import 'package:abyss_relic/models/equipment_instance.dart';
+import 'package:abyss_relic/models/equipment_loadout.dart';
+import 'package:abyss_relic/models/equipment_template.dart';
 import 'package:abyss_relic/models/inventory_state.dart';
 import 'package:abyss_relic/models/save_data.dart';
+import 'package:abyss_relic/systems/inventory/equipment_inventory_action_service.dart';
 import 'package:abyss_relic/systems/inventory/equipment_instance_store.dart';
 import 'package:abyss_relic/systems/inventory/inventory_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,6 +58,10 @@ void main() {
     final state = InventoryState(
       equipmentInstanceIds: ['eq_1'],
       equipmentInstances: {'eq_1': equipment},
+      equipmentLoadout: EquipmentLoadout.empty().equip(
+        EquipmentSlot.mainWeapon,
+        'eq_1',
+      ),
       equipmentCapacity: 20,
       materials: const [
         MaterialStack(materialId: 'iron', quantity: 5),
@@ -75,6 +82,10 @@ void main() {
     expect(restored.materials.single.materialId, 'iron');
     expect(restored.materials.single.quantity, 5);
     expect(restored.lockedEquipmentInstanceIds, ['eq_1']);
+    expect(
+      restored.equipmentLoadout.equippedInstanceId(EquipmentSlot.mainWeapon),
+      'eq_1',
+    );
   });
 
   test('InventorySave preserves legacy saves and new inventory fields', () {
@@ -85,6 +96,10 @@ void main() {
     final current = InventorySave(
       equipmentInstanceIds: ['eq_1'],
       equipmentInstances: {'eq_1': equipment},
+      equipmentLoadout: EquipmentLoadout.empty().equip(
+        EquipmentSlot.mainWeapon,
+        'eq_1',
+      ),
       equipmentCapacity: 30,
       materials: const [MaterialStack(materialId: 'iron', quantity: 4)],
       lockedEquipmentInstanceIds: const ['eq_1'],
@@ -95,6 +110,7 @@ void main() {
     expect(legacy.equipmentCapacity, InventoryState.defaultEquipmentCapacity);
     expect(legacy.materials, isEmpty);
     expect(legacy.lockedEquipmentInstanceIds, isEmpty);
+    expect(legacy.equipmentLoadout.equippedBySlot, isEmpty);
     expect(
       (current.toJson()['equipmentInstances'] as Map<String, Object?>)['eq_1'],
       equipment.toJson(),
@@ -103,6 +119,22 @@ void main() {
       {'materialId': 'iron', 'quantity': 4},
     ]);
     expect(current.toJson()['lockedEquipmentInstanceIds'], ['eq_1']);
+    expect(current.toJson()['equipmentLoadout'], {
+      'equippedBySlot': {'main_weapon': 'eq_1'},
+    });
+  });
+
+  test('InventoryState locks and unlocks equipment ids', () {
+    const state = InventoryState(equipmentInstanceIds: ['eq_1']);
+
+    final locked = state.lockEquipment('eq_1');
+    final stillLocked = locked.lockEquipment('eq_1');
+    final unlocked = stillLocked.unlockEquipment('eq_1');
+
+    expect(locked.isLocked('eq_1'), isTrue);
+    expect(stillLocked.lockedEquipmentInstanceIds, ['eq_1']);
+    expect(unlocked.isLocked('eq_1'), isFalse);
+    expect(unlocked.lockedEquipmentInstanceIds, isEmpty);
   });
 
   test('EquipmentInstanceStore adds equipment id and full instance together',
@@ -199,6 +231,69 @@ void main() {
     final instances = store.listInstancesByInventoryOrder(state: state);
 
     expect(instances.map((instance) => instance.instanceId), ['eq_2', 'eq_1']);
+  });
+
+  test('EquipmentInventoryActionService rejects locked equipment salvage', () {
+    const service = EquipmentInventoryActionService();
+    final state = InventoryState(
+      equipmentInstanceIds: const ['eq_1'],
+      equipmentInstances: {'eq_1': _equipment('eq_1')},
+      lockedEquipmentInstanceIds: const ['eq_1'],
+    );
+
+    final result = service.salvage(
+      state: state,
+      loadout: const EquipmentLoadout.empty(),
+      instanceId: 'eq_1',
+    );
+
+    expect(result.accepted, isFalse);
+    expect(result.reason, EquipmentInventoryActionReason.locked);
+    expect(result.state.equipmentInstances.keys, ['eq_1']);
+  });
+
+  test('EquipmentInventoryActionService rejects equipped equipment salvage',
+      () {
+    const service = EquipmentInventoryActionService();
+    final state = InventoryState(
+      equipmentInstanceIds: const ['eq_1'],
+      equipmentInstances: {'eq_1': _equipment('eq_1')},
+    );
+
+    final result = service.salvage(
+      state: state,
+      loadout: EquipmentLoadout.empty().equip(
+        EquipmentSlot.mainWeapon,
+        'eq_1',
+      ),
+      instanceId: 'eq_1',
+    );
+
+    expect(result.accepted, isFalse);
+    expect(result.reason, EquipmentInventoryActionReason.equipped);
+    expect(result.state.equipmentInstances.keys, ['eq_1']);
+  });
+
+  test('EquipmentInventoryActionService salvages equipment into material', () {
+    const service = EquipmentInventoryActionService();
+    final state = InventoryState(
+      equipmentInstanceIds: const ['eq_1'],
+      equipmentInstances: {'eq_1': _equipment('eq_1')},
+    );
+
+    final result = service.salvage(
+      state: state,
+      loadout: const EquipmentLoadout.empty(),
+      instanceId: 'eq_1',
+    );
+
+    expect(result.accepted, isTrue);
+    expect(result.state.equipmentInstanceIds, isEmpty);
+    expect(result.state.equipmentInstances, isEmpty);
+    expect(result.gainedMaterials.single.materialId, 'salvage_dust');
+    expect(result.gainedMaterials.single.quantity, 1);
+    expect(result.state.materials.single.materialId, 'salvage_dust');
+    expect(result.state.materials.single.quantity, 1);
   });
 }
 

@@ -1,9 +1,12 @@
 import 'package:abyss_relic/core/save/player_save_provider.dart';
 import 'package:abyss_relic/core/theme/app_theme.dart';
 import 'package:abyss_relic/features/equipment/equipment_page.dart';
+import 'package:abyss_relic/features/equipment/equipment_page_view_model.dart';
 import 'package:abyss_relic/models/affix_config.dart';
 import 'package:abyss_relic/models/data_file_meta.dart';
 import 'package:abyss_relic/models/equipment_instance.dart';
+import 'package:abyss_relic/models/equipment_loadout.dart';
+import 'package:abyss_relic/models/equipment_template.dart';
 import 'package:abyss_relic/models/inventory_state.dart';
 import 'package:abyss_relic/models/loaded_data_file.dart';
 import 'package:abyss_relic/models/save_data.dart';
@@ -88,8 +91,179 @@ void main() {
     expect(find.text('词缀'), findsOneWidget);
     expect(find.text('BD 匹配'), findsOneWidget);
     expect(find.textContaining('Poison Damage'), findsWidgets);
+    expect(find.text('穿戴'), findsOneWidget);
+    expect(find.text('锁定'), findsOneWidget);
+    expect(find.text('分解'), findsOneWidget);
     expect(find.textContaining('matchedTags'), findsOneWidget);
   });
+
+  testWidgets('EquipmentPage equips equipment and saves loadout',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await _savePoisonBlade(saveService);
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Poison Blade'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('穿戴'));
+    await tester.pumpAndSettle();
+
+    final save = await saveService.loadOrCreate();
+    expect(
+      save.inventory.equipmentLoadout.equippedInstanceId(
+        EquipmentSlot.mainWeapon,
+      ),
+      'eq_poison_blade',
+    );
+  });
+
+  testWidgets('EquipmentPage scores equipment with current save class',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await saveService.save(SaveData.newGame().copyWith(
+      playerProgress: const PlayerProgress(
+        currentClassId: 'necrospeaker',
+        level: 1,
+        experience: 0,
+      ),
+      inventory: inventorySaveFromState(InventoryState(
+        equipmentInstanceIds: const ['eq_scepter'],
+        equipmentInstances: {'eq_scepter': _summonEquipment()},
+      )),
+    ));
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Grave Scepter'), findsOneWidget);
+  });
+
+  test('EquipmentPageViewModelFactory uses the supplied class id', () {
+    final inventory = InventoryState(
+      equipmentInstanceIds: const ['eq_scepter'],
+      equipmentInstances: {'eq_scepter': _summonEquipment()},
+    );
+    final necroViewModel = const EquipmentPageViewModelFactory().create(
+      inventory: inventory,
+      database: _database(),
+      classId: 'necrospeaker',
+    );
+    final exileViewModel = const EquipmentPageViewModelFactory().create(
+      inventory: inventory,
+      database: _database(),
+      classId: 'exile',
+    );
+
+    expect(necroViewModel.items.single.card.matchedTags, contains('summon'));
+    expect(exileViewModel.items.single.card.matchedTags,
+        isNot(contains('summon')));
+  });
+
+  testWidgets('EquipmentPage blocks salvaging locked equipment',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await _savePoisonBlade(saveService, locked: true);
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Poison Blade'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('分解'));
+    await tester.pumpAndSettle();
+
+    final save = await saveService.loadOrCreate();
+    expect(save.inventory.equipmentInstanceIds, ['eq_poison_blade']);
+    expect(save.inventory.equipmentInstances.keys, ['eq_poison_blade']);
+    expect(find.textContaining('已锁定装备不能分解'), findsOneWidget);
+  });
+
+  testWidgets('EquipmentPage blocks salvaging equipped equipment',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await _savePoisonBlade(
+      saveService,
+      loadout: EquipmentLoadout.empty().equip(
+        EquipmentSlot.mainWeapon,
+        'eq_poison_blade',
+      ),
+    );
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Poison Blade'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('分解'));
+    await tester.pumpAndSettle();
+
+    final save = await saveService.loadOrCreate();
+    expect(save.inventory.equipmentInstanceIds, ['eq_poison_blade']);
+    expect(save.inventory.equipmentInstances.keys, ['eq_poison_blade']);
+    expect(find.textContaining('已穿戴装备不能分解'), findsOneWidget);
+  });
+
+  testWidgets('EquipmentPage salvages equipment into materials',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await _savePoisonBlade(saveService);
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Poison Blade'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('分解'));
+    await tester.pumpAndSettle();
+
+    final save = await saveService.loadOrCreate();
+    expect(save.inventory.equipmentInstanceIds, isEmpty);
+    expect(save.inventory.equipmentInstances, isEmpty);
+    expect(save.inventory.materials.single.materialId, 'salvage_dust');
+    expect(save.inventory.materials.single.quantity, 1);
+  });
+
+  test('PlayerSaveController fails when equipping missing equipment', () async {
+    final container = ProviderContainer(
+      overrides: [
+        saveServiceProvider.overrideWithValue(
+          SaveService(store: InMemorySaveStore()),
+        ),
+        gameDatabaseLoadProvider.overrideWith((ref) async {
+          return GameDatabaseLoadResult(
+              database: _database(), errors: const []);
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(playerSaveProvider.future);
+
+    expect(
+      () => container.read(playerSaveProvider.notifier).equipEquipment(
+            database: _database(),
+            instanceId: 'missing_eq',
+          ),
+      throwsA(isA<StateError>()),
+    );
+  });
+}
+
+Future<void> _savePoisonBlade(
+  SaveService saveService, {
+  bool locked = false,
+  EquipmentLoadout loadout = const EquipmentLoadout.empty(),
+}) {
+  return saveService.save(SaveData.newGame().copyWith(
+    inventory: inventorySaveFromState(InventoryState(
+      equipmentInstanceIds: const ['eq_poison_blade'],
+      equipmentInstances: {'eq_poison_blade': _equipment()},
+      equipmentLoadout: loadout,
+      lockedEquipmentInstanceIds: locked ? const ['eq_poison_blade'] : const [],
+    )),
+  ));
 }
 
 Widget _app({required SaveService saveService}) {
@@ -130,6 +304,20 @@ EquipmentInstance _equipment() {
   );
 }
 
+EquipmentInstance _summonEquipment() {
+  return EquipmentInstance(
+    instanceId: 'eq_scepter',
+    templateId: 'grave_scepter',
+    qualityId: 'rare',
+    level: 1,
+    createdAt: DateTime.utc(2026, 6, 24),
+    rolledBaseStats: const [
+      RolledBaseStat(stat: 'attack', value: 12),
+    ],
+    rolledAffixes: const [],
+  );
+}
+
 GameDatabase _database() {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
@@ -141,6 +329,13 @@ GameDatabase _database() {
           'tags': ['poison'],
           'baseStats': {'hp': 100, 'attack': 18, 'armor': 6},
           'growth': {'hp': 10, 'attack': 2, 'armor': 1},
+        },
+        {
+          'id': 'necrospeaker',
+          'name': 'Necrospeaker',
+          'tags': ['summon', 'undead'],
+          'baseStats': {'hp': 90, 'attack': 14, 'armor': 4},
+          'growth': {'hp': 8, 'attack': 2, 'armor': 1},
         },
       ],
     }),
@@ -181,6 +376,24 @@ GameDatabase _database() {
             'suffixMin': 0,
             'suffixMax': 1,
             'allowedTags': ['poison', 'shadow'],
+          },
+        },
+        {
+          'id': 'grave_scepter',
+          'name': 'Grave Scepter',
+          'slot': 'main_weapon',
+          'allowedClasses': ['necrospeaker'],
+          'minLevel': 1,
+          'qualityPool': ['rare'],
+          'baseStats': [
+            {'stat': 'attack', 'min': 6, 'max': 12},
+          ],
+          'affixRules': {
+            'prefixMin': 0,
+            'prefixMax': 1,
+            'suffixMin': 0,
+            'suffixMax': 1,
+            'allowedTags': ['summon', 'curse'],
           },
         },
       ],

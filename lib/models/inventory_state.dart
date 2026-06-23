@@ -1,9 +1,11 @@
 import 'equipment_instance.dart';
+import 'equipment_loadout.dart';
 
 class InventoryState {
   const InventoryState({
     required this.equipmentInstanceIds,
     this.equipmentInstances = const {},
+    this.equipmentLoadout = const EquipmentLoadout.empty(),
     this.equipmentCapacity = defaultEquipmentCapacity,
     this.materials = const [],
     this.lockedEquipmentInstanceIds = const [],
@@ -21,6 +23,11 @@ class InventoryState {
             Map<String, Object?>.from(entry.value as Map),
           ),
       },
+      equipmentLoadout: json['equipmentLoadout'] is Map
+          ? EquipmentLoadout.fromJson(
+              Map<String, Object?>.from(json['equipmentLoadout'] as Map),
+            )
+          : const EquipmentLoadout.empty(),
       equipmentCapacity:
           json['equipmentCapacity'] as int? ?? defaultEquipmentCapacity,
       materials: [
@@ -37,6 +44,7 @@ class InventoryState {
 
   final List<String> equipmentInstanceIds;
   final Map<String, EquipmentInstance> equipmentInstances;
+  final EquipmentLoadout equipmentLoadout;
   final int equipmentCapacity;
   final List<MaterialStack> materials;
   final List<String> lockedEquipmentInstanceIds;
@@ -46,6 +54,7 @@ class InventoryState {
   InventoryState copyWith({
     List<String>? equipmentInstanceIds,
     Map<String, EquipmentInstance>? equipmentInstances,
+    EquipmentLoadout? equipmentLoadout,
     int? equipmentCapacity,
     List<MaterialStack>? materials,
     List<String>? lockedEquipmentInstanceIds,
@@ -53,10 +62,41 @@ class InventoryState {
     return InventoryState(
       equipmentInstanceIds: equipmentInstanceIds ?? this.equipmentInstanceIds,
       equipmentInstances: equipmentInstances ?? this.equipmentInstances,
+      equipmentLoadout: equipmentLoadout ?? this.equipmentLoadout,
       equipmentCapacity: equipmentCapacity ?? this.equipmentCapacity,
       materials: materials ?? this.materials,
       lockedEquipmentInstanceIds:
           lockedEquipmentInstanceIds ?? this.lockedEquipmentInstanceIds,
+    );
+  }
+
+  bool isLocked(String instanceId) {
+    return lockedEquipmentInstanceIds.contains(instanceId);
+  }
+
+  InventoryState lockEquipment(String instanceId) {
+    if (isLocked(instanceId)) {
+      return this;
+    }
+
+    return copyWith(
+      lockedEquipmentInstanceIds: [
+        ...lockedEquipmentInstanceIds,
+        instanceId,
+      ],
+    );
+  }
+
+  InventoryState unlockEquipment(String instanceId) {
+    if (!isLocked(instanceId)) {
+      return this;
+    }
+
+    return copyWith(
+      lockedEquipmentInstanceIds: [
+        for (final id in lockedEquipmentInstanceIds)
+          if (id != instanceId) id,
+      ],
     );
   }
 
@@ -67,6 +107,7 @@ class InventoryState {
         for (final entry in equipmentInstances.entries)
           entry.key: entry.value.toJson(),
       },
+      'equipmentLoadout': equipmentLoadout.toJson(),
       'equipmentCapacity': equipmentCapacity,
       'materials': [
         for (final material in materials) material.toJson(),

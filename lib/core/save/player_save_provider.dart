@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/inventory_state.dart';
 import '../../models/loot_drop.dart';
 import '../../models/save_data.dart';
+import '../../models/equipment_template.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/drop/drop_pool_service.dart';
 import '../../systems/drop/equipment_loot_materialization_service.dart';
 import '../../systems/equipment/affix_roll_service.dart';
 import '../../systems/equipment/equipment_generation_service.dart';
+import '../../systems/equipment/equipment_service.dart';
 import '../../systems/equipment/equipment_template_service.dart';
 import '../../systems/equipment/quality_service.dart';
+import '../../systems/inventory/equipment_inventory_action_service.dart';
 import '../../systems/inventory/equipment_loot_commit_service.dart';
 import '../../systems/save/in_memory_save_store.dart';
 import '../../systems/save/save_service.dart';
@@ -64,6 +67,74 @@ class PlayerSaveController extends AsyncNotifier<SaveData> {
     ));
   }
 
+  Future<void> lockEquipment(String instanceId) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    await save(currentSave.copyWith(
+      inventory: currentSave.inventory.lockEquipment(instanceId),
+    ));
+  }
+
+  Future<void> unlockEquipment(String instanceId) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    await save(currentSave.copyWith(
+      inventory: currentSave.inventory.unlockEquipment(instanceId),
+    ));
+  }
+
+  Future<void> equipEquipment({
+    required GameDatabase database,
+    required String instanceId,
+  }) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    final inventory = inventoryStateFromSave(currentSave.inventory);
+    final equipment = inventory.equipmentInstances[instanceId];
+    if (equipment == null) {
+      throw StateError('Equipment instance not found: $instanceId');
+    }
+    final templateRecord = database.findRecord(
+      'equipment_templates',
+      equipment.templateId,
+    );
+    if (templateRecord == null) {
+      throw StateError('Equipment template not found: ${equipment.templateId}');
+    }
+
+    final loadout = const EquipmentService().equipFromInventory(
+      loadout: inventory.equipmentLoadout,
+      inventory: inventory,
+      instanceId: instanceId,
+      template: EquipmentTemplate.fromJson(templateRecord),
+      classId: currentSave.playerProgress.currentClassId,
+      level: currentSave.playerProgress.level,
+    );
+
+    await save(currentSave.copyWith(
+      inventory: currentSave.inventory.copyWith(equipmentLoadout: loadout),
+    ));
+  }
+
+  Future<EquipmentSalvageResult> salvageEquipment(String instanceId) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    final inventory = inventoryStateFromSave(currentSave.inventory);
+    final result = const EquipmentInventoryActionService().salvage(
+      state: inventory,
+      loadout: inventory.equipmentLoadout,
+      instanceId: instanceId,
+    );
+    if (!result.accepted) {
+      return result;
+    }
+
+    await save(currentSave.copyWith(
+      inventory: inventorySaveFromState(result.state),
+    ));
+    return result;
+  }
+
   LootDrop _testEquipmentDrop(GameDatabase database) {
     final dropPoolService = DropPoolService(database);
     for (var seed = 1; seed <= 500; seed += 1) {
@@ -83,6 +154,7 @@ InventoryState inventoryStateFromSave(InventorySave save) {
   return InventoryState(
     equipmentInstanceIds: save.equipmentInstanceIds,
     equipmentInstances: save.equipmentInstances,
+    equipmentLoadout: save.equipmentLoadout,
     equipmentCapacity: save.equipmentCapacity,
     materials: save.materials,
     lockedEquipmentInstanceIds: save.lockedEquipmentInstanceIds,
@@ -93,6 +165,7 @@ InventorySave inventorySaveFromState(InventoryState state) {
   return InventorySave(
     equipmentInstanceIds: state.equipmentInstanceIds,
     equipmentInstances: state.equipmentInstances,
+    equipmentLoadout: state.equipmentLoadout,
     equipmentCapacity: state.equipmentCapacity,
     materials: state.materials,
     lockedEquipmentInstanceIds: state.lockedEquipmentInstanceIds,

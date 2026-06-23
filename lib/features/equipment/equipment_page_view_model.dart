@@ -12,7 +12,7 @@ class EquipmentPageViewModelFactory {
   EquipmentPageViewModel create({
     required InventoryState inventory,
     required GameDatabase database,
-    String classId = 'exile',
+    required String classId,
   }) {
     final equipment = [
       for (final instanceId in inventory.equipmentInstanceIds)
@@ -40,9 +40,18 @@ class EquipmentPageViewModelFactory {
           EquipmentPageItemViewModel(
             equipment: item,
             slotLabel: _slotLabelFor(item, database),
+            isLocked: inventory.isLocked(item.instanceId),
+            isEquipped: inventory.equipmentLoadout.equippedBySlot.containsValue(
+              item.instanceId,
+            ),
             card: cardFactory.create(
               equipment: item,
               assessment: assessment,
+              equipped: _equippedForSlot(
+                item,
+                inventory: inventory,
+                database: database,
+              ),
             ),
           ),
       ],
@@ -56,6 +65,28 @@ class EquipmentPageViewModelFactory {
       equipment.templateId,
     );
     return template?['slot'] as String? ?? 'unknown';
+  }
+
+  EquipmentInstance? _equippedForSlot(
+    EquipmentInstance equipment, {
+    required InventoryState inventory,
+    required GameDatabase database,
+  }) {
+    final template = database.findRecord(
+      'equipment_templates',
+      equipment.templateId,
+    );
+    final slotId = template?['slot'] as String?;
+    if (slotId == null) {
+      return null;
+    }
+
+    final equippedId = inventory.equipmentLoadout.equippedBySlot[slotId];
+    if (equippedId == null || equippedId == equipment.instanceId) {
+      return null;
+    }
+
+    return inventory.equipmentInstances[equippedId];
   }
 }
 
@@ -75,10 +106,14 @@ class EquipmentPageItemViewModel {
   const EquipmentPageItemViewModel({
     required this.equipment,
     required this.slotLabel,
+    required this.isLocked,
+    required this.isEquipped,
     required this.card,
   });
 
   final EquipmentInstance equipment;
   final String slotLabel;
+  final bool isLocked;
+  final bool isEquipped;
   final EquipmentCardViewModel card;
 }

@@ -1098,3 +1098,52 @@
 - Add equip, lock, and salvage actions on top of the real equipment inventory page.
 - Surface save/debug status in the Debug page after broader save management UI is introduced.
 - Add material seed data when material economy starts.
+
+## S12 Equipment Page Basic Actions - 2026-06-24
+
+### Added files
+
+- `lib/systems/inventory/equipment_inventory_action_service.dart`
+
+### Modified files
+
+- `lib/core/save/player_save_provider.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `lib/features/equipment/equipment_page_view_model.dart`
+- `lib/models/inventory_state.dart`
+- `lib/models/save_data.dart`
+- `test/equipment_page_widget_test.dart`
+- `test/inventory_service_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- `EquipmentPageViewModelFactory.create` now requires an explicit `classId`.
+- Equipment page passes `saveData.playerProgress.currentClassId` into the ViewModel factory.
+- Added persisted `equipmentLoadout` to `InventoryState` and `InventorySave`.
+- Old saves without `equipmentLoadout` still read as an empty loadout.
+- Added `lockEquipment`, `unlockEquipment`, and `isLocked` helpers.
+- Added `EquipmentInventoryActionService` for salvage rules.
+- Locked equipment and equipped equipment cannot be salvaged.
+- Salvage removes both equipment id and full `EquipmentInstance`.
+- Salvage currently grants `salvage_dust x1`.
+- Equipment detail dialog now exposes equip, lock/unlock, and salvage actions.
+- Equip uses `EquipmentService.equipFromInventory` with current save class and level validation.
+- Equipment actions save through `SaveService.save` via `PlayerSaveController`.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\inventory_service_test.dart test\equipment_page_widget_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+- Passed: `I:\dev\flutter\bin\flutter.bat test`
+
+### Save impact
+
+- `InventorySave` now writes optional `equipmentLoadout`.
+- `saveVersion` remains `3` because old saves read this field as an empty loadout.
+
+### Remaining
+
+- Tune salvage rewards by quality and level once material economy is specified.
+- Add bulk salvage and locked-item filters after the equipment page grows list controls.
+- Surface equipped-slot state in future character/final-stats UI.
