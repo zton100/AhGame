@@ -1,3 +1,4 @@
+import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,5 +22,27 @@ void main() {
       result.database.findRecord('drop_pools', 'drop_chapter_1'),
       isNotNull,
     );
+  });
+
+  test('seed class data can be parsed by ClassService', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final classes = ClassService(result.database).listClasses();
+
+    expect(classes.map((classConfig) => classConfig.id), [
+      'ember_mage',
+      'exile',
+      'frost_ranger',
+      'necrospeaker',
+      'sanctifier',
+    ]);
+    for (final classConfig in classes) {
+      expect(classConfig.name, isNotEmpty);
+      expect(classConfig.tags, isNotEmpty);
+      expect(classConfig.baseStats.hp, greaterThan(0));
+      expect(classConfig.growth.attack, greaterThan(0));
+    }
   });
 }

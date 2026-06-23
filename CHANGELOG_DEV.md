@@ -306,3 +306,42 @@
 - Wire the lifecycle observer into real app startup after save bootstrapping is introduced.
 - Surface live save and auto-save status in the Debug page.
 - Add Settings page manual save/export/import placeholders after the settings UI exists.
+
+## S04 Character Class System / Service Layer - 2026-06-23
+
+### Added files
+
+- `lib/models/stat_block.dart`
+- `lib/models/class_config.dart`
+- `lib/models/character_state.dart`
+- `lib/systems/character/class_service.dart`
+- `lib/systems/character/character_service.dart`
+- `test/character_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `ClassConfig` parsing from `classes.json`, including stable id, display name, tags, base stats, and growth stats.
+- Added `CharacterState` as a service-layer view of current class, level, experience, and base stats.
+- Added `ClassService` for listing, finding, and requiring class configs from `GameDatabase`.
+- Added `CharacterService` for creating a character, restoring from `SaveData`, and switching current class while preserving level and experience.
+- Verified all 5 configured classes parse through the real seed data path.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\character_service_test.dart test\seed_data_integration_test.dart`
+
+### Save impact
+
+- No save schema change. Character state uses existing `SaveData.playerProgress.currentClassId`, `level`, and `experience`.
+
+### Remaining
+
+- Add character page UI integration.
+- Add `LevelService` and `level_curves.json` for Issue 015.
+- Add stat aggregation in S06/Issue 016 before equipment and combat consume final stats.
