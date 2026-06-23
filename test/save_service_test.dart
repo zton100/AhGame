@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:abyss_relic/models/affix_config.dart';
+import 'package:abyss_relic/models/equipment_instance.dart';
 import 'package:abyss_relic/models/save_data.dart';
 import 'package:abyss_relic/systems/save/auto_save_service.dart';
 import 'package:abyss_relic/systems/save/backup_service.dart';
@@ -40,6 +42,45 @@ void main() {
 
     expect(loaded.playerProgress.level, 7);
     expect(loaded.playerProgress.currentClassId, 'sanctifier');
+  });
+
+  test('SaveService preserves full equipment instances across reload',
+      () async {
+    final store = InMemorySaveStore();
+    final service = SaveService(store: store);
+    final equipment = EquipmentInstance(
+      instanceId: 'eq_1',
+      templateId: 'rusted_blade',
+      qualityId: 'rare',
+      level: 5,
+      createdAt: DateTime.utc(2026, 6, 24),
+      rolledBaseStats: const [RolledBaseStat(stat: 'attack', value: 12)],
+      rolledAffixes: const [
+        RolledAffix(
+          affixId: 'aff_poison_damage',
+          rollValue: 0.12,
+          exclusiveGroup: 'element_damage',
+        ),
+      ],
+    );
+    final initial = SaveData.newGame(now: DateTime.utc(2026, 6, 24));
+    final changed = initial.copyWith(
+      inventory: initial.inventory.copyWith(
+        equipmentInstanceIds: ['eq_1'],
+        equipmentInstances: {'eq_1': equipment},
+      ),
+    );
+
+    await service.save(changed);
+    final loaded = await service.loadOrCreate();
+    final restored = loaded.inventory.equipmentInstances['eq_1']!;
+
+    expect(loaded.inventory.equipmentInstanceIds, ['eq_1']);
+    expect(restored.templateId, 'rusted_blade');
+    expect(restored.qualityId, 'rare');
+    expect(restored.rolledBaseStats.single.value, 12);
+    expect(restored.rolledAffixes.single.affixId, 'aff_poison_damage');
+    expect(restored.rolledAffixes.single.rollValue, 0.12);
   });
 
   test('SaveService stores previous save data as a backup before overwrite',

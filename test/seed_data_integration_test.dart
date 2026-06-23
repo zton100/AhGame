@@ -16,6 +16,7 @@ import 'package:abyss_relic/systems/equipment/affix_roll_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_generation_service.dart';
 import 'package:abyss_relic/systems/equipment/quality_service.dart';
+import 'package:abyss_relic/systems/inventory/equipment_loot_commit_service.dart';
 import 'package:abyss_relic/systems/inventory/loot_inventory_service.dart';
 import 'package:abyss_relic/systems/stats/damage_formula_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -355,14 +356,22 @@ void main() {
       qualityId: 'rare',
       seed: 500,
     );
-    final inventory = const LootInventoryService().applyDrops(
+    final inventory = const EquipmentLootCommitService().commitMaterialized(
       state: const InventoryState(equipmentInstanceIds: []),
-      drops: materialized.inventoryDrops,
+      materialized: materialized,
     );
 
     expect(materialized.generatedEquipment.single.templateId, 'rusted_blade');
-    expect(inventory.acceptedDrops, hasLength(1));
+    expect(inventory.acceptedEquipment, hasLength(1));
     expect(inventory.state.equipmentInstanceIds,
         [materialized.generatedEquipment.single.instanceId]);
+    expect(
+      inventory
+          .state
+          .equipmentInstances[
+              materialized.generatedEquipment.single.instanceId]!
+          .templateId,
+      'rusted_blade',
+    );
   });
 }

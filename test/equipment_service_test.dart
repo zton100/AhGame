@@ -1,6 +1,7 @@
 import 'package:abyss_relic/models/equipment_instance.dart';
 import 'package:abyss_relic/models/equipment_loadout.dart';
 import 'package:abyss_relic/models/equipment_template.dart';
+import 'package:abyss_relic/models/inventory_state.dart';
 import 'package:abyss_relic/systems/equipment/equipment_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,6 +43,41 @@ void main() {
       ),
       throwsA(isA<StateError>()),
     );
+  });
+
+  test('EquipmentService rejects missing inventory instance ids', () {
+    const service = EquipmentService();
+
+    expect(
+      () => service.equipFromInventory(
+        loadout: const EquipmentLoadout.empty(),
+        inventory: const InventoryState(equipmentInstanceIds: []),
+        instanceId: 'missing_eq',
+        template: _template(),
+        classId: 'exile',
+        level: 5,
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
+
+  test('EquipmentService equips existing inventory instance by id', () {
+    const service = EquipmentService();
+    final equipment = _equipment();
+
+    final updated = service.equipFromInventory(
+      loadout: const EquipmentLoadout.empty(),
+      inventory: InventoryState(
+        equipmentInstanceIds: const ['eq_1'],
+        equipmentInstances: {'eq_1': equipment},
+      ),
+      instanceId: 'eq_1',
+      template: _template(),
+      classId: 'exile',
+      level: 5,
+    );
+
+    expect(updated.equippedInstanceId(EquipmentSlot.mainWeapon), 'eq_1');
   });
 
   test('EquipmentService unequips equipment from a slot', () {

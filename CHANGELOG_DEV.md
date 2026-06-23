@@ -928,6 +928,51 @@
 
 ### Remaining
 
-- Persist full generated equipment instances alongside inventory ids.
+- Add material seed data when material economy starts.
+- Build equipment page/card UI from inventory contents.
+
+## S08 Equipment Instance Persistence - 2026-06-24
+
+### Added files
+
+- `lib/systems/inventory/equipment_instance_store.dart`
+- `lib/systems/inventory/equipment_loot_commit_service.dart`
+- `test/equipment_loot_commit_service_test.dart`
+
+### Modified files
+
+- `lib/models/inventory_state.dart`
+- `lib/models/save_data.dart`
+- `lib/systems/equipment/equipment_service.dart`
+- `test/inventory_service_test.dart`
+- `test/equipment_service_test.dart`
+- `test/save_service_test.dart`
+- `test/seed_data_integration_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Extended `InventoryState` and `InventorySave` with `equipmentInstances` and `lockedEquipmentInstanceIds`.
+- Added `EquipmentInstanceStore` for add, remove, find, require, ordered listing, and containment checks.
+- Added `EquipmentLootCommitService` to commit generated equipment instances and passthrough loot without orphan records.
+- Full generated equipment instances now persist alongside `equipmentInstanceIds`.
+- Duplicate equipment instance commits are idempotent.
+- Full equipment bags reject new generated instances when full without saving orphan `EquipmentInstance` values.
+- `EquipmentService` can equip by inventory instance id and rejects missing ids before class and level validation.
+- Verified save/load preserves `templateId`, `qualityId`, `rolledBaseStats`, and `rolledAffixes`.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\inventory_service_test.dart test\equipment_loot_commit_service_test.dart test\equipment_service_test.dart test\save_service_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- Save schema now includes optional `equipmentInstances` and `lockedEquipmentInstanceIds`.
+- `saveVersion` remains `3` because old saves read these fields as an empty map/list.
+- Existing id-only inventory saves remain valid.
+
+### Remaining
+
 - Add material seed data when material economy starts.
 - Build equipment page/card UI from inventory contents.
