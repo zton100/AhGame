@@ -35,6 +35,6 @@ void main() {
 
     expect(find.text('Debug'), findsOneWidget);
     expect(find.text('Bootstrap'), findsOneWidget);
-    expect(find.text('Quality Tokens'), findsOneWidget);
+    expect(find.text('Config Database'), findsOneWidget);
   });
 }

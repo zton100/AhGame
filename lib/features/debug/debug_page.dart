@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/bootstrap/game_bootstrap.dart';
 import '../../core/routing/app_route.dart';
 import '../../core/theme/quality_theme.dart';
+import '../../systems/config/game_database_service.dart';
 import '../../systems/navigation/navigation_service.dart';
 
 class DebugPage extends ConsumerWidget {
@@ -12,6 +13,7 @@ class DebugPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bootstrap = ref.watch(gameBootstrapProvider);
+    final databaseLoad = ref.watch(gameDatabaseLoadProvider);
     final tabs = const NavigationService().mainTabs;
 
     return Scaffold(
@@ -27,6 +29,34 @@ class DebugPage extends ConsumerWidget {
               'version': bootstrap.config.version,
               'data_path': bootstrap.config.dataPath,
               'debug_enabled': bootstrap.debugService.isEnabled.toString(),
+            },
+          ),
+          const SizedBox(height: 12),
+          databaseLoad.when(
+            data: (result) {
+              return _DebugSection(
+                title: 'Config Database',
+                rows: {
+                  'files': result.summary.fileCount.toString(),
+                  'records': result.summary.recordCount.toString(),
+                  'errors': result.summary.errorCount.toString(),
+                  'tables': result.database.tableNames.join(', '),
+                },
+              );
+            },
+            error: (error, _) {
+              return _DebugSection(
+                title: 'Config Database',
+                rows: {'error': error.toString()},
+              );
+            },
+            loading: () {
+              return const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('Loading config database...'),
+                ),
+              );
             },
           ),
           const SizedBox(height: 12),

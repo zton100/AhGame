@@ -93,3 +93,42 @@
 
 - S02 后续需要实现 `GameDatabase` 聚合访问层。
 - S02 后续需要实现 id 唯一性校验、引用校验和 Debug 错误展示。
+
+## S02 数据配置加载与校验系统 / GameDatabase - 2026-06-23
+
+### 新增文件
+
+- `lib/models/game_database_summary.dart`
+- `lib/systems/config/game_database.dart`
+- `lib/systems/config/game_database_load_result.dart`
+- `lib/systems/config/game_database_service.dart`
+- `test/game_database_service_test.dart`
+
+### 修改文件
+
+- `lib/features/debug/debug_page.dart`
+- `test/widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### 完成内容
+
+- 新增 `GameDatabase` 聚合访问层。
+- 支持从多个 `LoadedDataFile` 构建配置数据库。
+- 支持按配置文件路径查询文件元数据。
+- 支持按表名和稳定 id 查询记录，缺失 id 返回 `null`，不抛未处理异常。
+- 新增 `GameDatabaseService`，汇总成功加载文件、加载错误和数据库摘要。
+- Debug 页显示配置文件数量、记录数量、错误数量和已构建表名。
+
+### 测试结果
+
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+
+### 存档影响
+
+- 暂无存档结构变更。
+
+### 待处理问题
+
+- S02 后续需要实现配置必填字段校验、id 唯一性校验和引用完整性检查。
+- Debug 页后续需要支持配置错误列表按文件筛选。
