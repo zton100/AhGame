@@ -1,31 +1,70 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/save/player_save_provider.dart';
 import '../../core/theme/app_theme.dart';
-import '../../models/inventory_state.dart';
+import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
 import 'equipment_card_view_model.dart';
 import 'equipment_page_view_model.dart';
 
-final equipmentInventoryProvider = StateProvider<InventoryState>((ref) {
-  return const InventoryState(equipmentInstanceIds: []);
-});
-
-class EquipmentPage extends ConsumerWidget {
+class EquipmentPage extends ConsumerStatefulWidget {
   const EquipmentPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EquipmentPage> createState() => _EquipmentPageState();
+}
+
+class _EquipmentPageState extends ConsumerState<EquipmentPage> {
+  var _isGeneratingTestEquipment = false;
+
+  @override
+  Widget build(BuildContext context) {
     final databaseLoad = ref.watch(gameDatabaseLoadProvider);
-    final inventory = ref.watch(equipmentInventoryProvider);
+    final saveLoad = ref.watch(playerSaveProvider);
+
+    if (saveLoad.isLoading && !saveLoad.hasValue) {
+      return const _EquipmentMessage(
+        title: '正在读取存档',
+        message: '如果没有存档，会自动创建一个新存档。',
+        icon: Icons.save_outlined,
+      );
+    }
+
+    if (saveLoad.hasError && !saveLoad.hasValue) {
+      return _EquipmentMessage(
+        title: '存档读取失败',
+        message: saveLoad.error.toString(),
+        icon: Icons.error_outline,
+      );
+    }
+
+    final saveData = saveLoad.valueOrNull;
+    if (saveData == null) {
+      return const _EquipmentMessage(
+        title: '正在创建存档',
+        message: '装备页会在存档准备完成后显示背包内容。',
+        icon: Icons.hourglass_empty,
+      );
+    }
 
     return databaseLoad.when(
       data: (result) {
+        final inventory = inventoryStateFromSave(saveData.inventory);
         final viewModel = const EquipmentPageViewModelFactory().create(
           inventory: inventory,
           database: result.database,
         );
-        return _EquipmentPageContent(viewModel: viewModel);
+        return _EquipmentPageContent(
+          viewModel: viewModel,
+          debugAction: _DebugGenerateButton(
+            isGenerating: _isGeneratingTestEquipment,
+            onPressed: _isGeneratingTestEquipment
+                ? null
+                : () => _generateTestEquipment(result.database),
+          ),
+        );
       },
       error: (error, _) {
         return _EquipmentMessage(
@@ -43,31 +82,69 @@ class EquipmentPage extends ConsumerWidget {
       },
     );
   }
+
+  Future<void> _generateTestEquipment(GameDatabase database) async {
+    setState(() => _isGeneratingTestEquipment = true);
+    try {
+      await ref.read(playerSaveProvider.notifier).generateTestEquipment(
+            database,
+          );
+    } on Object catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('生成测试装备失败：$error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingTestEquipment = false);
+      }
+    }
+  }
 }
 
 class _EquipmentPageContent extends StatelessWidget {
-  const _EquipmentPageContent({required this.viewModel});
+  const _EquipmentPageContent({
+    required this.viewModel,
+    required this.debugAction,
+  });
 
   final EquipmentPageViewModel viewModel;
+  final Widget debugAction;
 
   @override
   Widget build(BuildContext context) {
     if (viewModel.isEmpty) {
-      return const _EquipmentMessage(
+      return _EquipmentMessage(
         title: '背包暂无装备',
         message: '击败敌人后获得的装备会出现在这里。',
         icon: Icons.inventory_2_outlined,
+        action: debugAction,
       );
     }
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('装备', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 4),
-        Text(
-          '背包 ${viewModel.items.length} 件装备',
-          style: Theme.of(context).textTheme.bodySmall,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('装备', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 4),
+                  Text(
+                    '背包 ${viewModel.items.length} 件装备',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            debugAction,
+          ],
         ),
         if (viewModel.missingInstanceIds.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -120,7 +197,7 @@ class _EquipmentCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${card.qualityLabel} · ${item.slotLabel}',
+                          '${card.qualityLabel} / ${item.slotLabel}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -185,7 +262,7 @@ class _EquipmentDetailDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('${card.qualityLabel} · ${item.slotLabel}'),
+            Text('${card.qualityLabel} / ${item.slotLabel}'),
             const SizedBox(height: 12),
             _DetailSection(
               title: '基础属性',
@@ -292,7 +369,7 @@ class _TagRow extends StatelessWidget {
       runSpacing: 8,
       children: [
         if (matchedTags.isEmpty && rejectedTags.isEmpty)
-          const _Chip(label: '暂无BD标签', color: AppTheme.surfaceRaised),
+          const _Chip(label: '暂无 BD 标签', color: AppTheme.surfaceRaised),
         for (final tag in matchedTags.take(4))
           _Chip(label: '推荐 $tag', color: AppTheme.primary),
         for (final tag in rejectedTags.take(3))
@@ -362,19 +439,52 @@ class _WarningBanner extends StatelessWidget {
   }
 }
 
+class _DebugGenerateButton extends StatelessWidget {
+  const _DebugGenerateButton({
+    required this.isGenerating,
+    required this.onPressed,
+  });
+
+  final bool isGenerating;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!kDebugMode) {
+      return const SizedBox.shrink();
+    }
+
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: isGenerating
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.add_circle_outline),
+      label: Text(isGenerating ? '生成中...' : '生成测试装备到背包'),
+    );
+  }
+}
+
 class _EquipmentMessage extends StatelessWidget {
   const _EquipmentMessage({
     required this.title,
     required this.message,
     required this.icon,
+    this.action,
   });
 
   final String title;
   final String message;
   final IconData icon;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
+    final action = this.action;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -390,6 +500,10 @@ class _EquipmentMessage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            if (action != null) ...[
+              const SizedBox(height: 16),
+              action,
+            ],
           ],
         ),
       ),
@@ -400,7 +514,7 @@ class _EquipmentMessage extends StatelessWidget {
 String _affixLine(EquipmentAffixViewModel affix) {
   final roll =
       affix.rollValue == null ? '' : ' (${_formatNumber(affix.rollValue!)})';
-  final mechanic = affix.isMechanic ? ' · 机制' : '';
+  final mechanic = affix.isMechanic ? ' / 机制' : '';
   return '${affix.name}$roll$mechanic';
 }
 

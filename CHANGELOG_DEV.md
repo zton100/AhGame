@@ -1056,3 +1056,45 @@
 
 - Add material seed data when material economy starts.
 - Build equipment page/card UI from inventory contents.
+
+## S11 Equipment Page SaveData Integration - 2026-06-24
+
+### Added files
+
+- `lib/core/save/player_save_provider.dart`
+
+### Modified files
+
+- `lib/main.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `test/equipment_page_widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `saveServiceProvider` and `playerSaveProvider` as the app-level SaveData access point.
+- Wired production startup to Hive-backed `SaveService` with backup storage.
+- Removed the temporary equipment inventory provider from `EquipmentPage`.
+- Equipment page now renders from the current `SaveData.inventory` through `InventoryState`.
+- Added loading, creating, and save-error states for missing or pending saves.
+- Added a debug-only "generate test equipment" action.
+- Test equipment generation now uses the formal chain: `DropPoolService` -> `EquipmentLootMaterializationService` -> `EquipmentLootCommitService` -> `SaveService.save`.
+- Added conversion helpers between `InventorySave` and `InventoryState`.
+- Verified generated equipment remains visible after SaveService reload.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_page_widget_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\widget_test.dart test\save_service_test.dart`
+
+### Save impact
+
+- No save schema change.
+- Existing `InventorySave` full equipment instance fields are now consumed by the real equipment page.
+- App startup now persists saves through Hive instead of the previous UI-only temporary inventory.
+
+### Remaining
+
+- Add equip, lock, and salvage actions on top of the real equipment inventory page.
+- Surface save/debug status in the Debug page after broader save management UI is introduced.
+- Add material seed data when material economy starts.
