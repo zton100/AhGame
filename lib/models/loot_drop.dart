@@ -7,10 +7,11 @@ class LootDrop {
 
   const LootDrop.equipment({
     required String instanceId,
+    int quantity = 1,
   }) : this._(
           type: LootDropType.equipment,
           refId: instanceId,
-          quantity: 1,
+          quantity: quantity,
         );
 
   const LootDrop.material({

@@ -10,6 +10,7 @@ import 'package:abyss_relic/systems/build/equipment_compare_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
 import 'package:abyss_relic/systems/drop/drop_pool_service.dart';
+import 'package:abyss_relic/systems/drop/equipment_loot_materialization_service.dart';
 import 'package:abyss_relic/systems/equipment/affix_effect_resolver.dart';
 import 'package:abyss_relic/systems/equipment/affix_roll_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
@@ -328,5 +329,40 @@ void main() {
     expect(drops, hasLength(1));
     expect(drops.single.refId, isNotEmpty);
     expect(drops.single.quantity, greaterThan(0));
+  });
+
+  test('seed equipment drop can materialize and enter inventory', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+    final dropPoolService = DropPoolService(result.database);
+    final equipmentDrop = [
+      for (var seed = 1; seed <= 200; seed += 1)
+        ...dropPoolService.roll(poolId: 'drop_chapter_1', seed: seed),
+    ].firstWhere((drop) => drop.refId == 'rusted_blade');
+    final generationService = EquipmentGenerationService(
+      templateService: EquipmentTemplateService(result.database),
+      qualityService: QualityService(result.database),
+      affixRollService: AffixRollService(result.database),
+    );
+
+    final materialized = EquipmentLootMaterializationService(
+      generationService: generationService,
+    ).materialize(
+      drops: [equipmentDrop],
+      classId: 'exile',
+      level: 1,
+      qualityId: 'rare',
+      seed: 500,
+    );
+    final inventory = const LootInventoryService().applyDrops(
+      state: const InventoryState(equipmentInstanceIds: []),
+      drops: materialized.inventoryDrops,
+    );
+
+    expect(materialized.generatedEquipment.single.templateId, 'rusted_blade');
+    expect(inventory.acceptedDrops, hasLength(1));
+    expect(inventory.state.equipmentInstanceIds,
+        [materialized.generatedEquipment.single.instanceId]);
   });
 }

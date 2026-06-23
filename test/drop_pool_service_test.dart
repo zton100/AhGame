@@ -40,6 +40,16 @@ void main() {
     expect(drop.refId, 'core_plague_heart');
   });
 
+  test('DropPoolService preserves equipment quantity rolls', () {
+    final service = DropPoolService(_database());
+
+    final drop = service.roll(poolId: 'equipment_pool', seed: 1).single;
+
+    expect(drop.type, LootDropType.equipment);
+    expect(drop.refId, 'rusted_blade');
+    expect(drop.quantity, 2);
+  });
+
   test('DropPoolService rejects missing pools', () {
     final service = DropPoolService(_database());
 
@@ -56,7 +66,7 @@ GameDatabase _database() {
       meta: const DataFileMeta(
         assetPath: 'assets/data/drop_pools.json',
         schemaVersion: 1,
-        recordCount: 2,
+        recordCount: 3,
         topLevelKeys: ['schemaVersion', 'drop_pools'],
       ),
       json: {
@@ -92,6 +102,19 @@ GameDatabase _database() {
                 'weight': 100,
                 'minQty': 1,
                 'maxQty': 1,
+              },
+            ],
+          },
+          {
+            'id': 'equipment_pool',
+            'name': 'Equipment Pool',
+            'entries': [
+              {
+                'type': 'equipment',
+                'refId': 'rusted_blade',
+                'weight': 100,
+                'minQty': 2,
+                'maxQty': 2,
               },
             ],
           },

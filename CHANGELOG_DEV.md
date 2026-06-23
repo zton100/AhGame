@@ -890,6 +890,44 @@
 
 ### Remaining
 
-- Materialize equipment template drops into full generated `EquipmentInstance` values before adding them to inventory.
+- Add material seed data when material economy starts.
+- Build equipment page/card UI from inventory contents.
+
+## S07 Equipment Loot Materialization - 2026-06-23
+
+### Added files
+
+- `lib/systems/drop/equipment_loot_materialization_service.dart`
+- `test/equipment_loot_materialization_service_test.dart`
+
+### Modified files
+
+- `lib/models/loot_drop.dart`
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Extended `LootDrop.equipment` to preserve quantity while keeping the default quantity at 1.
+- Added `EquipmentLootMaterializationService`.
+- Equipment template loot now generates full `EquipmentInstance` values through `EquipmentGenerationService`.
+- Generated equipment is converted into inventory-ready equipment instance drops.
+- Non-equipment loot passes through unchanged.
+- Verified seed `drop_chapter_1` can roll `rusted_blade`, materialize it, and add it to inventory.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_loot_materialization_service_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change in this slice.
+- Inventory still stores equipment instance ids; full equipment instance ownership/persistence remains to be added.
+
+### Remaining
+
+- Persist full generated equipment instances alongside inventory ids.
 - Add material seed data when material economy starts.
 - Build equipment page/card UI from inventory contents.

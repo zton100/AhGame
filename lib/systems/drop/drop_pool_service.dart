@@ -58,7 +58,7 @@ class DropPoolService {
   }) {
     switch (entry.type) {
       case 'equipment':
-        return LootDrop.equipment(instanceId: entry.refId);
+        return LootDrop.equipment(instanceId: entry.refId, quantity: quantity);
       case 'material':
         return LootDrop.material(materialId: entry.refId, quantity: quantity);
       default:
