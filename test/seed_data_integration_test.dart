@@ -1,5 +1,7 @@
 import 'package:abyss_relic/models/affix_config.dart';
 import 'package:abyss_relic/features/equipment/equipment_card_view_model.dart';
+import 'package:abyss_relic/models/inventory_state.dart';
+import 'package:abyss_relic/models/loot_drop.dart';
 import 'package:abyss_relic/systems/build/build_score_service.dart';
 import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
@@ -12,6 +14,7 @@ import 'package:abyss_relic/systems/equipment/affix_roll_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_generation_service.dart';
 import 'package:abyss_relic/systems/equipment/quality_service.dart';
+import 'package:abyss_relic/systems/inventory/loot_inventory_service.dart';
 import 'package:abyss_relic/systems/stats/damage_formula_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -279,5 +282,35 @@ void main() {
     expect(viewModel.qualityId, 'rare');
     expect(viewModel.affixes.single.affixId, 'aff_poison_damage_pct_t1');
     expect(viewModel.matchScore, greaterThan(0));
+  });
+
+  test('seed generated equipment can enter inventory as loot', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+    final templateService = EquipmentTemplateService(result.database);
+    final qualityService = QualityService(result.database);
+    final equipment = EquipmentGenerationService(
+      templateService: templateService,
+      qualityService: qualityService,
+      affixRollService: AffixRollService(result.database),
+    ).generate(
+      templateId: 'rusted_blade',
+      qualityId: 'rare',
+      classId: 'exile',
+      level: 1,
+      seed: 100,
+    );
+
+    final inventory = const LootInventoryService().applyDrops(
+      state: const InventoryState(equipmentInstanceIds: []),
+      drops: [
+        LootDrop.equipment(instanceId: equipment.instanceId),
+      ],
+    );
+
+    expect(inventory.acceptedDrops, hasLength(1));
+    expect(inventory.rejectedDrops, isEmpty);
+    expect(inventory.state.equipmentInstanceIds, [equipment.instanceId]);
   });
 }

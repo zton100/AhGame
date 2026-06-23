@@ -816,6 +816,44 @@
 
 ### Remaining
 
-- Connect drop results into `InventoryService`.
 - Store full generated equipment instances once inventory ownership is expanded beyond ids.
+- Build equipment page/card UI from inventory contents.
+
+## S07 Loot To Inventory - 2026-06-23
+
+### Added files
+
+- `lib/models/loot_drop.dart`
+- `lib/systems/inventory/loot_inventory_service.dart`
+- `test/loot_inventory_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `LootDrop` for equipment, material, and unsupported/other drop results.
+- Added `LootInventoryService` to apply loot drops through `InventoryService`.
+- Equipment loot now enters inventory by instance id.
+- Material loot stacks by material id.
+- Full equipment inventory rejects equipment drops without crashing while still accepting material drops.
+- Unsupported types such as future soul core drops are safely reported as unsupported.
+- Verified seed generated `rusted_blade` can enter inventory as loot.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\loot_inventory_service_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No additional save schema change beyond the inventory fields added in the previous slice.
+
+### Remaining
+
+- Generate `LootDrop` results from `drop_pools.json` with deterministic weights and quantities.
+- Store full generated equipment instances once inventory ownership expands beyond ids.
 - Build equipment page/card UI from inventory contents.
