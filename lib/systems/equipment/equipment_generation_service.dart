@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import '../../models/affix_config.dart';
 import '../../models/equipment_instance.dart';
 import '../../models/equipment_template.dart';
+import 'affix_roll_service.dart';
 import 'equipment_template_service.dart';
 import 'quality_service.dart';
 
@@ -9,11 +11,14 @@ class EquipmentGenerationService {
   const EquipmentGenerationService({
     required EquipmentTemplateService templateService,
     required QualityService qualityService,
+    AffixRollService? affixRollService,
   })  : _templateService = templateService,
-        _qualityService = qualityService;
+        _qualityService = qualityService,
+        _affixRollService = affixRollService;
 
   final EquipmentTemplateService _templateService;
   final QualityService _qualityService;
+  final AffixRollService? _affixRollService;
 
   EquipmentInstance generate({
     required String templateId,
@@ -52,7 +57,13 @@ class EquipmentGenerationService {
       level: level,
       createdAt: createdAt ?? DateTime.now().toUtc(),
       rolledBaseStats: rolledBaseStats,
-      rolledAffixes: const [],
+      rolledAffixes: _rollAffixes(
+        template: template,
+        level: level,
+        seed: seed,
+        minCount: quality.affixMin,
+        maxCount: quality.affixMax,
+      ),
     );
   }
 
@@ -85,6 +96,50 @@ class EquipmentGenerationService {
     }
 
     return min + (max - min) * random.nextDouble();
+  }
+
+  int _rollAffixCount({
+    required int minCount,
+    required int maxCount,
+    required Random random,
+  }) {
+    final min = minCount < 0
+        ? 0
+        : minCount > maxCount
+            ? maxCount
+            : minCount;
+    if (maxCount <= min) {
+      return min;
+    }
+
+    return min + random.nextInt(maxCount - min + 1);
+  }
+
+  List<RolledAffix> _rollAffixes({
+    required EquipmentTemplate template,
+    required int level,
+    required int seed,
+    required int minCount,
+    required int maxCount,
+  }) {
+    final affixRollService = _affixRollService;
+    if (affixRollService == null) {
+      return const [];
+    }
+
+    final random = Random(seed ^ 0xaff1);
+    final count = _rollAffixCount(
+      minCount: minCount,
+      maxCount: maxCount,
+      random: random,
+    );
+
+    return affixRollService.rollAffixes(
+      level: level,
+      allowedTags: template.affixRules.allowedTags,
+      count: count,
+      seed: seed ^ 0xaff2,
+    );
   }
 
   String _instanceId({

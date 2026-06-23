@@ -2,6 +2,7 @@ import 'package:abyss_relic/models/data_file_meta.dart';
 import 'package:abyss_relic/models/equipment_instance.dart';
 import 'package:abyss_relic/models/loaded_data_file.dart';
 import 'package:abyss_relic/systems/config/game_database.dart';
+import 'package:abyss_relic/systems/equipment/affix_roll_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_generation_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
 import 'package:abyss_relic/systems/equipment/quality_service.dart';
@@ -30,6 +31,8 @@ void main() {
     expect(first.instanceId, second.instanceId);
     expect(first.rolledBaseStats.single.value,
         second.rolledBaseStats.single.value);
+    expect(first.rolledAffixes.map((affix) => affix.affixId),
+        second.rolledAffixes.map((affix) => affix.affixId));
   });
 
   test('EquipmentGenerationService creates unique ids for different seeds', () {
@@ -86,6 +89,50 @@ void main() {
     expect(restored.qualityId, 'rare');
     expect(restored.rolledBaseStats.single.value,
         equipment.rolledBaseStats.single.value);
+    expect(restored.rolledAffixes.single.affixId,
+        equipment.rolledAffixes.single.affixId);
+    expect(restored.rolledAffixes.single.rollValue,
+        equipment.rolledAffixes.single.rollValue);
+  });
+
+  test('EquipmentInstance supports legacy affix id JSON', () {
+    final restored = EquipmentInstance.fromJson({
+      'instanceId': 'eq_legacy',
+      'templateId': 'rusted_blade',
+      'qualityId': 'rare',
+      'level': 5,
+      'createdAt': DateTime.utc(2026, 1, 1).toIso8601String(),
+      'rolledBaseStats': [
+        {'stat': 'attack', 'value': 10},
+      ],
+      'rolledAffixes': ['aff_poison_damage'],
+    });
+
+    expect(restored.rolledAffixes.single.affixId, 'aff_poison_damage');
+    expect(restored.rolledAffixes.single.rollValue, isNull);
+    expect(restored.toJson()['rolledAffixes'], [
+      {
+        'affixId': 'aff_poison_damage',
+        'rollValue': null,
+        'exclusiveGroup': null,
+      },
+    ]);
+  });
+
+  test('EquipmentGenerationService rolls affixes from template tags', () {
+    final equipment = _generationService().generate(
+      templateId: 'rusted_blade',
+      qualityId: 'rare',
+      classId: 'exile',
+      level: 5,
+      seed: 9,
+    );
+
+    expect(equipment.rolledAffixes, hasLength(1));
+    expect(equipment.rolledAffixes.single.affixId, 'aff_poison_damage');
+    expect(
+        equipment.rolledAffixes.single.rollValue, greaterThanOrEqualTo(0.06));
+    expect(equipment.rolledAffixes.single.rollValue, lessThanOrEqualTo(0.18));
   });
 
   test('EquipmentGenerationService rejects class and level mismatches', () {
@@ -168,10 +215,41 @@ EquipmentGenerationService _generationService() {
         ],
       },
     ),
+    LoadedDataFile(
+      meta: const DataFileMeta(
+        assetPath: 'assets/data/affixes.json',
+        schemaVersion: 1,
+        recordCount: 1,
+        topLevelKeys: ['schemaVersion', 'affixes'],
+      ),
+      json: {
+        'schemaVersion': 1,
+        'affixes': [
+          {
+            'id': 'aff_poison_damage',
+            'name': 'Poison Damage',
+            'type': 'element',
+            'tags': ['poison'],
+            'minLevel': 1,
+            'weight': 120,
+            'exclusiveGroup': 'element_damage',
+            'rollRange': {'min': 0.06, 'max': 0.18, 'step': 0.01},
+            'statModifiers': [
+              {
+                'stat': 'poison_damage',
+                'mode': 'percent',
+                'valueFromRoll': true,
+              },
+            ],
+          },
+        ],
+      },
+    ),
   ]);
 
   return EquipmentGenerationService(
     templateService: EquipmentTemplateService(database),
     qualityService: QualityService(database),
+    affixRollService: AffixRollService(database),
   );
 }

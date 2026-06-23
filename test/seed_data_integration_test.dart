@@ -115,6 +115,7 @@ void main() {
     final equipment = EquipmentGenerationService(
       templateService: templateService,
       qualityService: qualityService,
+      affixRollService: AffixRollService(result.database),
     ).generate(
       templateId: 'rusted_blade',
       qualityId: 'rare',
@@ -126,6 +127,7 @@ void main() {
     expect(equipment.instanceId, isNotEmpty);
     expect(equipment.templateId, 'rusted_blade');
     expect(equipment.rolledBaseStats.single.stat, 'attack');
+    expect(equipment.rolledAffixes.single.affixId, 'aff_poison_damage_pct_t1');
   });
 
   test('seed affixes can be parsed and rolled', () async {

@@ -599,6 +599,40 @@
 
 ### Remaining
 
-- Connect affix rolls into `EquipmentGenerationService`.
 - Add `AffixEffectResolver` for Issue 022.
 - Translate stat affixes into `StatAggregationService` modifiers once resolver contracts are in place.
+
+## S07/S08 Equipment Affix Generation - 2026-06-23
+
+### Modified files
+
+- `lib/models/affix_config.dart`
+- `lib/models/equipment_instance.dart`
+- `lib/systems/equipment/equipment_generation_service.dart`
+- `test/equipment_generation_service_test.dart`
+- `test/seed_data_integration_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added JSON support for structured rolled affixes with affix id, roll value, and exclusive group.
+- Kept legacy `rolledAffixes: ["affix_id"]` save/config compatibility.
+- Allowed `EquipmentGenerationService` to optionally receive `AffixRollService`.
+- Generated equipment affixes from template allowed tags and quality affix ranges.
+- Verified seed `rusted_blade` rolls the configured poison affix when affix rolling is enabled.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_generation_service_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- Forward save shape for equipment affixes changes from strings to objects.
+- Legacy string affix ids remain readable and are normalized to structured rolled affixes on save.
+
+### Remaining
+
+- Add `AffixEffectResolver` for Issue 022.
+- Translate stat affixes into `StatAggregationService` modifiers once resolver contracts are in place.
+- Add equipment compare and inventory integration.

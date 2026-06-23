@@ -157,7 +157,23 @@ class RolledAffix {
     required this.exclusiveGroup,
   });
 
+  factory RolledAffix.fromJson(Map<String, Object?> json) {
+    return RolledAffix(
+      affixId: json['affixId'] as String,
+      rollValue: (json['rollValue'] as num?)?.toDouble(),
+      exclusiveGroup: json['exclusiveGroup'] as String?,
+    );
+  }
+
   final String affixId;
   final double? rollValue;
   final String? exclusiveGroup;
+
+  Map<String, Object?> toJson() {
+    return {
+      'affixId': affixId,
+      'rollValue': rollValue,
+      'exclusiveGroup': exclusiveGroup,
+    };
+  }
 }

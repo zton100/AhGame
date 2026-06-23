@@ -1,3 +1,5 @@
+import 'affix_config.dart';
+
 class EquipmentInstance {
   const EquipmentInstance({
     required this.instanceId,
@@ -20,8 +22,17 @@ class EquipmentInstance {
         for (final stat in json['rolledBaseStats'] as List)
           RolledBaseStat.fromJson(Map<String, Object?>.from(stat as Map)),
       ],
-      rolledAffixes:
-          List<String>.from(json['rolledAffixes'] as List? ?? const []),
+      rolledAffixes: [
+        for (final affix in json['rolledAffixes'] as List? ?? const [])
+          if (affix is String)
+            RolledAffix(
+              affixId: affix,
+              rollValue: null,
+              exclusiveGroup: null,
+            )
+          else
+            RolledAffix.fromJson(Map<String, Object?>.from(affix as Map)),
+      ],
     );
   }
 
@@ -31,7 +42,7 @@ class EquipmentInstance {
   final int level;
   final DateTime createdAt;
   final List<RolledBaseStat> rolledBaseStats;
-  final List<String> rolledAffixes;
+  final List<RolledAffix> rolledAffixes;
 
   Map<String, Object?> toJson() {
     return {
@@ -43,7 +54,9 @@ class EquipmentInstance {
       'rolledBaseStats': [
         for (final stat in rolledBaseStats) stat.toJson(),
       ],
-      'rolledAffixes': rolledAffixes,
+      'rolledAffixes': [
+        for (final affix in rolledAffixes) affix.toJson(),
+      ],
     };
   }
 }
