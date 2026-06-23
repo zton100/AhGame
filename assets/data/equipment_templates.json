@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "equipment_templates": [
+    {
+      "id": "rusted_blade",
+      "name": "锈蚀短刃",
+      "slot": "main_weapon",
+      "allowedClasses": ["exile"],
+      "minLevel": 1,
+      "qualityPool": ["normal", "magic", "rare"],
+      "baseStats": [{"stat": "attack", "min": 8, "max": 14}],
+      "affixRules": {"prefixMin": 0, "prefixMax": 1, "suffixMin": 0, "suffixMax": 1, "allowedTags": ["poison", "shadow"]}
+    },
+    {
+      "id": "grave_scepter",
+      "name": "墓语权杖",
+      "slot": "main_weapon",
+      "allowedClasses": ["necrospeaker"],
+      "minLevel": 1,
+      "qualityPool": ["normal", "magic", "rare"],
+      "baseStats": [{"stat": "attack", "min": 6, "max": 12}],
+      "affixRules": {"prefixMin": 0, "prefixMax": 1, "suffixMin": 0, "suffixMax": 1, "allowedTags": ["summon", "curse"]}
+    },
+    {
+      "id": "ember_wand",
+      "name": "余烬魔杖",
+      "slot": "main_weapon",
+      "allowedClasses": ["ember_mage"],
+      "minLevel": 1,
+      "qualityPool": ["normal", "magic", "rare"],
+      "baseStats": [{"stat": "attack", "min": 9, "max": 15}],
+      "affixRules": {"prefixMin": 0, "prefixMax": 1, "suffixMin": 0, "suffixMax": 1, "allowedTags": ["fire", "burn"]}
+    },
+    {
+      "id": "frost_bow",
+      "name": "冰痕短弓",
+      "slot": "main_weapon",
+      "allowedClasses": ["frost_ranger"],
+      "minLevel": 1,
+      "qualityPool": ["normal", "magic", "rare"],
+      "baseStats": [{"stat": "attack", "min": 8, "max": 15}],
+      "affixRules": {"prefixMin": 0, "prefixMax": 1, "suffixMin": 0, "suffixMax": 1, "allowedTags": ["frost", "crit"]}
+    },
+    {
+      "id": "sanctified_mace",
+      "name": "圣裁短锤",
+      "slot": "main_weapon",
+      "allowedClasses": ["sanctifier"],
+      "minLevel": 1,
+      "qualityPool": ["normal", "magic", "rare"],
+      "baseStats": [{"stat": "attack", "min": 7, "max": 13}],
+      "affixRules": {"prefixMin": 0, "prefixMax": 1, "suffixMin": 0, "suffixMax": 1, "allowedTags": ["holy", "block"]}
+    }
+  ]
+}

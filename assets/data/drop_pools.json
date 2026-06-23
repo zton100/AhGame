@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "drop_pools": [
+    {
+      "id": "drop_chapter_1",
+      "name": "第1章基础掉落",
+      "entries": [
+        {"type": "equipment", "refId": "rusted_blade", "weight": 100, "minQty": 1, "maxQty": 1, "conditions": {}},
+        {"type": "equipment", "refId": "grave_scepter", "weight": 100, "minQty": 1, "maxQty": 1, "conditions": {}},
+        {"type": "equipment", "refId": "ember_wand", "weight": 100, "minQty": 1, "maxQty": 1, "conditions": {}},
+        {"type": "equipment", "refId": "frost_bow", "weight": 100, "minQty": 1, "maxQty": 1, "conditions": {}},
+        {"type": "equipment", "refId": "sanctified_mace", "weight": 100, "minQty": 1, "maxQty": 1, "conditions": {}},
+        {"type": "soul_core", "refId": "core_plague_heart", "weight": 5, "minQty": 1, "maxQty": 1, "conditions": {}}
+      ]
+    }
+  ]
+}

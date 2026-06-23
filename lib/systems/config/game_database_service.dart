@@ -7,16 +7,20 @@ import 'config_validator.dart';
 import 'data_loader.dart';
 import 'game_database.dart';
 import 'game_database_load_result.dart';
+import 'reference_resolver.dart';
 
 class GameDatabaseService {
   const GameDatabaseService({
     required DataLoader dataLoader,
     ConfigValidator validator = const ConfigValidator(),
+    ReferenceResolver referenceResolver = const ReferenceResolver(),
   })  : _dataLoader = dataLoader,
-        _validator = validator;
+        _validator = validator,
+        _referenceResolver = referenceResolver;
 
   final DataLoader _dataLoader;
   final ConfigValidator _validator;
+  final ReferenceResolver _referenceResolver;
 
   Future<GameDatabaseLoadResult> loadFromAssets(List<String> assetPaths) async {
     final results = await _dataLoader.loadJsonFiles(assetPaths);
@@ -50,10 +54,14 @@ class GameDatabaseService {
     required List<LoadedDataFile> loadedFiles,
     required List<ConfigLoadError> errors,
   }) {
-    final validationErrors = _validator.validateFiles(loadedFiles);
+    final database = GameDatabase.fromFiles(loadedFiles);
+    final validationErrors = [
+      ..._validator.validateFiles(loadedFiles),
+      ..._referenceResolver.check(database),
+    ];
 
     return GameDatabaseLoadResult(
-      database: GameDatabase.fromFiles(loadedFiles),
+      database: database,
       errors: List.unmodifiable(errors),
       validationErrors: List<ConfigValidationError>.unmodifiable(
         validationErrors,

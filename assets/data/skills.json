@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "skills": [
+    {
+      "id": "toxic_slash",
+      "name": "毒刃",
+      "classId": "exile",
+      "skillType": "active",
+      "tags": ["poison", "shadow"],
+      "cooldown": 3.0,
+      "resourceCost": 10,
+      "castCondition": {"type": "always", "params": {}},
+      "effects": [
+        {"effectId": "deal_damage", "params": {"multiplier": 1.2, "damageType": "poison"}}
+      ]
+    },
+    {
+      "id": "bone_servant",
+      "name": "白骨仆从",
+      "classId": "necrospeaker",
+      "skillType": "active",
+      "tags": ["summon", "undead"],
+      "cooldown": 6.0,
+      "resourceCost": 14,
+      "castCondition": {"type": "always", "params": {}},
+      "effects": [
+        {"effectId": "apply_status", "params": {"status": "summoned_minion"}}
+      ]
+    },
+    {
+      "id": "ember_bolt",
+      "name": "余烬弹",
+      "classId": "ember_mage",
+      "skillType": "active",
+      "tags": ["fire", "burn"],
+      "cooldown": 2.5,
+      "resourceCost": 12,
+      "castCondition": {"type": "always", "params": {}},
+      "effects": [
+        {"effectId": "deal_damage", "params": {"multiplier": 1.35, "damageType": "fire"}}
+      ]
+    },
+    {
+      "id": "frost_mark",
+      "name": "冰痕标记",
+      "classId": "frost_ranger",
+      "skillType": "active",
+      "tags": ["frost", "crit", "control"],
+      "cooldown": 4.0,
+      "resourceCost": 11,
+      "castCondition": {"type": "always", "params": {}},
+      "effects": [
+        {"effectId": "apply_status", "params": {"status": "frost_mark"}}
+      ]
+    },
+    {
+      "id": "judgement_strike",
+      "name": "裁决打击",
+      "classId": "sanctifier",
+      "skillType": "active",
+      "tags": ["holy", "judgement"],
+      "cooldown": 4.5,
+      "resourceCost": 10,
+      "castCondition": {"type": "always", "params": {}},
+      "effects": [
+        {"effectId": "deal_damage", "params": {"multiplier": 1.25, "damageType": "holy"}}
+      ]
+    }
+  ]
+}

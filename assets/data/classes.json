@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "classes": [
+    {
+      "id": "exile",
+      "name": "流放者",
+      "tags": ["poison", "bleed", "shadow", "low_hp"],
+      "baseStats": {"hp": 120, "attack": 18, "armor": 6},
+      "growth": {"hp": 18, "attack": 3, "armor": 1}
+    },
+    {
+      "id": "necrospeaker",
+      "name": "亡语者",
+      "tags": ["summon", "curse", "shield", "undead"],
+      "baseStats": {"hp": 100, "attack": 14, "armor": 4},
+      "growth": {"hp": 15, "attack": 2.5, "armor": 0.8}
+    },
+    {
+      "id": "ember_mage",
+      "name": "灰烬术士",
+      "tags": ["fire", "burn", "spell", "burst"],
+      "baseStats": {"hp": 92, "attack": 22, "armor": 3},
+      "growth": {"hp": 13, "attack": 3.6, "armor": 0.6}
+    },
+    {
+      "id": "frost_ranger",
+      "name": "冰痕猎手",
+      "tags": ["frost", "crit", "ranged", "control"],
+      "baseStats": {"hp": 105, "attack": 20, "armor": 5},
+      "growth": {"hp": 15, "attack": 3.3, "armor": 0.8}
+    },
+    {
+      "id": "sanctifier",
+      "name": "圣裁者",
+      "tags": ["holy", "block", "heal", "judgement"],
+      "baseStats": {"hp": 145, "attack": 16, "armor": 9},
+      "growth": {"hp": 21, "attack": 2.4, "armor": 1.4}
+    }
+  ]
+}

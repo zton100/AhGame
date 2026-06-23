@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "difficulties": [
+    {
+      "id": "normal",
+      "name": "普通",
+      "order": 1,
+      "monsterHpMultiplier": 1,
+      "monsterAtkMultiplier": 1,
+      "eliteAffixCount": 0,
+      "abyssModifierCount": 1,
+      "qualityBonus": {}
+    },
+    {
+      "id": "torment",
+      "name": "折磨",
+      "order": 4,
+      "monsterHpMultiplier": 12,
+      "monsterAtkMultiplier": 8,
+      "eliteAffixCount": 4,
+      "abyssModifierCount": 4,
+      "qualityBonus": {"legendary": 0.06, "mythic": 0.01, "abyss": 0.003}
+    }
+  ]
+}

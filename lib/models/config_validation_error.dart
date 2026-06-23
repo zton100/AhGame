@@ -8,6 +8,7 @@ enum ConfigValidationCode {
   missingRecords,
   missingRequiredField,
   duplicateId,
+  invalidReference,
 }
 
 class ConfigValidationError {

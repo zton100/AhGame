@@ -105,6 +105,32 @@ void main() {
     expect(result.validationErrors.single.field, 'name');
     expect(result.issues.single.source.name, 'validation');
   });
+
+  test('GameDatabaseService includes reference errors in the summary',
+      () async {
+    final service = GameDatabaseService(
+      dataLoader: DataLoader(
+        bundle: _FakeAssetBundle({
+          'assets/data/skills.json': '''
+            {
+              "schemaVersion": 1,
+              "skills": [
+                {"id": "bad_skill", "name": "坏技能", "classId": "missing"}
+              ]
+            }
+          ''',
+        }),
+      ),
+    );
+
+    final result = await service.loadFromAssets([
+      'assets/data/skills.json',
+    ]);
+
+    expect(result.hasErrors, isTrue);
+    expect(result.summary.errorCount, 1);
+    expect(result.validationErrors.single.field, 'classId');
+  });
 }
 
 class _FakeAssetBundle extends CachingAssetBundle {

@@ -173,3 +173,53 @@
 
 - S02 后续需要实现跨表引用完整性检查。
 - Debug 页后续需要展示可筛选的配置错误列表。
+
+## S02 数据配置加载与校验系统 / 引用检查与首批配置 - 2026-06-23
+
+### 新增文件
+
+- `lib/systems/config/effect_registry.dart`
+- `lib/systems/config/reference_resolver.dart`
+- `assets/data/classes.json`
+- `assets/data/skills.json`
+- `assets/data/affixes.json`
+- `assets/data/equipment_templates.json`
+- `assets/data/soul_cores.json`
+- `assets/data/difficulties.json`
+- `assets/data/drop_pools.json`
+- `test/reference_resolver_test.dart`
+- `test/seed_data_integration_test.dart`
+
+### 修改文件
+
+- `lib/models/config_validation_error.dart`
+- `lib/features/debug/debug_page.dart`
+- `lib/systems/config/game_database_service.dart`
+- `CHANGELOG_DEV.md`
+
+### 完成内容
+
+- 新增 `ReferenceResolver`，实现跨表引用检查。
+- 检查技能 `classId` 是否引用存在的职业。
+- 检查装备模板和魂核 `allowedClasses` 是否引用存在的职业或 `all`。
+- 检查掉落池装备/魂核引用是否存在。
+- 检查技能、词缀、魂核、套装中的 `effectId` 是否进入 `EffectRegistry`。
+- 将引用检查接入 `GameDatabaseService`，统一纳入 `ConfigIssue` 和 Debug 错误统计。
+- 新增首批 5 职业轻量配置：流放者、亡语者、灰烬术士、冰痕猎手、圣裁者。
+- 新增每职业 1 个示例技能和 1 个示例武器模板。
+- 新增基础词缀、魂核、难度和第 1 章基础掉落池示例配置。
+- Debug 页增加前 5 条配置问题展示。
+
+### 测试结果
+
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+
+### 存档影响
+
+- 暂无存档结构变更。
+
+### 待处理问题
+
+- S02 后续可继续细化 schema 级字段类型校验。
+- Debug 页后续可增加按文件筛选和完整错误列表。

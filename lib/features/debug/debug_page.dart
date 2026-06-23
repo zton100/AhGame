@@ -34,14 +34,32 @@ class DebugPage extends ConsumerWidget {
           const SizedBox(height: 12),
           databaseLoad.when(
             data: (result) {
-              return _DebugSection(
-                title: 'Config Database',
-                rows: {
-                  'files': result.summary.fileCount.toString(),
-                  'records': result.summary.recordCount.toString(),
-                  'errors': result.summary.errorCount.toString(),
-                  'tables': result.database.tableNames.join(', '),
-                },
+              final issueRows = {
+                for (final issue in result.issues.take(5))
+                  '${issue.source.name}:${issue.code}':
+                      '${issue.assetPath} - ${issue.message}',
+              };
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _DebugSection(
+                    title: 'Config Database',
+                    rows: {
+                      'files': result.summary.fileCount.toString(),
+                      'records': result.summary.recordCount.toString(),
+                      'errors': result.summary.errorCount.toString(),
+                      'tables': result.database.tableNames.join(', '),
+                    },
+                  ),
+                  if (issueRows.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _DebugSection(
+                      title: 'Config Issues',
+                      rows: issueRows,
+                    ),
+                  ],
+                ],
               );
             },
             error: (error, _) {
