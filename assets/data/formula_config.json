@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "default",
+  "name": "Default Formula Config",
+  "displayName": "Default Formula Config",
+  "critical": {
+    "chanceHardCap": 0.85,
+    "defaultMultiplier": 1.5
+  },
+  "resistance": {
+    "hardCap": 0.75
+  },
+  "armor": {
+    "constant": 100
+  }
+}

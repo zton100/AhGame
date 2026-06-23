@@ -420,3 +420,40 @@
 - Add formula config and soft caps for crit/cooldown/resistance.
 - Add damage, defense, status, and difficulty formulas in later S06 slices.
 - Connect equipment, affixes, talents, and skills as modifier sources after their systems exist.
+
+## S06 Damage Formula / Issue 017 First Slice - 2026-06-23
+
+### Added files
+
+- `assets/data/formula_config.json`
+- `lib/models/formula_config.dart`
+- `lib/systems/stats/damage_formula_service.dart`
+- `test/damage_formula_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added data-driven formula config for critical chance cap, default critical multiplier, resistance cap, and armor constant.
+- Added `DamageContext`, `DamageResult`, and `DamageBreakdown`.
+- Added `DamageFormulaService` with base damage, skill multiplier, critical hit, resistance mitigation, and armor mitigation.
+- Damage results expose whether the hit crit, final damage, and formula breakdown values.
+- Guarded final damage from invalid numeric output.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\damage_formula_service_test.dart test\seed_data_integration_test.dart`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Add status effect formulas for poison, bleed, burn, freeze, and summons.
+- Add soft-cap config for future crit/cooldown/resistance expansion.
+- Connect combat simulation once monster and skill runtime systems exist.

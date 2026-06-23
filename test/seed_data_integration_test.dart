@@ -2,6 +2,7 @@ import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
+import 'package:abyss_relic/systems/stats/damage_formula_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -24,6 +25,7 @@ void main() {
       isNotNull,
     );
     expect(result.database.findRecord('level_curves', 'default'), isNotNull);
+    expect(result.database.findRecord('formula_config', 'default'), isNotNull);
   });
 
   test('seed class data can be parsed by ClassService', () async {
@@ -58,5 +60,25 @@ void main() {
     expect(curve.id, 'default');
     expect(curve.levelForTotalExperience(0), 1);
     expect(curve.levelForTotalExperience(100), 2);
+  });
+
+  test('seed formula config can calculate damage', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final damage = DamageFormulaService(database: result.database).calculate(
+      const DamageContext(
+        baseDamage: 100,
+        skillMultiplier: 1,
+        criticalChance: 1,
+        resistance: 0,
+        armor: 0,
+        roll: 0,
+      ),
+    );
+
+    expect(damage.isCritical, isTrue);
+    expect(damage.finalDamage, 150);
   });
 }
