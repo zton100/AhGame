@@ -457,3 +457,42 @@
 - Add status effect formulas for poison, bleed, burn, freeze, and summons.
 - Add soft-cap config for future crit/cooldown/resistance expansion.
 - Connect combat simulation once monster and skill runtime systems exist.
+
+## S07 Equipment Template and Quality Foundation - 2026-06-23
+
+### Added files
+
+- `assets/data/quality_config.json`
+- `lib/models/equipment_template.dart`
+- `lib/models/quality_config.dart`
+- `lib/systems/equipment/equipment_template_service.dart`
+- `lib/systems/equipment/quality_service.dart`
+- `test/equipment_template_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added 12 equipment slots with stable ids, including dual ring slots and soul core.
+- Added data-driven quality config for all 8 qualities.
+- Added `EquipmentTemplate` parsing for slot, class restrictions, minimum level, quality pool, base stat ranges, and affix rules.
+- Added `QualityService` and `EquipmentTemplateService`.
+- Verified real seed equipment templates and quality config parse through `GameDatabase`.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_template_service_test.dart test\seed_data_integration_test.dart`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Add `EquipmentInstance` and deterministic generation in Issue 019.
+- Add class/level equip restrictions in Issue 020.
+- Add equipment compare and UI card view models in later S07/S24 slices.

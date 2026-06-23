@@ -2,6 +2,8 @@ import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
+import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
+import 'package:abyss_relic/systems/equipment/quality_service.dart';
 import 'package:abyss_relic/systems/stats/damage_formula_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,6 +28,7 @@ void main() {
     );
     expect(result.database.findRecord('level_curves', 'default'), isNotNull);
     expect(result.database.findRecord('formula_config', 'default'), isNotNull);
+    expect(result.database.findRecord('qualities', 'normal'), isNotNull);
   });
 
   test('seed class data can be parsed by ClassService', () async {
@@ -80,5 +83,19 @@ void main() {
 
     expect(damage.isCritical, isTrue);
     expect(damage.finalDamage, 150);
+  });
+
+  test('seed equipment templates and qualities can be parsed', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final templates = EquipmentTemplateService(result.database).listTemplates();
+    final qualities = QualityService(result.database).listQualities();
+
+    expect(templates, hasLength(5));
+    expect(templates.map((template) => template.id), contains('rusted_blade'));
+    expect(qualities, hasLength(8));
+    expect(qualities.last.id, 'forbidden');
   });
 }

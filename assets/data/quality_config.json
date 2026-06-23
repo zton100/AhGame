@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "qualities": [
+    {
+      "id": "normal",
+      "name": "Normal",
+      "affixMin": 0,
+      "affixMax": 0,
+      "statMultiplier": 1.0,
+      "specialEffectChance": 0.0
+    },
+    {
+      "id": "magic",
+      "name": "Magic",
+      "affixMin": 1,
+      "affixMax": 2,
+      "statMultiplier": 1.08,
+      "specialEffectChance": 0.0
+    },
+    {
+      "id": "rare",
+      "name": "Rare",
+      "affixMin": 3,
+      "affixMax": 4,
+      "statMultiplier": 1.18,
+      "specialEffectChance": 0.02
+    },
+    {
+      "id": "epic",
+      "name": "Epic",
+      "affixMin": 4,
+      "affixMax": 5,
+      "statMultiplier": 1.32,
+      "specialEffectChance": 0.05
+    },
+    {
+      "id": "legendary",
+      "name": "Legendary",
+      "affixMin": 5,
+      "affixMax": 6,
+      "statMultiplier": 1.5,
+      "specialEffectChance": 0.15
+    },
+    {
+      "id": "mythic",
+      "name": "Mythic",
+      "affixMin": 6,
+      "affixMax": 7,
+      "statMultiplier": 1.75,
+      "specialEffectChance": 0.3
+    },
+    {
+      "id": "abyss",
+      "name": "Abyss",
+      "affixMin": 7,
+      "affixMax": 8,
+      "statMultiplier": 2.05,
+      "specialEffectChance": 0.45
+    },
+    {
+      "id": "forbidden",
+      "name": "Forbidden",
+      "affixMin": 8,
+      "affixMax": 8,
+      "statMultiplier": 2.4,
+      "specialEffectChance": 0.65
+    }
+  ]
+}
