@@ -1,6 +1,7 @@
 import 'package:abyss_relic/models/affix_config.dart';
 import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
+import 'package:abyss_relic/systems/build/build_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
 import 'package:abyss_relic/systems/equipment/affix_effect_resolver.dart';
@@ -175,5 +176,33 @@ void main() {
 
     expect(resolved.eventTriggers.single.effectId, 'poison_can_crit');
     expect(resolved.warnings, isEmpty);
+  });
+
+  test('seed class skill and equipment tags identify a build', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+    final templateService = EquipmentTemplateService(result.database);
+    final qualityService = QualityService(result.database);
+    final equipment = EquipmentGenerationService(
+      templateService: templateService,
+      qualityService: qualityService,
+      affixRollService: AffixRollService(result.database),
+    ).generate(
+      templateId: 'rusted_blade',
+      qualityId: 'rare',
+      classId: 'exile',
+      level: 1,
+      seed: 100,
+    );
+
+    final assessment = BuildService(result.database).assess(
+      classId: 'exile',
+      skillIds: const ['toxic_slash'],
+      equipment: [equipment],
+    );
+
+    expect(assessment.buildId, 'poison_shadow');
+    expect(assessment.isMixed, isFalse);
   });
 }

@@ -671,4 +671,40 @@
 
 - Wire resolved stat outputs into a broader stat model when combat stats expand beyond hp/attack/armor.
 - Connect event triggers to the future combat event system.
-- Add BD tag aggregation and equipment scoring on top of resolved affix data.
+- Add equipment scoring on top of resolved affix and build data.
+
+## S08 Build Tag Aggregation - 2026-06-23
+
+### Added files
+
+- `lib/systems/build/build_service.dart`
+- `test/build_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `BuildConfig` and `BuildAssessment`.
+- Added `BuildService` tag aggregation from class tags, selected skill tags, equipment template allowed tags, and rolled affix tags.
+- Added first-pass built-in build archetypes for poison-shadow, summon-undead, fire-burn, frost-crit, and holy-block.
+- Added mixed-build fallback when no archetype has enough signal or the top score is too close to another archetype.
+- Verified seed Exile + toxic_slash + rusted_blade poison affix identifies `poison_shadow`.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\build_service_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Move build archetypes to JSON config if designers need live tuning.
+- Add Issue 024 build scoring and equipment comparison using `BuildAssessment`.
+- Surface current build label and tag weights in the future BD UI.
