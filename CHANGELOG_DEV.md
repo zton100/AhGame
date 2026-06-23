@@ -223,3 +223,48 @@
 
 - S02 后续可继续细化 schema 级字段类型校验。
 - Debug 页后续可增加按文件筛选和完整错误列表。
+## S03 Local Save and Migration System - 2026-06-23
+
+### Added files
+
+- `lib/models/save_data.dart`
+- `lib/models/settings_save.dart`
+- `lib/models/migration_result.dart`
+- `lib/systems/save/save_store.dart`
+- `lib/systems/save/in_memory_save_store.dart`
+- `lib/systems/save/hive_save_store.dart`
+- `lib/systems/save/backup_service.dart`
+- `lib/systems/save/save_migration_service.dart`
+- `lib/systems/save/save_service.dart`
+- `test/save_service_test.dart`
+
+### Modified files
+
+- `pubspec.yaml`
+- `pubspec.lock`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Chose Hive as the first local save backend, while keeping `SaveStore` as the persistence boundary.
+- Added `SaveData.currentVersion = 2`, default new-game data, player progress, inventory, and settings save structures.
+- Added `SaveService` for load/create/save/delete.
+- Added `SaveMigrationService` with a `v1 -> v2` migration example.
+- Added `BackupService` and recovery behavior: if the primary save cannot be read or migrated, the service attempts the latest backup before falling back to a new save.
+- Added `HiveSaveStore` with recursive JSON normalization so Hive dynamic maps can safely round-trip through typed save models.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\save_service_test.dart`
+
+### Save impact
+
+- Introduces save schema version 2.
+- Migration path: legacy saves without `saveVersion` or with `saveVersion: 1` are migrated by adding version 2 and default settings.
+
+### Remaining
+
+- Add lifecycle-based `AutoSaveService`.
+- Surface save summary in Debug and Settings pages.
+- Add export/import placeholders after the UI settings shell exists.
