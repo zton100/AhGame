@@ -385,3 +385,38 @@
 - Add character page UI integration.
 - Connect level-up events to future combat/idle reward services.
 - Add richer unlock outputs after the unlock system exists.
+
+## S06 Attribute Aggregation / Issue 016 First Slice - 2026-06-23
+
+### Added files
+
+- `lib/systems/stats/stat_aggregation_service.dart`
+- `test/stat_aggregation_service_test.dart`
+
+### Modified files
+
+- `lib/models/stat_block.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `StatAggregationService` for final stat calculation.
+- Added `ComputedStats` and `StatBreakdown` so Debug/UI can later show base, flat, percent, more, less, and final values.
+- Added `StatModifier` with `flat`, `percent`, `more`, and `less` modifier types.
+- Implemented stacking order: `(base + flat) * (1 + percent) * more multipliers * less multipliers`.
+- Guarded invalid final numeric output so negative modifiers do not create `NaN`.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\stat_aggregation_service_test.dart`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Add formula config and soft caps for crit/cooldown/resistance.
+- Add damage, defense, status, and difficulty formulas in later S06 slices.
+- Connect equipment, affixes, talents, and skills as modifier sources after their systems exist.
