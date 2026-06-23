@@ -633,6 +633,42 @@
 
 ### Remaining
 
-- Add `AffixEffectResolver` for Issue 022.
 - Translate stat affixes into `StatAggregationService` modifiers once resolver contracts are in place.
 - Add equipment compare and inventory integration.
+
+## S08 Affix Effect Resolver - 2026-06-23
+
+### Added files
+
+- `lib/systems/equipment/affix_effect_resolver.dart`
+- `test/affix_effect_resolver_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `AffixEffectResolver` as the first Issue 022 parsing entry point.
+- Resolved rolled stat modifiers into generic stat outputs.
+- Resolved `apply_status` effects into status outputs.
+- Resolved registered mechanic effects into event trigger outputs.
+- Reported clear warnings for unknown effect ids, invalid params, and missing roll values.
+- Verified seed `aff_poison_can_crit` resolves to the `poison_can_crit` event trigger.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\affix_effect_resolver_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Wire resolved stat outputs into a broader stat model when combat stats expand beyond hp/attack/armor.
+- Connect event triggers to the future combat event system.
+- Add BD tag aggregation and equipment scoring on top of resolved affix data.

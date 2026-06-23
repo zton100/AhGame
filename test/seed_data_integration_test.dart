@@ -1,7 +1,9 @@
+import 'package:abyss_relic/models/affix_config.dart';
 import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
+import 'package:abyss_relic/systems/equipment/affix_effect_resolver.dart';
 import 'package:abyss_relic/systems/equipment/affix_roll_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_generation_service.dart';
@@ -153,5 +155,25 @@ void main() {
         isNot(contains('aff_poison_can_crit')));
     expect(rolled.single.affixId, 'aff_poison_damage_pct_t1');
     expect(rolled.single.rollValue, isNotNull);
+  });
+
+  test('seed mechanic affixes can be resolved', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final affix =
+        AffixRollService(result.database).requireAffix('aff_poison_can_crit');
+    final resolved = const AffixEffectResolver().resolve(
+      affix: affix,
+      rolledAffix: const RolledAffix(
+        affixId: 'aff_poison_can_crit',
+        rollValue: null,
+        exclusiveGroup: 'core_mechanic',
+      ),
+    );
+
+    expect(resolved.eventTriggers.single.effectId, 'poison_can_crit');
+    expect(resolved.warnings, isEmpty);
   });
 }
