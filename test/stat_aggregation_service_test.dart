@@ -52,4 +52,29 @@ void main() {
     expect(result.finalStats.armor.isNaN, isFalse);
     expect(result.finalStats.armor, 3.75);
   });
+
+  test('StatAggregationService exposes extended stat breakdowns', () {
+    const service = StatAggregationService();
+
+    final result = service.compute(
+      base: const StatBlock(
+        hp: 100,
+        attack: 50,
+        armor: 10,
+        poisonDamage: 20,
+      ),
+      modifiers: const [
+        StatModifier.percent(
+          stat: StatKey.poisonDamage,
+          value: 0.25,
+          source: 'affix',
+        ),
+      ],
+    );
+
+    expect(StatKey.fromId('poison_damage'), StatKey.poisonDamage);
+    expect(result.finalStats.poisonDamage, 25);
+    expect(result.breakdownFor(StatKey.poisonDamage).base, 20);
+    expect(result.breakdowns.keys, containsAll(StatKey.values));
+  });
 }

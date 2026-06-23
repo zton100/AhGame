@@ -11,7 +11,7 @@ class StatAggregationService {
   }) {
     final breakdowns = {
       for (final key in StatKey.values)
-        key: StatBreakdown(base: _baseValueFor(base, key)),
+        key: StatBreakdown(base: base.valueForId(key.id)),
     };
 
     for (final modifier in modifiers) {
@@ -19,24 +19,12 @@ class StatAggregationService {
     }
 
     return ComputedStats(
-      finalStats: StatBlock(
-        hp: breakdowns[StatKey.hp]!.finalValue,
-        attack: breakdowns[StatKey.attack]!.finalValue,
-        armor: breakdowns[StatKey.armor]!.finalValue,
-      ),
+      finalStats: StatBlock.fromStatIdMap({
+        for (final entry in breakdowns.entries)
+          entry.key.id: entry.value.finalValue,
+      }),
       breakdowns: Map.unmodifiable(breakdowns),
     );
-  }
-
-  double _baseValueFor(StatBlock base, StatKey key) {
-    switch (key) {
-      case StatKey.hp:
-        return base.hp;
-      case StatKey.attack:
-        return base.attack;
-      case StatKey.armor:
-        return base.armor;
-    }
   }
 }
 
@@ -161,4 +149,33 @@ class StatModifier {
 
 enum StatModifierType { flat, percent, more, less }
 
-enum StatKey { hp, attack, armor }
+enum StatKey {
+  hp('hp'),
+  attack('attack'),
+  armor('armor'),
+  critChance('crit_chance'),
+  critDamage('crit_damage'),
+  attackSpeed('attack_speed'),
+  poisonDamage('poison_damage'),
+  fireDamage('fire_damage'),
+  frostDamage('frost_damage'),
+  shadowDamage('shadow_damage'),
+  holyDamage('holy_damage'),
+  summonDamage('summon_damage'),
+  blockChance('block_chance'),
+  shield('shield');
+
+  const StatKey(this.id);
+
+  final String id;
+
+  static StatKey? fromId(String id) {
+    for (final key in values) {
+      if (key.id == id) {
+        return key;
+      }
+    }
+
+    return null;
+  }
+}

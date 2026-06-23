@@ -893,6 +893,46 @@
 - Add material seed data when material economy starts.
 - Build equipment page/card UI from inventory contents.
 
+## S09 Character Final Stats - 2026-06-24
+
+### Added files
+
+- `lib/systems/stats/equipment_stat_modifier_service.dart`
+- `lib/systems/stats/character_final_stats_service.dart`
+- `test/character_final_stats_service_test.dart`
+
+### Modified files
+
+- `lib/models/stat_block.dart`
+- `lib/systems/stats/stat_aggregation_service.dart`
+- `test/stat_aggregation_service_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Extended `StatBlock` and `StatKey` beyond legacy `hp`, `attack`, and `armor`.
+- Added support for `crit_chance`, `crit_damage`, `attack_speed`, elemental damage stats, `summon_damage`, `block_chance`, and `shield`.
+- Kept legacy `StatBlock(hp:, attack:, armor:)` construction and old tests compatible.
+- Added `EquipmentStatModifierService` to convert equipment base stats and resolved affix stat modifiers into `StatModifier` values.
+- Added `CharacterFinalStatsService` to aggregate character level stats, equipped equipment base stats, and equipment affixes.
+- Missing equipped equipment instances now return warnings instead of throwing.
+- All supported stats now receive a `StatBreakdown` for future character and equipment detail views.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\stat_aggregation_service_test.dart test\character_final_stats_service_test.dart test\level_service_test.dart test\character_service_test.dart test\affix_effect_resolver_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Wire final stats into character/equipment UI.
+- Add material seed data when material economy starts.
+- Build equipment page/card UI from inventory contents.
+
 ## S07 Equipment Loot Materialization - 2026-06-23
 
 ### Added files
