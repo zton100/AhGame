@@ -132,3 +132,44 @@
 
 - S02 后续需要实现配置必填字段校验、id 唯一性校验和引用完整性检查。
 - Debug 页后续需要支持配置错误列表按文件筛选。
+
+## S02 数据配置加载与校验系统 / ConfigValidator - 2026-06-23
+
+### 新增文件
+
+- `lib/models/config_issue.dart`
+- `lib/models/config_validation_error.dart`
+- `lib/systems/config/config_validator.dart`
+- `test/config_validator_test.dart`
+
+### 修改文件
+
+- `lib/systems/config/game_database_load_result.dart`
+- `lib/systems/config/game_database_service.dart`
+- `test/game_database_service_test.dart`
+- `CHANGELOG_DEV.md`
+
+### 完成内容
+
+- 新增 `ConfigValidator` 基础配置校验器。
+- 校验配置根对象必须具备整数 `schemaVersion`。
+- 校验配置文件必须包含根记录或记录列表。
+- 校验表记录必须包含稳定 `id` 和展示 `name`。
+- 校验根配置记录使用 `id` 和 `displayName`。
+- 校验同一表内重复 id。
+- 新增统一 `ConfigIssue`，将加载错误和校验错误汇总到 `GameDatabaseLoadResult`。
+- `GameDatabaseService` 会在构建数据库时同步返回校验错误，并纳入 Debug 统计。
+
+### 测试结果
+
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+
+### 存档影响
+
+- 暂无存档结构变更。
+
+### 待处理问题
+
+- S02 后续需要实现跨表引用完整性检查。
+- Debug 页后续需要展示可筛选的配置错误列表。

@@ -56,7 +56,8 @@ void main() {
           'assets/data/app_config.json': '''
             {
               "schemaVersion": 1,
-              "id": "abyss_relic"
+              "id": "abyss_relic",
+              "displayName": "深渊遗装"
             }
           ''',
           'assets/data/broken.json': '{not json',
@@ -73,7 +74,36 @@ void main() {
     expect(result.summary.fileCount, 1);
     expect(result.summary.errorCount, 1);
     expect(result.errors.single.type, ConfigLoadErrorType.invalidJson);
+    expect(result.issues.single.source.name, 'load');
     expect(result.database.findRecord('app_config', 'abyss_relic'), isNotNull);
+  });
+
+  test('GameDatabaseService includes validation errors in the summary',
+      () async {
+    final service = GameDatabaseService(
+      dataLoader: DataLoader(
+        bundle: _FakeAssetBundle({
+          'assets/data/classes.json': '''
+            {
+              "schemaVersion": 1,
+              "classes": [
+                {"id": "exile"}
+              ]
+            }
+          ''',
+        }),
+      ),
+    );
+
+    final result = await service.loadFromAssets([
+      'assets/data/classes.json',
+    ]);
+
+    expect(result.hasErrors, isTrue);
+    expect(result.summary.fileCount, 1);
+    expect(result.summary.errorCount, 1);
+    expect(result.validationErrors.single.field, 'name');
+    expect(result.issues.single.source.name, 'validation');
   });
 }
 
