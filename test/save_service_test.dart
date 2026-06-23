@@ -1,13 +1,16 @@
 import 'dart:io';
 
 import 'package:abyss_relic/models/save_data.dart';
+import 'package:abyss_relic/systems/save/auto_save_service.dart';
 import 'package:abyss_relic/systems/save/backup_service.dart';
+import 'package:abyss_relic/systems/save/app_lifecycle_auto_save_observer.dart';
 import 'package:abyss_relic/systems/save/hive_save_store.dart';
 import 'package:abyss_relic/systems/save/in_memory_save_store.dart';
 import 'package:abyss_relic/systems/save/save_migration_service.dart';
 import 'package:abyss_relic/systems/save/save_service.dart';
 import 'package:abyss_relic/systems/save/save_store.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:hive/hive.dart';
 
 void main() {
@@ -127,6 +130,37 @@ void main() {
     expect(result.saveData.saveVersion, SaveData.currentVersion);
     expect(result.saveData.playerProgress.level, 3);
     expect(result.saveData.inventory.equipmentInstanceIds, ['eq_1']);
+    expect(result.warnings, [
+      'Migrated saveVersion 1 to 2.',
+      'Migrated saveVersion 2 to 3.',
+    ]);
+  });
+
+  test('SaveMigrationService migrates v2 saves with last exit placeholder', () {
+    final migration = SaveMigrationService();
+
+    final result = migration.migrate({
+      'saveVersion': 2,
+      'createdAt': '2026-06-23T00:00:00.000Z',
+      'lastSavedAt': '2026-06-23T00:10:00.000Z',
+      'playerProgress': {
+        'currentClassId': 'exile',
+        'level': 3,
+        'experience': 120,
+      },
+      'inventory': {
+        'equipmentInstanceIds': ['eq_1'],
+      },
+      'settings': {
+        'soundEnabled': false,
+        'hapticsEnabled': true,
+      },
+    });
+
+    expect(result.success, isTrue);
+    expect(result.saveData.saveVersion, SaveData.currentVersion);
+    expect(result.saveData.lastExitAt, isNull);
+    expect(result.warnings, ['Migrated saveVersion 2 to 3.']);
   });
 
   test('HiveSaveStore persists save data across store instances', () async {
@@ -161,6 +195,81 @@ void main() {
       await directory.delete(recursive: true);
     }
   });
+
+  test('AutoSaveService records last exit time and saves immediately',
+      () async {
+    final store = InMemorySaveStore();
+    final saveService = SaveService(store: store);
+    final now = DateTime.utc(2026, 6, 23, 12, 30);
+    final autoSave = AutoSaveService(
+      saveService: saveService,
+      now: () => now,
+    );
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 23));
+
+    final result = await autoSave.recordAppExit(save);
+    final loaded = await saveService.loadOrCreate();
+
+    expect(result.status, AutoSaveStatus.saved);
+    expect(loaded.lastExitAt, now);
+  });
+
+  test('AutoSaveService throttles repeated action saves', () async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    var now = DateTime.utc(2026, 6, 23, 12, 30);
+    final autoSave = AutoSaveService(
+      saveService: saveService,
+      now: () => now,
+      minimumInterval: const Duration(seconds: 10),
+    );
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 23));
+
+    final first = await autoSave.saveAfterAction(save, reason: 'equip_item');
+    now = now.add(const Duration(seconds: 3));
+    final second = await autoSave.saveAfterAction(save, reason: 'equip_item');
+
+    expect(first.status, AutoSaveStatus.saved);
+    expect(second.status, AutoSaveStatus.skipped);
+    expect(second.nextAllowedAt, DateTime.utc(2026, 6, 23, 12, 30, 10));
+  });
+
+  test('AutoSaveService exposes save errors for Debug surfaces', () async {
+    final autoSave = AutoSaveService(
+      saveService: SaveService(store: _FailingWriteSaveStore()),
+      now: () => DateTime.utc(2026, 6, 23, 12, 30),
+    );
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 23));
+
+    final result = await autoSave.saveAfterAction(save, reason: 'equip_item');
+
+    expect(result.status, AutoSaveStatus.failed);
+    expect(result.error, contains('Cannot write save.'));
+    expect(autoSave.lastError, contains('Cannot write save.'));
+  });
+
+  test('AppLifecycleAutoSaveObserver saves when app enters background',
+      () async {
+    final store = InMemorySaveStore();
+    final saveService = SaveService(store: store);
+    final now = DateTime.utc(2026, 6, 23, 13);
+    final observer = AppLifecycleAutoSaveObserver(
+      autoSaveService: AutoSaveService(
+        saveService: saveService,
+        now: () => now,
+      ),
+      loadCurrentSave: () async => SaveData.newGame(
+        now: DateTime.utc(2026, 6, 23),
+      ),
+    );
+
+    final result = await observer.handleLifecycleState(
+      AppLifecycleState.paused,
+    );
+    final loaded = await saveService.loadOrCreate();
+
+    expect(result?.status, AutoSaveStatus.saved);
+    expect(loaded.lastExitAt, now);
+  });
 }
 
 class _UnreadableSaveStore implements SaveStore {
@@ -171,6 +280,21 @@ class _UnreadableSaveStore implements SaveStore {
 
   @override
   Future<void> write(Map<String, Object?> json) async {}
+
+  @override
+  Future<void> delete() async {}
+}
+
+class _FailingWriteSaveStore implements SaveStore {
+  @override
+  Future<Map<String, Object?>?> read() async {
+    return null;
+  }
+
+  @override
+  Future<void> write(Map<String, Object?> json) {
+    throw StateError('Cannot write save.');
+  }
 
   @override
   Future<void> delete() async {}

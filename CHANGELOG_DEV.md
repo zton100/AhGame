@@ -268,3 +268,41 @@
 - Add lifecycle-based `AutoSaveService`.
 - Surface save summary in Debug and Settings pages.
 - Add export/import placeholders after the UI settings shell exists.
+
+## S03 Auto Save Lifecycle Hook - 2026-06-23
+
+### Added files
+
+- `lib/systems/save/auto_save_service.dart`
+- `lib/systems/save/app_lifecycle_auto_save_observer.dart`
+
+### Modified files
+
+- `lib/models/save_data.dart`
+- `lib/models/migration_result.dart`
+- `lib/systems/save/save_migration_service.dart`
+- `test/save_service_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `lastExitAt` to `SaveData` and bumped the save schema to version 3.
+- Added migration support from v1 and v2 saves into version 3.
+- Added `AutoSaveService` for key-operation saves, forced app-exit saves, throttling, and last error capture.
+- Added `AppLifecycleAutoSaveObserver` so paused, hidden, and detached lifecycle states can trigger exit saves from the service layer.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\save_service_test.dart`
+
+### Save impact
+
+- Introduces save schema version 3.
+- Migration path: v1 saves gain default settings, then v2 saves gain nullable `lastExitAt`; both migrate to v3.
+
+### Remaining
+
+- Wire the lifecycle observer into real app startup after save bootstrapping is introduced.
+- Surface live save and auto-save status in the Debug page.
+- Add Settings page manual save/export/import placeholders after the settings UI exists.

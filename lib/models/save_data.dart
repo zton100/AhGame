@@ -5,6 +5,7 @@ class SaveData {
     required this.saveVersion,
     required this.createdAt,
     required this.lastSavedAt,
+    this.lastExitAt,
     required this.playerProgress,
     required this.inventory,
     required this.settings,
@@ -16,6 +17,7 @@ class SaveData {
       saveVersion: currentVersion,
       createdAt: timestamp,
       lastSavedAt: timestamp,
+      lastExitAt: null,
       playerProgress: const PlayerProgress(
         currentClassId: 'exile',
         level: 1,
@@ -31,6 +33,9 @@ class SaveData {
       saveVersion: json['saveVersion'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
       lastSavedAt: DateTime.parse(json['lastSavedAt'] as String),
+      lastExitAt: json['lastExitAt'] == null
+          ? null
+          : DateTime.parse(json['lastExitAt'] as String),
       playerProgress: PlayerProgress.fromJson(
         _asStringMap(json['playerProgress'], 'playerProgress'),
       ),
@@ -42,11 +47,12 @@ class SaveData {
     );
   }
 
-  static const int currentVersion = 2;
+  static const int currentVersion = 3;
 
   final int saveVersion;
   final DateTime createdAt;
   final DateTime lastSavedAt;
+  final DateTime? lastExitAt;
   final PlayerProgress playerProgress;
   final InventorySave inventory;
   final SettingsSave settings;
@@ -55,6 +61,7 @@ class SaveData {
     int? saveVersion,
     DateTime? createdAt,
     DateTime? lastSavedAt,
+    DateTime? lastExitAt,
     PlayerProgress? playerProgress,
     InventorySave? inventory,
     SettingsSave? settings,
@@ -63,6 +70,7 @@ class SaveData {
       saveVersion: saveVersion ?? this.saveVersion,
       createdAt: createdAt ?? this.createdAt,
       lastSavedAt: lastSavedAt ?? this.lastSavedAt,
+      lastExitAt: lastExitAt ?? this.lastExitAt,
       playerProgress: playerProgress ?? this.playerProgress,
       inventory: inventory ?? this.inventory,
       settings: settings ?? this.settings,
@@ -74,6 +82,7 @@ class SaveData {
       'saveVersion': saveVersion,
       'createdAt': createdAt.toIso8601String(),
       'lastSavedAt': lastSavedAt.toIso8601String(),
+      'lastExitAt': lastExitAt?.toIso8601String(),
       'playerProgress': playerProgress.toJson(),
       'inventory': inventory.toJson(),
       'settings': settings.toJson(),
