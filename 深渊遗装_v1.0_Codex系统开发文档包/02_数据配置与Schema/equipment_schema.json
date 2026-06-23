@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "string, stable id",
+  "name": "display name",
+  "slot": "main_weapon|offhand|helmet|chest|gloves|boots|belt|amulet|ring|relic|soul_core",
+  "allowedClasses": [
+    "class_id or all"
+  ],
+  "minLevel": 1,
+  "qualityPool": [
+    "rare",
+    "epic",
+    "legendary"
+  ],
+  "baseStats": [
+    {
+      "stat": "attack",
+      "min": 10,
+      "max": 20
+    }
+  ],
+  "affixRules": {
+    "prefixMin": 1,
+    "prefixMax": 3,
+    "suffixMin": 1,
+    "suffixMax": 3,
+    "allowedTags": [
+      "poison"
+    ]
+  },
+  "legendaryEffect": {
+    "effectId": "effect_id",
+    "params": {}
+  },
+  "setId": "optional_set_id"
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "set_plague_apostle",
+  "name": "瘟疫使徒",
+  "pieces": [
+    "item1",
+    "item2",
+    "item3",
+    "item4"
+  ],
+  "bonuses": [
+    {
+      "pieceCount": 2,
+      "effectId": "stat_bonus",
+      "params": {}
+    },
+    {
+      "pieceCount": 4,
+      "effectId": "poison_cloud_on_death",
+      "params": {}
+    }
+  ]
+}

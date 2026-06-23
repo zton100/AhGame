@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "hell",
+  "name": "地狱",
+  "order": 3,
+  "monsterHpMultiplier": 5.0,
+  "monsterAtkMultiplier": 3.5,
+  "eliteAffixCount": 3,
+  "abyssModifierCount": 3,
+  "qualityBonus": {
+    "legendary": 0.03,
+    "mythic": 0.005,
+    "abyss": 0.001
+  }
+}

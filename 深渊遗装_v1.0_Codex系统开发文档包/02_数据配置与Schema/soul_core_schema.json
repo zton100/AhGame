@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "string",
+  "name": "string",
+  "allowedClasses": [
+    "exile"
+  ],
+  "quality": "legendary|mythic|abyss",
+  "tags": [
+    "poison",
+    "explode"
+  ],
+  "coreEffect": {
+    "effectId": "poison_explode_on_death",
+    "params": {
+      "remainingDamageRatio": 0.35
+    }
+  },
+  "negativeEffect": {
+    "effectId": "optional",
+    "params": {}
+  }
+}

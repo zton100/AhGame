@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "soulCores": [
+    {
+      "id": "core_plague_heart",
+      "name": "瘟疫魂核",
+      "allowedClasses": [
+        "exile"
+      ],
+      "quality": "mythic",
+      "tags": [
+        "poison",
+        "explode",
+        "core"
+      ],
+      "coreEffect": {
+        "effectId": "poison_explode_on_death",
+        "params": {
+          "remainingDamageRatio": 0.35,
+          "radius": 4
+        }
+      },
+      "negativeEffect": null
+    }
+  ]
+}

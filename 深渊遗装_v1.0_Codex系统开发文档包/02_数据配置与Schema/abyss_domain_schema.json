@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "plague_abyss",
+  "name": "瘟疫深渊",
+  "themeTags": [
+    "poison",
+    "shadow"
+  ],
+  "layers": 100,
+  "bossLayerInterval": 10,
+  "domainBossLayers": [
+    50,
+    100
+  ],
+  "dropPoolId": "drop_abyss_plague",
+  "modifierPoolId": "mods_plague"
+}

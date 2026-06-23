@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "string",
+  "name": "string",
+  "classId": "exile",
+  "skillType": "active|passive|ultimate",
+  "tags": [
+    "poison",
+    "shadow"
+  ],
+  "cooldown": 3.0,
+  "resourceCost": 10,
+  "castCondition": {
+    "type": "always|low_hp|enemy_status",
+    "params": {}
+  },
+  "effects": [
+    {
+      "effectId": "deal_damage",
+      "params": {
+        "multiplier": 1.2,
+        "damageType": "shadow"
+      }
+    }
+  ]
+}

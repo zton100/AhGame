@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "affixes": [
+    {
+      "id": "aff_poison_damage_pct_t1",
+      "name": "毒素伤害提高",
+      "type": "element",
+      "tags": [
+        "poison"
+      ],
+      "minLevel": 1,
+      "weight": 120,
+      "rollRange": {
+        "min": 0.06,
+        "max": 0.18,
+        "step": 0.01
+      },
+      "statModifiers": [
+        {
+          "stat": "poison_damage",
+          "mode": "percent",
+          "valueFromRoll": true
+        }
+      ]
+    },
+    {
+      "id": "aff_poison_can_crit",
+      "name": "中毒伤害可以暴击",
+      "type": "mechanic",
+      "tags": [
+        "poison",
+        "crit",
+        "core"
+      ],
+      "minLevel": 35,
+      "weight": 8,
+      "effect": {
+        "effectId": "poison_can_crit",
+        "params": {}
+      }
+    }
+  ]
+}

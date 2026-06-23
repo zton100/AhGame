@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "drop_pool_id",
+  "entries": [
+    {
+      "type": "equipment|material|rune|soul_core",
+      "refId": "any",
+      "weight": 100,
+      "minQty": 1,
+      "maxQty": 1,
+      "conditions": {}
+    }
+  ]
+}
