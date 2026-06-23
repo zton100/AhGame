@@ -345,3 +345,43 @@
 - Add character page UI integration.
 - Add `LevelService` and `level_curves.json` for Issue 015.
 - Add stat aggregation in S06/Issue 016 before equipment and combat consume final stats.
+
+## S04 Character Class System / Level Growth - 2026-06-23
+
+### Added files
+
+- `assets/data/level_curves.json`
+- `lib/models/level_curve.dart`
+- `lib/systems/character/level_service.dart`
+- `test/level_service_test.dart`
+
+### Modified files
+
+- `lib/models/character_state.dart`
+- `lib/models/stat_block.dart`
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added the first data-driven level curve config with levels 1-20.
+- Added `LevelCurve` parsing and cumulative total-experience level lookup.
+- Added `LevelService.addExperience` to update saved level and total experience.
+- Added max-level capping and negative experience gain rejection.
+- Added class stat growth calculation using base stats plus per-level growth.
+- Verified the real seed level curve loads through `GameDatabase`.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\level_service_test.dart test\seed_data_integration_test.dart`
+
+### Save impact
+
+- No save schema change. Existing `PlayerProgress.level` and `experience` now have service-backed update rules.
+
+### Remaining
+
+- Add character page UI integration.
+- Connect level-up events to future combat/idle reward services.
+- Add richer unlock outputs after the unlock system exists.

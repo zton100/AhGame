@@ -17,6 +17,22 @@ class StatBlock {
   final double attack;
   final double armor;
 
+  StatBlock operator +(StatBlock other) {
+    return StatBlock(
+      hp: hp + other.hp,
+      attack: attack + other.attack,
+      armor: armor + other.armor,
+    );
+  }
+
+  StatBlock scale(num multiplier) {
+    return StatBlock(
+      hp: hp * multiplier,
+      attack: attack * multiplier,
+      armor: armor * multiplier,
+    );
+  }
+
   Map<String, Object?> toJson() {
     return {
       'hp': hp,

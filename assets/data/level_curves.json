@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "level_curves": [
+    {
+      "id": "default",
+      "name": "Default Level Curve",
+      "maxLevel": 20,
+      "experienceToNext": [
+        100,
+        140,
+        190,
+        250,
+        330,
+        430,
+        560,
+        730,
+        950,
+        1230,
+        1600,
+        2080,
+        2700,
+        3510,
+        4560,
+        5930,
+        7710,
+        10020,
+        13030
+      ]
+    }
+  ]
+}

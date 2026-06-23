@@ -13,5 +13,9 @@ class CharacterState {
   final int experience;
 
   StatBlock get baseStats => classConfig.baseStats;
+  StatBlock get levelStats {
+    return classConfig.baseStats + classConfig.growth.scale(level - 1);
+  }
+
   List<String> get classTags => classConfig.tags;
 }

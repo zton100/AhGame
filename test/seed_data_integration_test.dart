@@ -1,4 +1,5 @@
 import 'package:abyss_relic/systems/character/class_service.dart';
+import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,7 @@ void main() {
       result.database.findRecord('drop_pools', 'drop_chapter_1'),
       isNotNull,
     );
+    expect(result.database.findRecord('level_curves', 'default'), isNotNull);
   });
 
   test('seed class data can be parsed by ClassService', () async {
@@ -44,5 +46,17 @@ void main() {
       expect(classConfig.baseStats.hp, greaterThan(0));
       expect(classConfig.growth.attack, greaterThan(0));
     }
+  });
+
+  test('seed level curve can level a character', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final curve = LevelService(database: result.database).requireCurve();
+
+    expect(curve.id, 'default');
+    expect(curve.levelForTotalExperience(0), 1);
+    expect(curve.levelForTotalExperience(100), 2);
   });
 }
