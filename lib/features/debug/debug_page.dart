@@ -69,11 +69,9 @@ class DebugPage extends ConsumerWidget {
               );
             },
             loading: () {
-              return const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('Loading config database...'),
-                ),
+              return const _DebugSection(
+                title: 'Config Database',
+                rows: {'status': 'Loading config database...'},
               );
             },
           ),

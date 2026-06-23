@@ -893,6 +893,46 @@
 - Add material seed data when material economy starts.
 - Build equipment page/card UI from inventory contents.
 
+## S10 Equipment Page UI - 2026-06-24
+
+### Added files
+
+- `lib/features/equipment/equipment_page.dart`
+- `lib/features/equipment/equipment_page_view_model.dart`
+- `test/equipment_page_widget_test.dart`
+
+### Modified files
+
+- `lib/features/shell/main_shell.dart`
+- `lib/features/debug/debug_page.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Replaced the equipment placeholder tab with a real `EquipmentPage`.
+- Added `equipmentInventoryProvider` as the current UI inventory source.
+- Equipment page reads `InventoryState.equipmentInstanceIds` and resolves full `EquipmentInstance` values from `equipmentInstances`.
+- Added a page view-model factory so Widgets call existing ViewModel/services instead of recalculating equipment stats or BD score.
+- Equipment cards show name, quality, slot, base stats, affixes, BD score, recommended tags, and warning tags.
+- Added a detail dialog with full base stats, affix roll values, matched/rejected tags, and replacement deltas.
+- Added an empty inventory state.
+- Stabilized the debug page loading state so the config section title remains visible while data is loading.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_page_widget_test.dart test\widget_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Wire `equipmentInventoryProvider` to the real loaded save once app-level save state is introduced.
+- Add equip/lock/salvage actions on top of the read-only equipment page.
+- Add material seed data when material economy starts.
+
 ## S09 Character Final Stats - 2026-06-24
 
 ### Added files

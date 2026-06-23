@@ -5,6 +5,7 @@ import '../../core/routing/app_route.dart';
 import '../../core/theme/app_theme.dart';
 import '../../systems/navigation/navigation_service.dart';
 import '../debug/debug_page.dart';
+import '../equipment/equipment_page.dart';
 import '../placeholder/feature_placeholder_page.dart';
 
 class MainShell extends StatefulWidget {
@@ -70,33 +71,29 @@ class _MainShellState extends State<MainShell> {
   Widget _buildPageForRoute(AppRoute route) {
     switch (route) {
       case AppRoute.battle:
-        return const FeaturePlaceholderPage(
-          title: '战斗',
-          routeId: 'battle',
+        return FeaturePlaceholderPage(
+          title: route.label,
+          routeId: route.id,
           summary: '自动战斗、掉落提示和战斗日志会在这里接入。',
         );
       case AppRoute.equipment:
-        return const FeaturePlaceholderPage(
-          title: '装备',
-          routeId: 'equipment',
-          summary: '背包、穿戴、锁定、分解和装备详情会在这里接入。',
-        );
+        return const EquipmentPage();
       case AppRoute.build:
-        return const FeaturePlaceholderPage(
-          title: 'BD',
-          routeId: 'build',
+        return FeaturePlaceholderPage(
+          title: route.label,
+          routeId: route.id,
           summary: '构筑标签、匹配评分、关键缺口和推荐词缀会在这里接入。',
         );
       case AppRoute.abyss:
-        return const FeaturePlaceholderPage(
-          title: '深渊',
-          routeId: 'abyss',
+        return FeaturePlaceholderPage(
+          title: route.label,
+          routeId: route.id,
           summary: '领域、难度、层数词缀和首通奖励会在这里接入。',
         );
       case AppRoute.character:
-        return const FeaturePlaceholderPage(
-          title: '角色',
-          routeId: 'character',
+        return FeaturePlaceholderPage(
+          title: route.label,
+          routeId: route.id,
           summary: '职业、等级、属性拆解和系统解锁会在这里接入。',
         );
       case AppRoute.debug:
