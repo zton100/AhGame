@@ -8,6 +8,7 @@
       "tags": ["poison"],
       "minLevel": 1,
       "weight": 120,
+      "exclusiveGroup": "element_damage",
       "rollRange": {"min": 0.06, "max": 0.18, "step": 0.01},
       "statModifiers": [{"stat": "poison_damage", "mode": "percent", "valueFromRoll": true}]
     },
@@ -18,6 +19,7 @@
       "tags": ["summon"],
       "minLevel": 1,
       "weight": 100,
+      "exclusiveGroup": "summon_damage",
       "rollRange": {"min": 0.05, "max": 0.16, "step": 0.01},
       "statModifiers": [{"stat": "summon_damage", "mode": "percent", "valueFromRoll": true}]
     },
@@ -28,6 +30,7 @@
       "tags": ["fire", "burn"],
       "minLevel": 1,
       "weight": 100,
+      "exclusiveGroup": "element_damage",
       "rollRange": {"min": 0.05, "max": 0.17, "step": 0.01},
       "statModifiers": [{"stat": "fire_damage", "mode": "percent", "valueFromRoll": true}]
     },
@@ -38,6 +41,7 @@
       "tags": ["frost", "crit"],
       "minLevel": 1,
       "weight": 100,
+      "exclusiveGroup": "element_crit",
       "rollRange": {"min": 0.03, "max": 0.10, "step": 0.01},
       "statModifiers": [{"stat": "crit_chance", "mode": "percent", "valueFromRoll": true}]
     },
@@ -48,6 +52,7 @@
       "tags": ["holy", "block"],
       "minLevel": 1,
       "weight": 100,
+      "exclusiveGroup": "defense_block",
       "rollRange": {"min": 0.04, "max": 0.12, "step": 0.01},
       "statModifiers": [{"stat": "block_chance", "mode": "percent", "valueFromRoll": true}]
     },
@@ -58,6 +63,7 @@
       "tags": ["poison", "crit", "core"],
       "minLevel": 35,
       "weight": 8,
+      "exclusiveGroup": "core_mechanic",
       "effect": {"effectId": "poison_can_crit", "params": {}}
     }
   ]

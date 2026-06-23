@@ -2,6 +2,7 @@ import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
+import 'package:abyss_relic/systems/equipment/affix_roll_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_generation_service.dart';
 import 'package:abyss_relic/systems/equipment/quality_service.dart';
@@ -30,6 +31,10 @@ void main() {
     expect(result.database.findRecord('level_curves', 'default'), isNotNull);
     expect(result.database.findRecord('formula_config', 'default'), isNotNull);
     expect(result.database.findRecord('qualities', 'normal'), isNotNull);
+    expect(
+      result.database.findRecord('affixes', 'aff_poison_damage_pct_t1'),
+      isNotNull,
+    );
   });
 
   test('seed class data can be parsed by ClassService', () async {
@@ -121,5 +126,30 @@ void main() {
     expect(equipment.instanceId, isNotEmpty);
     expect(equipment.templateId, 'rusted_blade');
     expect(equipment.rolledBaseStats.single.stat, 'attack');
+  });
+
+  test('seed affixes can be parsed and rolled', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final service = AffixRollService(result.database);
+    final candidates = service.candidatesFor(
+      level: 1,
+      allowedTags: const ['poison'],
+    );
+    final rolled = service.rollAffixes(
+      level: 1,
+      allowedTags: const ['poison'],
+      count: 1,
+      seed: 100,
+    );
+
+    expect(candidates.map((affix) => affix.id),
+        contains('aff_poison_damage_pct_t1'));
+    expect(candidates.map((affix) => affix.id),
+        isNot(contains('aff_poison_can_crit')));
+    expect(rolled.single.affixId, 'aff_poison_damage_pct_t1');
+    expect(rolled.single.rollValue, isNotNull);
   });
 }

@@ -565,3 +565,40 @@
 - Persist equipped loadout in save data when inventory/storage expands.
 - Add ring slot selection behavior and equipment compare output.
 - Connect equipment stats into `StatAggregationService`.
+
+## S08 Affix Roll Foundation - 2026-06-23
+
+### Added files
+
+- `lib/models/affix_config.dart`
+- `lib/systems/equipment/affix_roll_service.dart`
+- `test/affix_roll_service_test.dart`
+
+### Modified files
+
+- `assets/data/affixes.json`
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `AffixConfig`, roll ranges, stat modifier configs, effect configs, and rolled affix results.
+- Added deterministic weighted `AffixRollService` with level filtering, allowed-tag filtering, duplicate prevention, and optional exclusive groups.
+- Added stepped value rolls for numeric affixes.
+- Added exclusive-group metadata to seed affixes and verified seed affixes can parse and roll.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\affix_roll_service_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\seed_data_integration_test.dart`
+
+### Save impact
+
+- No save schema change. `EquipmentInstance.rolledAffixes` still stores ids as a placeholder until affix instance persistence is expanded.
+
+### Remaining
+
+- Connect affix rolls into `EquipmentGenerationService`.
+- Add `AffixEffectResolver` for Issue 022.
+- Translate stat affixes into `StatAggregationService` modifiers once resolver contracts are in place.
