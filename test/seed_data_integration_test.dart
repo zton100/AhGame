@@ -3,6 +3,7 @@ import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
 import 'package:abyss_relic/systems/equipment/equipment_template_service.dart';
+import 'package:abyss_relic/systems/equipment/equipment_generation_service.dart';
 import 'package:abyss_relic/systems/equipment/quality_service.dart';
 import 'package:abyss_relic/systems/stats/damage_formula_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -97,5 +98,28 @@ void main() {
     expect(templates.map((template) => template.id), contains('rusted_blade'));
     expect(qualities, hasLength(8));
     expect(qualities.last.id, 'forbidden');
+  });
+
+  test('seed equipment templates can generate an equipment instance', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+    final templateService = EquipmentTemplateService(result.database);
+    final qualityService = QualityService(result.database);
+
+    final equipment = EquipmentGenerationService(
+      templateService: templateService,
+      qualityService: qualityService,
+    ).generate(
+      templateId: 'rusted_blade',
+      qualityId: 'rare',
+      classId: 'exile',
+      level: 1,
+      seed: 100,
+    );
+
+    expect(equipment.instanceId, isNotEmpty);
+    expect(equipment.templateId, 'rusted_blade');
+    expect(equipment.rolledBaseStats.single.stat, 'attack');
   });
 }

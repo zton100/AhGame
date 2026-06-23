@@ -496,3 +496,39 @@
 - Add `EquipmentInstance` and deterministic generation in Issue 019.
 - Add class/level equip restrictions in Issue 020.
 - Add equipment compare and UI card view models in later S07/S24 slices.
+
+## S07 Equipment Instance Generation - 2026-06-23
+
+### Added files
+
+- `lib/models/equipment_instance.dart`
+- `lib/systems/equipment/equipment_generation_service.dart`
+- `test/equipment_generation_service_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `EquipmentInstance` and `RolledBaseStat` with JSON round trip support.
+- Added deterministic `EquipmentGenerationService` using template id, quality id, class id, level, and seed.
+- Generated stable instance ids and rolled base stat values inside template ranges scaled by quality multiplier.
+- Added validation for template quality pool, class restrictions, and minimum level.
+- Verified real seed equipment templates can generate an equipment instance.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_generation_service_test.dart test\seed_data_integration_test.dart`
+
+### Save impact
+
+- No save schema change. Existing inventory stores equipment instance ids; full instance persistence will be added when inventory/storage expands.
+
+### Remaining
+
+- Add affix rolling after S08 affix runtime exists.
+- Add equipment equip/unequip rules in Issue 020.
+- Add equipment comparison and inventory integration.
