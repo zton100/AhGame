@@ -21,7 +21,6 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final tabs = _navigationService.mainTabs;
-    final selectedRoute = tabs[_selectedIndex];
 
     return Scaffold(
       appBar: AppBar(
