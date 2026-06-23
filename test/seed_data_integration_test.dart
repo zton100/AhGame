@@ -1,8 +1,10 @@
 import 'package:abyss_relic/models/affix_config.dart';
+import 'package:abyss_relic/features/equipment/equipment_card_view_model.dart';
 import 'package:abyss_relic/systems/build/build_score_service.dart';
 import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
 import 'package:abyss_relic/systems/build/build_service.dart';
+import 'package:abyss_relic/systems/build/equipment_compare_service.dart';
 import 'package:abyss_relic/systems/config/data_loader.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
 import 'package:abyss_relic/systems/equipment/affix_effect_resolver.dart';
@@ -238,5 +240,44 @@ void main() {
     expect(score.matchScore, greaterThan(0));
     expect(score.matchedTags, contains('poison'));
     expect(score.attackScore, greaterThan(0));
+  });
+
+  test('seed equipment can create a card view model', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+    final templateService = EquipmentTemplateService(result.database);
+    final qualityService = QualityService(result.database);
+    final equipment = EquipmentGenerationService(
+      templateService: templateService,
+      qualityService: qualityService,
+      affixRollService: AffixRollService(result.database),
+    ).generate(
+      templateId: 'rusted_blade',
+      qualityId: 'rare',
+      classId: 'exile',
+      level: 1,
+      seed: 100,
+    );
+    final assessment = BuildService(result.database).assess(
+      classId: 'exile',
+      skillIds: const ['toxic_slash'],
+      equipment: [equipment],
+    );
+
+    final viewModel = EquipmentCardViewModelFactory(
+      database: result.database,
+      compareService: EquipmentCompareService(
+        scoreService: BuildScoreService(result.database),
+      ),
+    ).create(
+      equipment: equipment,
+      assessment: assessment,
+    );
+
+    expect(viewModel.title, isNotEmpty);
+    expect(viewModel.qualityId, 'rare');
+    expect(viewModel.affixes.single.affixId, 'aff_poison_damage_pct_t1');
+    expect(viewModel.matchScore, greaterThan(0));
   });
 }

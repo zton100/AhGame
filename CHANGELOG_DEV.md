@@ -743,6 +743,40 @@
 
 ### Remaining
 
-- Add equipment card/detail view models that expose match score, deltas, matched tags, rejected tags, and recommendation.
 - Connect scoring to future inventory/filter systems.
 - Move rejected-tag relationships to config if designers need live tuning.
+
+## Equipment Card ViewModel Foundation - 2026-06-23
+
+### Added files
+
+- `lib/features/equipment/equipment_card_view_model.dart`
+- `test/equipment_card_view_model_test.dart`
+
+### Modified files
+
+- `test/seed_data_integration_test.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `EquipmentCardViewModelFactory` for Issue 058's first non-UI slice.
+- Exposed quality id, quality label, quality color value, base stats, affix rows, mechanic-affix highlight flags, BD match score, replacement deltas, matched/rejected tags, and recommendation labels.
+- Kept equipment card widgets free of business logic by reusing `EquipmentCompareService`.
+- Verified seed `rusted_blade` can produce a card view model with rare quality, poison affix, and positive BD match score.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_card_view_model_test.dart test\seed_data_integration_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- No save schema change.
+
+### Remaining
+
+- Build the actual equipment page/card UI from this ViewModel.
+- Add equipment detail modal once inventory data exists.
+- Connect scoring to future inventory/filter systems.
