@@ -780,3 +780,42 @@
 - Build the actual equipment page/card UI from this ViewModel.
 - Add equipment detail modal once inventory data exists.
 - Connect scoring to future inventory/filter systems.
+
+## S07 Inventory Foundation - 2026-06-23
+
+### Added files
+
+- `lib/models/inventory_state.dart`
+- `lib/systems/inventory/inventory_service.dart`
+- `test/inventory_service_test.dart`
+
+### Modified files
+
+- `lib/models/save_data.dart`
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `InventoryState` with equipment ids, equipment capacity, and material stacks.
+- Added `MaterialStack` JSON support.
+- Added `InventoryService.addEquipment` with capacity-safe failure results instead of exceptions.
+- Added `InventoryService.addMaterial` with material id stacking.
+- Extended `InventorySave` with equipment capacity and material stacks while keeping legacy saves readable.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\inventory_service_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\save_service_test.dart test\inventory_service_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+
+### Save impact
+
+- `InventorySave` now writes `equipmentCapacity` and `materials`.
+- Legacy saves without those fields still load with default capacity and empty materials.
+
+### Remaining
+
+- Connect drop results into `InventoryService`.
+- Store full generated equipment instances once inventory ownership is expanded beyond ids.
+- Build equipment page/card UI from inventory contents.

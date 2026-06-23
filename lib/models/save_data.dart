@@ -1,3 +1,4 @@
+import 'inventory_state.dart';
 import 'settings_save.dart';
 
 class SaveData {
@@ -139,25 +140,49 @@ class PlayerProgress {
 }
 
 class InventorySave {
-  const InventorySave({required this.equipmentInstanceIds});
+  const InventorySave({
+    required this.equipmentInstanceIds,
+    this.equipmentCapacity = InventoryState.defaultEquipmentCapacity,
+    this.materials = const [],
+  });
 
   factory InventorySave.fromJson(Map<String, Object?> json) {
     return InventorySave(
       equipmentInstanceIds: List<String>.from(
         json['equipmentInstanceIds'] as List? ?? const [],
       ),
+      equipmentCapacity: json['equipmentCapacity'] as int? ??
+          InventoryState.defaultEquipmentCapacity,
+      materials: [
+        for (final material in json['materials'] as List? ?? const [])
+          MaterialStack.fromJson(Map<String, Object?>.from(material as Map)),
+      ],
     );
   }
 
   final List<String> equipmentInstanceIds;
+  final int equipmentCapacity;
+  final List<MaterialStack> materials;
 
-  InventorySave copyWith({List<String>? equipmentInstanceIds}) {
+  InventorySave copyWith({
+    List<String>? equipmentInstanceIds,
+    int? equipmentCapacity,
+    List<MaterialStack>? materials,
+  }) {
     return InventorySave(
       equipmentInstanceIds: equipmentInstanceIds ?? this.equipmentInstanceIds,
+      equipmentCapacity: equipmentCapacity ?? this.equipmentCapacity,
+      materials: materials ?? this.materials,
     );
   }
 
   Map<String, Object?> toJson() {
-    return {'equipmentInstanceIds': equipmentInstanceIds};
+    return {
+      'equipmentInstanceIds': equipmentInstanceIds,
+      'equipmentCapacity': equipmentCapacity,
+      'materials': [
+        for (final material in materials) material.toJson(),
+      ],
+    };
   }
 }
