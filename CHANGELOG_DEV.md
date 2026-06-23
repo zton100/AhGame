@@ -532,3 +532,36 @@
 - Add affix rolling after S08 affix runtime exists.
 - Add equipment equip/unequip rules in Issue 020.
 - Add equipment comparison and inventory integration.
+
+## S07 Equipment Equip Rules - 2026-06-23
+
+### Added files
+
+- `lib/models/equipment_loadout.dart`
+- `lib/systems/equipment/equipment_service.dart`
+- `test/equipment_service_test.dart`
+
+### Modified files
+
+- `docs/开发需求拆解.md`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `EquipmentLoadout` with JSON round trip support.
+- Added `EquipmentService.equip` and `EquipmentService.unequip`.
+- Validates template/instance match, class restrictions, and minimum level before equipping.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\equipment_service_test.dart`
+
+### Save impact
+
+- No save schema change yet. `EquipmentLoadout` is serializable and ready for future inventory save expansion.
+
+### Remaining
+
+- Persist equipped loadout in save data when inventory/storage expands.
+- Add ring slot selection behavior and equipment compare output.
+- Connect equipment stats into `StatAggregationService`.
