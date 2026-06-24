@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/routing/app_route.dart';
 import '../../core/theme/app_theme.dart';
 import '../../systems/navigation/navigation_service.dart';
+import '../character/character_page.dart';
 import '../debug/debug_page.dart';
 import '../equipment/equipment_page.dart';
 import '../placeholder/feature_placeholder_page.dart';
@@ -91,11 +92,7 @@ class _MainShellState extends State<MainShell> {
           summary: '领域、难度、层数词缀和首通奖励会在这里接入。',
         );
       case AppRoute.character:
-        return FeaturePlaceholderPage(
-          title: route.label,
-          routeId: route.id,
-          summary: '职业、等级、属性拆解和系统解锁会在这里接入。',
-        );
+        return const CharacterPage();
       case AppRoute.debug:
         return const DebugPage();
     }

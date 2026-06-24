@@ -1147,3 +1147,43 @@
 - Tune salvage rewards by quality and level once material economy is specified.
 - Add bulk salvage and locked-item filters after the equipment page grows list controls.
 - Surface equipped-slot state in future character/final-stats UI.
+
+## S13 Character Page First Slice - 2026-06-24
+
+### Added files
+
+- `lib/features/character/character_page.dart`
+- `test/character_page_widget_test.dart`
+
+### Modified files
+
+- `lib/features/shell/main_shell.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Replaced the character tab placeholder with a real `CharacterPage`.
+- Character page reads `playerSaveProvider` and `gameDatabaseLoadProvider`.
+- Restores `CharacterState` from the current `SaveData`.
+- Converts `InventorySave` into `InventoryState`.
+- Uses `CharacterFinalStatsService` to compute final stats from character growth and equipped gear.
+- Displays current class, level, experience, base stats, final stats, equipped slots, and stat breakdowns.
+- Missing equipped equipment instances now surface warning banners and missing slot text instead of crashing.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\character_page_widget_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\widget_test.dart`
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+- Passed: `I:\dev\flutter\bin\flutter.bat test`
+
+### Save impact
+
+- No save schema change.
+- Character page consumes existing `SaveData.playerProgress` and `InventorySave.equipmentLoadout`.
+
+### Remaining
+
+- Add richer slot labels and equipment comparison summaries.
+- Add collapsible breakdown sections after the page needs denser presentation.
+- Wire character page into future class switching and unlock systems.
