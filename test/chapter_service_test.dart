@@ -68,6 +68,41 @@ void main() {
     expect(stage.monsterIds, ['skeleton_grunt']);
   });
 
+  test('highest farmable stage resolves highest cleared enterable stage', () {
+    final service = ChapterService(_database());
+    final progress = SaveData.newGame().playerProgress.copyWith(
+          level: 1,
+          currentStageId: '1-3',
+          highestClearedStageId: '1-2',
+        );
+
+    final stage = service.highestFarmableStage(progress);
+
+    expect(stage?.stageId, '1-2');
+  });
+
+  test('highest farmable stage falls back to current stage with no clears', () {
+    final service = ChapterService(_database());
+    final progress = SaveData.newGame().playerProgress;
+
+    final stage = service.highestFarmableStage(progress);
+
+    expect(stage?.stageId, '1-1');
+  });
+
+  test('should farm previous stage when progression level is too high', () {
+    final service = ChapterService(_database());
+    final progress = SaveData.newGame().playerProgress.copyWith(
+          level: 1,
+          currentStageId: '1-3',
+          highestClearedStageId: '1-2',
+        );
+
+    expect(service.shouldFarmPreviousStage(progress), isTrue);
+    expect(service.currentProgressionStage(progress).stageId, '1-3');
+    expect(service.maybeNextProgressionStage(progress)?.stageId, '1-4');
+  });
+
   test('marking a stage cleared advances to 1-2', () {
     final service = ChapterService(_database());
     final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24));

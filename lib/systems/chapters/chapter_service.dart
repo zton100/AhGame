@@ -25,6 +25,72 @@ class ChapterService {
     return _requireStage(chapter, progress.currentStageId);
   }
 
+  StageConfig currentProgressionStage(PlayerProgress progress) {
+    return currentStage(progress);
+  }
+
+  StageConfig stageById({
+    required String chapterId,
+    required String stageId,
+  }) {
+    return _requireStage(requireChapter(chapterId), stageId);
+  }
+
+  StageConfig? highestClearedStage(PlayerProgress progress) {
+    final stageId = progress.highestClearedStageId;
+    if (stageId == null) {
+      return null;
+    }
+
+    return stageById(
+      chapterId: progress.currentChapterId,
+      stageId: stageId,
+    );
+  }
+
+  StageConfig? highestFarmableStage(PlayerProgress progress) {
+    final chapter = requireChapter(progress.currentChapterId);
+    final highestClearedId = progress.highestClearedStageId;
+    if (highestClearedId == null) {
+      final current = currentProgressionStage(progress);
+      if (canEnterStage(progress: progress, stage: current) &&
+          current.monsterIds.isNotEmpty) {
+        return current;
+      }
+
+      return null;
+    }
+
+    final highestClearedIndex = chapter.stages.indexWhere(
+      (stage) => stage.stageId == highestClearedId,
+    );
+    if (highestClearedIndex < 0) {
+      throw StateError('Stage not found: $highestClearedId');
+    }
+
+    for (var i = highestClearedIndex; i >= 0; i -= 1) {
+      final stage = chapter.stages[i];
+      if (canEnterStage(progress: progress, stage: stage) &&
+          stage.monsterIds.isNotEmpty) {
+        return stage;
+      }
+    }
+
+    return null;
+  }
+
+  bool shouldFarmPreviousStage(PlayerProgress progress) {
+    final current = currentProgressionStage(progress);
+    return current.requiredLevel > progress.level;
+  }
+
+  StageConfig? maybeNextProgressionStage(PlayerProgress progress) {
+    return nextStage(
+      chapterId: progress.currentChapterId,
+      stageId: progress.currentStageId,
+    );
+  }
+
   StageConfig? nextStage({
     required String chapterId,
     required String stageId,

@@ -371,6 +371,23 @@ class _AutoBattleSummary extends StatelessWidget {
           value: state.rejectedEquipmentCount.toString(),
         ),
         _InfoRow(label: 'Stop Reason', value: state.stopReason.name),
+        _InfoRow(
+          label: 'Progression Stage',
+          value: state.progressionStageId ?? '-',
+        ),
+        _InfoRow(
+          label: 'Farming Stage',
+          value: state.farmingStageId ?? '-',
+        ),
+        _InfoRow(
+          label: 'Farming Because Level Too Low',
+          value: state.farmingBecauseLevelTooLow.toString(),
+        ),
+        if (state.farmingBecauseLevelTooLow)
+          const _WarningBanner(
+            message:
+                'Current stage level is too high. Auto battle is farming the highest cleared stage you can enter.',
+          ),
         if (state.stopReason == AutoBattleStopReason.levelTooLow)
           const _WarningBanner(
             message:

@@ -54,12 +54,21 @@ class AutoBattleService {
     int seed = 1,
   }) async {
     final initial = startRun(saveData);
-    return _runOneBattleFromState(
+    final state = await _runOneBattleFromState(
       state: initial,
       database: database,
       save: save,
       seed: seed,
     );
+
+    if (state.stopReason == AutoBattleStopReason.none) {
+      return state.copyWith(
+        isRunning: false,
+        stopReason: AutoBattleStopReason.maxBattlesReached,
+      );
+    }
+
+    return state.copyWith(isRunning: false);
   }
 
   Future<AutoBattleRunState> runManyBattles({
@@ -104,17 +113,36 @@ class AutoBattleService {
   }) async {
     final chapterService = ChapterService(database);
     final progress = state.saveData.playerProgress;
-    final stage = chapterService.currentStage(progress);
+    final progressionStage = chapterService.currentProgressionStage(progress);
+    final shouldFarm = chapterService.shouldFarmPreviousStage(progress);
+    final stage = shouldFarm
+        ? chapterService.highestFarmableStage(progress)
+        : progressionStage;
+    if (stage == null) {
+      return state.copyWith(
+        isRunning: false,
+        stopReason: AutoBattleStopReason.levelTooLow,
+        progressionStageId: progressionStage.stageId,
+        clearFarmingStageId: true,
+        farmingBecauseLevelTooLow: false,
+      );
+    }
     if (!chapterService.canEnterStage(progress: progress, stage: stage)) {
       return state.copyWith(
         isRunning: false,
         stopReason: AutoBattleStopReason.levelTooLow,
+        progressionStageId: progressionStage.stageId,
+        clearFarmingStageId: true,
+        farmingBecauseLevelTooLow: false,
       );
     }
     if (stage.monsterIds.isEmpty) {
       return state.copyWith(
         isRunning: false,
         stopReason: AutoBattleStopReason.battleFailed,
+        progressionStageId: progressionStage.stageId,
+        clearFarmingStageId: true,
+        farmingBecauseLevelTooLow: false,
       );
     }
 
@@ -161,15 +189,15 @@ class AutoBattleService {
       );
     }
 
-    final nextSave = chapterService.markStageCleared(settlement.saveData);
+    final nextSave = shouldFarm
+        ? settlement.saveData
+        : chapterService.markStageCleared(settlement.saveData);
     final finalReport = _copyReportWithSaveData(settlement, nextSave);
     await save(nextSave);
 
-    final nextStage = chapterService.nextStage(
-      chapterId: state.saveData.playerProgress.currentChapterId,
-      stageId: state.saveData.playerProgress.currentStageId,
-    );
-    final stopReason = nextStage == null
+    final nextProgressionStage =
+        chapterService.maybeNextProgressionStage(progress);
+    final stopReason = !shouldFarm && nextProgressionStage == null
         ? AutoBattleStopReason.chapterComplete
         : AutoBattleStopReason.none;
 
@@ -178,6 +206,9 @@ class AutoBattleService {
           report: finalReport,
           logs: battle.logs,
           saveData: nextSave,
+          farmingStageId: shouldFarm ? stage.stageId : null,
+          farmingBecauseLevelTooLow: shouldFarm,
+          progressionStageId: progressionStage.stageId,
         )
         .copyWith(
           isRunning: stopReason == AutoBattleStopReason.none,

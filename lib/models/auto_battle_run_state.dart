@@ -16,6 +16,9 @@ class AutoBattleRunState {
     this.lastBattleLogs = const [],
     this.stopReason = AutoBattleStopReason.none,
     this.lastSettlementReport,
+    this.farmingStageId,
+    this.farmingBecauseLevelTooLow = false,
+    this.progressionStageId,
   });
 
   factory AutoBattleRunState.initial(SaveData saveData) {
@@ -34,6 +37,9 @@ class AutoBattleRunState {
   final List<BattleLogEntry> lastBattleLogs;
   final AutoBattleStopReason stopReason;
   final BattleSettlementReport? lastSettlementReport;
+  final String? farmingStageId;
+  final bool farmingBecauseLevelTooLow;
+  final String? progressionStageId;
 
   AutoBattleRunState copyWith({
     SaveData? saveData,
@@ -48,6 +54,11 @@ class AutoBattleRunState {
     List<BattleLogEntry>? lastBattleLogs,
     AutoBattleStopReason? stopReason,
     BattleSettlementReport? lastSettlementReport,
+    String? farmingStageId,
+    bool clearFarmingStageId = false,
+    bool? farmingBecauseLevelTooLow,
+    String? progressionStageId,
+    bool clearProgressionStageId = false,
   }) {
     return AutoBattleRunState(
       saveData: saveData ?? this.saveData,
@@ -64,6 +75,13 @@ class AutoBattleRunState {
       lastBattleLogs: lastBattleLogs ?? this.lastBattleLogs,
       stopReason: stopReason ?? this.stopReason,
       lastSettlementReport: lastSettlementReport ?? this.lastSettlementReport,
+      farmingStageId:
+          clearFarmingStageId ? null : farmingStageId ?? this.farmingStageId,
+      farmingBecauseLevelTooLow:
+          farmingBecauseLevelTooLow ?? this.farmingBecauseLevelTooLow,
+      progressionStageId: clearProgressionStageId
+          ? null
+          : progressionStageId ?? this.progressionStageId,
     );
   }
 
@@ -71,6 +89,9 @@ class AutoBattleRunState {
     required BattleSettlementReport report,
     required List<BattleLogEntry> logs,
     required SaveData saveData,
+    String? farmingStageId,
+    bool farmingBecauseLevelTooLow = false,
+    required String progressionStageId,
   }) {
     final materials = Map<String, int>.from(totalMaterials);
     for (final material in report.gainedMaterials) {
@@ -93,6 +114,10 @@ class AutoBattleRunState {
           rejectedEquipmentCount + report.rejectedEquipment.length,
       lastBattleLogs: List.unmodifiable(logs),
       lastSettlementReport: report,
+      farmingStageId: farmingStageId,
+      clearFarmingStageId: farmingStageId == null,
+      farmingBecauseLevelTooLow: farmingBecauseLevelTooLow,
+      progressionStageId: progressionStageId,
     );
   }
 }

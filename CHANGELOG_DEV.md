@@ -1,5 +1,53 @@
 # CHANGELOG_DEV
 
+## S21 Repeat Farm Previous Cleared Stage - 2026-06-24
+
+### Added files
+
+- None.
+
+### Modified files
+
+- `lib/models/auto_battle_run_state.dart`
+- `lib/systems/chapters/chapter_service.dart`
+- `lib/systems/auto_battle/auto_battle_service.dart`
+- `lib/features/battle/battle_page.dart`
+- `test/chapter_service_test.dart`
+- `test/auto_battle_service_test.dart`
+- `test/battle_page_widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added fallback farming when current progression stage level is too high.
+- Added highest farmable stage selection through `ChapterService.highestFarmableStage`.
+- Added `highestClearedStage`, `currentProgressionStage`, `shouldFarmPreviousStage`, `stageById`, and `maybeNextProgressionStage` helpers.
+- Added auto battle farming state fields: `farmingStageId`, `farmingBecauseLevelTooLow`, and `progressionStageId`.
+- Updated `AutoBattleService.runOneBattle` so a single completed battle returns `isRunning = false` and `stopReason = maxBattlesReached` when no error stop reason exists.
+- Kept `runManyBattles` continuous behavior intact while allowing each new battle to re-check whether the progression stage is now enterable after level-up.
+- Farming a previous stage grants normal settlement rewards but does not advance `currentStageId`.
+- Added BattlePage farming status display and a warning when auto battle is farming because the current progression stage level is too high.
+
+### Tests
+
+- Added tests for highest farmable stage selection and progression-stage farming checks.
+- Added tests for single-battle return semantics.
+- Added tests for farming previous cleared stages, farming rewards, stable `currentStageId`, level-up returning to progression, no farmable stage fallback, and final-stage chapter completion.
+- Added widget coverage for BattlePage farming status display.
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+
+### Save impact
+
+- No persistent SaveData fields were added.
+- `saveVersion` remains unchanged.
+- New auto battle farming fields are runtime UI/service state only.
+
+### Remaining
+
+- Stop Auto Battle still only updates state after synchronous execution returns.
+- Offline rewards, background timers, auto salvage, equipment enhancement, and abyss systems remain out of scope.
+
 ## S19.5 World Bible and Naming Guide / 世界观与命名规范 - 2026-06-24
 
 ### 新增文件
@@ -68,7 +116,7 @@
 ### 待处理问题
 
 - Stop 按钮第一版只更新状态，不中断同步执行中的循环。
-- 暂不支持真实 timer、后台运行、离线收益或重复刷上一关。
+- 暂不支持真实 timer、后台运行或离线收益；重复刷上一关已在 S21 补齐第一版。
 
 ## S19 Chapter Progression / 章节推进与怪物池第一版 - 2026-06-24
 

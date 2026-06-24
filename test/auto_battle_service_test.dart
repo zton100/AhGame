@@ -17,6 +17,8 @@ void main() {
     );
 
     expect(result.battlesCompleted, 1);
+    expect(result.isRunning, isFalse);
+    expect(result.stopReason, AutoBattleStopReason.maxBattlesReached);
     expect(result.totalExperience, 12);
     expect(result.saveData.playerProgress.experience, 12);
     expect(saved?.playerProgress.experience, 12);
@@ -68,7 +70,31 @@ void main() {
     expect(result.saveData.playerProgress.currentStageId, '1-3');
   });
 
-  test('level too low stops without crashing', () async {
+  test('current stage level too low farms highest cleared stage', () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+
+    final result = await _service().runOneBattle(
+      saveData: save,
+      database: _database(secondStageRequiredLevel: 99),
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 1);
+    expect(result.totalExperience, 12);
+    expect(result.generatedEquipmentCount, 1);
+    expect(result.saveData.playerProgress.currentStageId, '1-2');
+    expect(result.progressionStageId, '1-2');
+    expect(result.farmingStageId, '1-1');
+    expect(result.farmingBecauseLevelTooLow, isTrue);
+    expect(result.stopReason, AutoBattleStopReason.maxBattlesReached);
+  });
+
+  test('level too low stops when no farmable stage exists', () async {
     final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
       playerProgress: SaveData.newGame().playerProgress.copyWith(
             currentStageId: '1-2',
@@ -83,6 +109,33 @@ void main() {
 
     expect(result.battlesCompleted, 0);
     expect(result.stopReason, AutoBattleStopReason.levelTooLow);
+    expect(result.isRunning, isFalse);
+  });
+
+  test('farm battle level up lets the next battle return to progression',
+      () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+            experience: 95,
+          ),
+    );
+
+    final result = await _service().runManyBattles(
+      saveData: save,
+      database: _database(secondStageRequiredLevel: 2),
+      maxBattles: 2,
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 2);
+    expect(result.saveData.playerProgress.level, 2);
+    expect(result.saveData.playerProgress.currentStageId, '1-2');
+    expect(result.progressionStageId, '1-2');
+    expect(result.farmingStageId, isNull);
+    expect(result.farmingBecauseLevelTooLow, isFalse);
+    expect(result.stopReason, AutoBattleStopReason.chapterComplete);
   });
 
   test('final stage victory stops with chapterComplete', () async {

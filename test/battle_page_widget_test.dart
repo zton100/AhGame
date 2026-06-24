@@ -3,6 +3,7 @@ import 'package:abyss_relic/core/theme/app_theme.dart';
 import 'package:abyss_relic/features/battle/battle_page.dart';
 import 'package:abyss_relic/models/data_file_meta.dart';
 import 'package:abyss_relic/models/loaded_data_file.dart';
+import 'package:abyss_relic/models/save_data.dart';
 import 'package:abyss_relic/systems/config/game_database.dart';
 import 'package:abyss_relic/systems/config/game_database_load_result.dart';
 import 'package:abyss_relic/systems/config/game_database_service.dart';
@@ -126,14 +127,56 @@ void main() {
     expect(save.playerProgress.experience, 21);
     expect(save.inventory.equipmentInstanceIds, hasLength(2));
   });
+
+  testWidgets('BattlePage displays farming fallback status', (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+    await saveService.save(save);
+
+    await tester.pumpWidget(
+      _app(
+        saveService: saveService,
+        database: _database(secondStageRequiredLevel: 99),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run 1 Battle'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Progression Stage'), findsOneWidget);
+    expect(find.text('Farming Stage'), findsOneWidget);
+    expect(find.text('Farming Because Level Too Low'), findsOneWidget);
+    expect(find.text('true'), findsOneWidget);
+    expect(
+      find.text(
+        'Current stage level is too high. Auto battle is farming the highest cleared stage you can enter.',
+      ),
+      findsOneWidget,
+    );
+
+    final updatedSave = await saveService.loadOrCreate();
+    expect(updatedSave.playerProgress.currentStageId, '1-2');
+    expect(updatedSave.playerProgress.experience, 12);
+  });
 }
 
-Widget _app({required SaveService saveService}) {
+Widget _app({
+  required SaveService saveService,
+  GameDatabase? database,
+}) {
   return ProviderScope(
     overrides: [
       saveServiceProvider.overrideWithValue(saveService),
       gameDatabaseLoadProvider.overrideWith((ref) async {
-        return GameDatabaseLoadResult(database: _database(), errors: const []);
+        return GameDatabaseLoadResult(
+          database: database ?? _database(),
+          errors: const [],
+        );
       }),
     ],
     child: MaterialApp(
@@ -143,7 +186,7 @@ Widget _app({required SaveService saveService}) {
   );
 }
 
-GameDatabase _database() {
+GameDatabase _database({int secondStageRequiredLevel = 1}) {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
       'schemaVersion': 1,
@@ -227,7 +270,7 @@ GameDatabase _database() {
               'stageId': '1-2',
               'stageName': 'Rat Cellar',
               'monsterIds': ['plague_rat'],
-              'requiredLevel': 1,
+              'requiredLevel': secondStageRequiredLevel,
               'isBossStage': false,
             },
           ],
