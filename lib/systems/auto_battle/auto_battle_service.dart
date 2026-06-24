@@ -1,0 +1,244 @@
+import '../../models/auto_battle_run_state.dart';
+import '../../models/battle_settlement_report.dart';
+import '../../models/battle_state.dart';
+import '../../models/inventory_state.dart';
+import '../../models/save_data.dart';
+import '../battle/battle_settlement_service.dart';
+import '../battle/battle_simulator.dart';
+import '../chapters/chapter_service.dart';
+import '../character/character_service.dart';
+import '../character/class_service.dart';
+import '../config/game_database.dart';
+import '../monsters/monster_factory.dart';
+import '../monsters/monster_service.dart';
+import '../skills/skill_service.dart';
+import '../stats/character_final_stats_service.dart';
+
+typedef SaveDataWriter = Future<void> Function(SaveData saveData);
+
+class AutoBattleService {
+  const AutoBattleService({
+    BattleSimulator simulator = const BattleSimulator(),
+    BattleSettlementService settlementService = const BattleSettlementService(),
+    MonsterFactory monsterFactory = const MonsterFactory(),
+    DateTime Function()? now,
+  })  : _simulator = simulator,
+        _settlementService = settlementService,
+        _monsterFactory = monsterFactory,
+        _now = now;
+
+  final BattleSimulator _simulator;
+  final BattleSettlementService _settlementService;
+  final MonsterFactory _monsterFactory;
+  final DateTime Function()? _now;
+
+  AutoBattleRunState startRun(SaveData saveData) {
+    return AutoBattleRunState(
+      saveData: saveData,
+      isRunning: true,
+      startedAt: (_now ?? DateTime.now)().toUtc(),
+    );
+  }
+
+  AutoBattleRunState stopRun(AutoBattleRunState state) {
+    return state.copyWith(
+      isRunning: false,
+      stopReason: AutoBattleStopReason.manualStop,
+    );
+  }
+
+  Future<AutoBattleRunState> runOneBattle({
+    required SaveData saveData,
+    required GameDatabase database,
+    required SaveDataWriter save,
+    int seed = 1,
+  }) async {
+    final initial = startRun(saveData);
+    return _runOneBattleFromState(
+      state: initial,
+      database: database,
+      save: save,
+      seed: seed,
+    );
+  }
+
+  Future<AutoBattleRunState> runManyBattles({
+    required SaveData saveData,
+    required GameDatabase database,
+    required int maxBattles,
+    required SaveDataWriter save,
+    int seed = 1,
+  }) async {
+    var state = startRun(saveData);
+    if (maxBattles <= 0) {
+      return state.copyWith(
+        isRunning: false,
+        stopReason: AutoBattleStopReason.maxBattlesReached,
+      );
+    }
+
+    for (var i = 0; i < maxBattles; i += 1) {
+      state = await _runOneBattleFromState(
+        state: state,
+        database: database,
+        save: save,
+        seed: seed + i,
+      );
+
+      if (state.stopReason != AutoBattleStopReason.none) {
+        return state.copyWith(isRunning: false);
+      }
+    }
+
+    return state.copyWith(
+      isRunning: false,
+      stopReason: AutoBattleStopReason.maxBattlesReached,
+    );
+  }
+
+  Future<AutoBattleRunState> _runOneBattleFromState({
+    required AutoBattleRunState state,
+    required GameDatabase database,
+    required SaveDataWriter save,
+    required int seed,
+  }) async {
+    final chapterService = ChapterService(database);
+    final progress = state.saveData.playerProgress;
+    final stage = chapterService.currentStage(progress);
+    if (!chapterService.canEnterStage(progress: progress, stage: stage)) {
+      return state.copyWith(
+        isRunning: false,
+        stopReason: AutoBattleStopReason.levelTooLow,
+      );
+    }
+    if (stage.monsterIds.isEmpty) {
+      return state.copyWith(
+        isRunning: false,
+        stopReason: AutoBattleStopReason.battleFailed,
+      );
+    }
+
+    final monsterConfig =
+        MonsterService(database).requireMonster(stage.monsterIds.first);
+    var battle = _createBattle(
+      saveData: state.saveData,
+      database: database,
+      monsterId: monsterConfig.id,
+    );
+
+    for (var i = 0; i < 100 && !battle.isFinished; i += 1) {
+      battle = _simulator.tick(battle, 1);
+    }
+
+    if (!battle.isFinished) {
+      return state.copyWith(
+        isRunning: false,
+        lastBattleLogs: battle.logs,
+        stopReason: AutoBattleStopReason.battleNotFinished,
+      );
+    }
+    if (battle.result != BattleResult.victory) {
+      return state.copyWith(
+        isRunning: false,
+        lastBattleLogs: battle.logs,
+        stopReason: AutoBattleStopReason.battleFailed,
+      );
+    }
+
+    final settlement = _settlementService.settle(
+      battle: battle,
+      monster: monsterConfig,
+      saveData: state.saveData,
+      database: database,
+      seed: seed,
+    );
+    if (!settlement.accepted) {
+      return state.copyWith(
+        isRunning: false,
+        lastBattleLogs: battle.logs,
+        lastSettlementReport: settlement,
+        stopReason: AutoBattleStopReason.battleFailed,
+      );
+    }
+
+    final nextSave = chapterService.markStageCleared(settlement.saveData);
+    final finalReport = _copyReportWithSaveData(settlement, nextSave);
+    await save(nextSave);
+
+    final nextStage = chapterService.nextStage(
+      chapterId: state.saveData.playerProgress.currentChapterId,
+      stageId: state.saveData.playerProgress.currentStageId,
+    );
+    final stopReason = nextStage == null
+        ? AutoBattleStopReason.chapterComplete
+        : AutoBattleStopReason.none;
+
+    return state
+        .addSettlement(
+          report: finalReport,
+          logs: battle.logs,
+          saveData: nextSave,
+        )
+        .copyWith(
+          isRunning: stopReason == AutoBattleStopReason.none,
+          stopReason: stopReason,
+        );
+  }
+
+  BattleState _createBattle({
+    required SaveData saveData,
+    required GameDatabase database,
+    required String monsterId,
+  }) {
+    final character = CharacterService(
+      classService: ClassService(database),
+    ).restoreFromSave(saveData);
+    final inventory = _inventoryStateFromSave(saveData.inventory);
+    final computedStats = const CharacterFinalStatsService().compute(
+      character: character,
+      loadout: inventory.equipmentLoadout,
+      inventory: inventory,
+      database: database,
+    );
+    final monster = _monsterFactory.create(
+      config: MonsterService(database).requireMonster(monsterId),
+    );
+
+    return _simulator.createBattle(
+      character: character,
+      computedStats: computedStats.computedStats,
+      skillLoadout: saveData.playerProgress.skillLoadout,
+      monster: monster,
+      skillService: SkillService(database),
+    );
+  }
+
+  BattleSettlementReport _copyReportWithSaveData(
+    BattleSettlementReport report,
+    SaveData saveData,
+  ) {
+    return BattleSettlementReport(
+      accepted: report.accepted,
+      reason: report.reason,
+      saveData: saveData,
+      gainedExperience: report.gainedExperience,
+      gainedGold: report.gainedGold,
+      gainedMaterials: report.gainedMaterials,
+      generatedEquipment: report.generatedEquipment,
+      rejectedEquipment: report.rejectedEquipment,
+      leveledUp: report.leveledUp,
+      newLevel: report.newLevel,
+    );
+  }
+}
+
+InventoryState _inventoryStateFromSave(InventorySave save) {
+  return InventoryState(
+    equipmentInstanceIds: save.equipmentInstanceIds,
+    equipmentInstances: save.equipmentInstances,
+    equipmentLoadout: save.equipmentLoadout,
+    equipmentCapacity: save.equipmentCapacity,
+    materials: save.materials,
+    lockedEquipmentInstanceIds: save.lockedEquipmentInstanceIds,
+  );
+}

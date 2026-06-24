@@ -1,5 +1,46 @@
 # CHANGELOG_DEV
 
+## S20 Auto Battle Run First Slice / 在线连续战斗第一版 - 2026-06-24
+
+### 新增文件
+
+- `lib/models/auto_battle_run_state.dart`
+- `lib/systems/auto_battle/auto_battle_service.dart`
+- `test/auto_battle_service_test.dart`
+
+### 修改文件
+
+- `lib/features/battle/battle_page.dart`
+- `test/battle_page_widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### 完成内容
+
+- 新增 `AutoBattleRunState` 和 `AutoBattleStopReason`，记录连续战斗运行状态、累计收益、最近战斗日志和停止原因。
+- 新增 `AutoBattleService`，提供 `startRun`、`stopRun`、`runOneBattle`、`runManyBattles(maxBattles)`。
+- `runOneBattle` 走真实链路：读取章节关卡、校验等级、创建怪物运行时、计算角色最终属性、创建 BattleState、最多 tick 100 次、胜利后调用 `BattleSettlementService` 并用 `ChapterService` 推进关卡。
+- `runManyBattles` 连续执行多场战斗，累计经验、金币、材料、装备掉落数和拒绝装备数；遇到等级不足、章节完成、战斗未结束或失败会停止。
+- 每场成功结算后都会调用保存回调，确保经验、金币、材料、装备实例和章节进度进入真实 SaveData。
+- BattlePage 新增 `Run 1 Battle`、`Run 10 Battles`、`Stop Auto Battle`，并展示 Completed Battles、Total EXP、Total Gold、Materials gained、Dropped Equipment、Rejected Equipment、Stop Reason 和最近一场战斗日志。
+- 等级不足时显示停止提示；章节完成时显示完成提示。
+
+### 测试结果
+
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+
+### 存档影响
+
+- 无新增持久化字段，`saveVersion` 不变。
+- 连续战斗运行态不持久化，只把每场结算后的现有 SaveData 奖励和章节进度保存。
+
+### 待处理问题
+
+- Stop 按钮第一版只更新状态，不中断同步执行中的循环。
+- 暂不支持真实 timer、后台运行、离线收益或重复刷上一关。
+
+## S19 Chapter Progression / 章节推进与怪物池第一版 - 2026-06-24
+
 ## S19 章节推进与怪物池第一版 - 2026-06-24
 
 ### 新增文件
@@ -48,6 +89,8 @@
 - `firstClearRewards` 已在配置模型预留，但第一版尚未发放首通奖励。
 - 多怪物 stage 第一版只取第一个怪物，后续可扩展为随机怪物池或战斗波次。
 - 最后一关通关后当前关卡保持在末关，后续章节系统需要接入下一章节解锁。
+
+## S18 Battle Page First Slice / 战斗页第一版 - 2026-06-24
 
 ## S18 战斗页第一版 - 2026-06-24
 

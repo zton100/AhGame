@@ -21,6 +21,8 @@ void main() {
 
     expect(find.text('Battle'), findsOneWidget);
     expect(find.text('Start Battle'), findsOneWidget);
+    expect(find.text('Run 1 Battle'), findsOneWidget);
+    expect(find.text('Run 10 Battles'), findsOneWidget);
     expect(find.text('not_started'), findsOneWidget);
     expect(find.text('Chapter 1'), findsOneWidget);
     expect(find.text('1-1 Grave Road'), findsOneWidget);
@@ -104,6 +106,25 @@ void main() {
         firstSave.playerProgress.currentStageId);
     expect(secondSave.inventory.equipmentInstanceIds,
         firstSave.inventory.equipmentInstanceIds);
+  });
+
+  testWidgets('BattlePage displays accumulated auto battle rewards',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run 10 Battles'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Completed Battles'), findsOneWidget);
+    expect(find.text('Total EXP'), findsOneWidget);
+    expect(find.text('21'), findsOneWidget);
+    expect(find.text('chapterComplete'), findsOneWidget);
+
+    final save = await saveService.loadOrCreate();
+    expect(save.playerProgress.experience, 21);
+    expect(save.inventory.equipmentInstanceIds, hasLength(2));
   });
 }
 

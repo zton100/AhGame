@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/save/player_save_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/auto_battle_run_state.dart';
 import '../../models/battle_settlement_report.dart';
 import '../../models/battle_state.dart';
 import '../../models/save_data.dart';
+import '../../systems/auto_battle/auto_battle_service.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
 import 'battle_controller.dart';
@@ -19,12 +21,15 @@ class BattlePage extends ConsumerStatefulWidget {
 
 class _BattlePageState extends ConsumerState<BattlePage> {
   late final BattleController _controller;
+  late final AutoBattleService _autoBattleService;
+  AutoBattleRunState? _autoRunState;
   bool _isSettling = false;
 
   @override
   void initState() {
     super.initState();
     _controller = BattleController();
+    _autoBattleService = const AutoBattleService();
   }
 
   @override
@@ -66,7 +71,19 @@ class _BattlePageState extends ConsumerState<BattlePage> {
             saveData: saveData,
             database: result.database,
           ),
+          autoRunState: _autoRunState,
           isSettling: _isSettling,
+          onRunOneBattle: () => _runAutoBattles(
+            saveData: saveData,
+            database: result.database,
+            maxBattles: 1,
+          ),
+          onRunTenBattles: () => _runAutoBattles(
+            saveData: saveData,
+            database: result.database,
+            maxBattles: 10,
+          ),
+          onStopAutoBattle: () => _stopAutoBattle(saveData),
           onStart: () => _startBattle(saveData, result.database),
           onTick: () => _tick(saveData, result.database),
           onAutoFinish: () => _autoFinish(saveData, result.database),
@@ -133,6 +150,38 @@ class _BattlePageState extends ConsumerState<BattlePage> {
       }
     }
   }
+
+  Future<void> _runAutoBattles({
+    required SaveData saveData,
+    required GameDatabase database,
+    required int maxBattles,
+  }) async {
+    setState(() {
+      _autoRunState = _autoBattleService.startRun(saveData);
+    });
+
+    final runState = await _autoBattleService.runManyBattles(
+      saveData: saveData,
+      database: database,
+      maxBattles: maxBattles,
+      save: ref.read(playerSaveProvider.notifier).save,
+    );
+
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _autoRunState = runState;
+    });
+  }
+
+  void _stopAutoBattle(SaveData saveData) {
+    setState(() {
+      _autoRunState = _autoBattleService.stopRun(
+        _autoRunState ?? AutoBattleRunState.initial(saveData),
+      );
+    });
+  }
 }
 
 class _BattlePageContent extends StatelessWidget {
@@ -140,7 +189,11 @@ class _BattlePageContent extends StatelessWidget {
     required this.controller,
     required this.saveData,
     required this.progress,
+    required this.autoRunState,
     required this.isSettling,
+    required this.onRunOneBattle,
+    required this.onRunTenBattles,
+    required this.onStopAutoBattle,
     required this.onStart,
     required this.onTick,
     required this.onAutoFinish,
@@ -150,7 +203,11 @@ class _BattlePageContent extends StatelessWidget {
   final BattleController controller;
   final SaveData saveData;
   final ChapterBattleProgress progress;
+  final AutoBattleRunState? autoRunState;
   final bool isSettling;
+  final VoidCallback onRunOneBattle;
+  final VoidCallback onRunTenBattles;
+  final VoidCallback onStopAutoBattle;
   final VoidCallback onStart;
   final VoidCallback onTick;
   final VoidCallback onAutoFinish;
@@ -167,6 +224,32 @@ class _BattlePageContent extends StatelessWidget {
       children: [
         Text('Battle', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
+        _Section(
+          title: 'Auto Battle',
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton(
+                  onPressed: onRunOneBattle,
+                  child: const Text('Run 1 Battle'),
+                ),
+                FilledButton(
+                  onPressed: onRunTenBattles,
+                  child: const Text('Run 10 Battles'),
+                ),
+                OutlinedButton(
+                  onPressed: onStopAutoBattle,
+                  child: const Text('Stop Auto Battle'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _AutoBattleSummary(runState: autoRunState),
+          ],
+        ),
+        const SizedBox(height: 12),
         _Section(
           title: 'Encounter',
           children: [
@@ -247,6 +330,70 @@ class _BattlePageContent extends StatelessWidget {
           const SizedBox(height: 16),
           _SettlementReportView(report: report),
         ],
+      ],
+    );
+  }
+}
+
+class _AutoBattleSummary extends StatelessWidget {
+  const _AutoBattleSummary({required this.runState});
+
+  final AutoBattleRunState? runState;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = runState;
+    if (state == null) {
+      return const Text('No auto battle run yet.');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _InfoRow(
+          label: 'Completed Battles',
+          value: state.battlesCompleted.toString(),
+        ),
+        _InfoRow(label: 'Total EXP', value: state.totalExperience.toString()),
+        _InfoRow(label: 'Total Gold', value: state.totalGold.toString()),
+        _InfoRow(
+          label: 'Materials gained',
+          value: state.totalMaterials.values
+              .fold<int>(0, (total, quantity) => total + quantity)
+              .toString(),
+        ),
+        _InfoRow(
+          label: 'Dropped Equipment',
+          value: state.generatedEquipmentCount.toString(),
+        ),
+        _InfoRow(
+          label: 'Rejected Equipment',
+          value: state.rejectedEquipmentCount.toString(),
+        ),
+        _InfoRow(label: 'Stop Reason', value: state.stopReason.name),
+        if (state.stopReason == AutoBattleStopReason.levelTooLow)
+          const _WarningBanner(
+            message:
+                'Current stage level is too low. Please level up or wait for repeat farming.',
+          ),
+        if (state.stopReason == AutoBattleStopReason.chapterComplete)
+          const _SuccessBanner(message: 'Current chapter is complete.'),
+        const SizedBox(height: 8),
+        Text('Last Auto Battle Logs',
+            style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 4),
+        if (state.lastBattleLogs.isEmpty)
+          const Text('No auto battle logs yet.')
+        else
+          for (final log in state.lastBattleLogs.skip(
+            state.lastBattleLogs.length > 20
+                ? state.lastBattleLogs.length - 20
+                : 0,
+          ))
+            Text(
+              '[${_formatNumber(log.time)}s] ${log.message}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
       ],
     );
   }
