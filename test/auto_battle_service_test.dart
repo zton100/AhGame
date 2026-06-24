@@ -1,5 +1,6 @@
 import 'package:abyss_relic/models/auto_battle_run_state.dart';
 import 'package:abyss_relic/models/auto_salvage_config.dart';
+import 'package:abyss_relic/models/battle_state.dart';
 import 'package:abyss_relic/models/data_file_meta.dart';
 import 'package:abyss_relic/models/loaded_data_file.dart';
 import 'package:abyss_relic/models/save_data.dart';
@@ -206,6 +207,50 @@ void main() {
       2,
     );
   });
+
+  test('auto battle failure stops without rewards or stage progress', () async {
+    var saved = false;
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24));
+
+    final result = await _service().runOneBattle(
+      saveData: save,
+      database: _database(
+        classHp: 10,
+        classAttack: 1,
+        monsterHp: 500,
+        monsterAttack: 999,
+      ),
+      save: (_) async => saved = true,
+    );
+
+    expect(result.stopReason, AutoBattleStopReason.battleFailed);
+    expect(result.battlesCompleted, 0);
+    expect(result.totalExperience, 0);
+    expect(result.saveData.playerProgress.currentStageId, '1-1');
+    expect(result.saveData.playerProgress.experience, 0);
+    expect(saved, isFalse);
+    expect(result.lastBattleLogs.map((log) => log.type),
+        contains(BattleLogType.defeat));
+  });
+
+  test('runManyBattles stops when a battle fails', () async {
+    final result = await _service().runManyBattles(
+      saveData: SaveData.newGame(now: DateTime.utc(2026, 6, 24)),
+      database: _database(
+        stageCount: 3,
+        classHp: 10,
+        classAttack: 1,
+        monsterHp: 500,
+        monsterAttack: 999,
+      ),
+      maxBattles: 10,
+      save: (_) async => fail('failed battles should not save rewards'),
+    );
+
+    expect(result.stopReason, AutoBattleStopReason.battleFailed);
+    expect(result.battlesCompleted, 0);
+    expect(result.saveData.playerProgress.currentStageId, '1-1');
+  });
 }
 
 AutoBattleService _service() => const AutoBattleService();
@@ -214,6 +259,11 @@ GameDatabase _database({
   int stageCount = 2,
   int secondStageRequiredLevel = 1,
   List<String> equipmentQualityPool = const ['rare'],
+  num classHp = 100,
+  num classAttack = 18,
+  num classArmor = 6,
+  num monsterHp = 85,
+  num monsterAttack = 10,
 }) {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
@@ -223,7 +273,11 @@ GameDatabase _database({
           'id': 'exile',
           'name': 'Exile',
           'tags': ['poison'],
-          'baseStats': {'hp': 100, 'attack': 18, 'armor': 6},
+          'baseStats': {
+            'hp': classHp,
+            'attack': classAttack,
+            'armor': classArmor
+          },
           'growth': {'hp': 10, 'attack': 2, 'armor': 1},
         },
       ],
@@ -251,8 +305,16 @@ GameDatabase _database({
     _file('assets/data/monsters.json', {
       'schemaVersion': 1,
       'monsters': [
-        _monster('skeleton_grunt', 'Skeleton Grunt', 85, 10, 4, 12, 3,
-            {'bone_shard': 1}),
+        _monster(
+          'skeleton_grunt',
+          'Skeleton Grunt',
+          monsterHp,
+          monsterAttack,
+          4,
+          12,
+          3,
+          {'bone_shard': 1},
+        ),
         _monster('plague_rat', 'Plague Rat', 55, 8, 1, 9, 2, {}),
       ],
     }),

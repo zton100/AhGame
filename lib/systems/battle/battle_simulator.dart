@@ -47,6 +47,12 @@ class BattleSimulator {
       skillConfigs: skillConfigs,
       monster: monster,
       elapsedSeconds: 0,
+      playerMaxHp: _safePositive(computedStats.finalStats.hp, fallback: 100),
+      playerCurrentHp:
+          _safePositive(computedStats.finalStats.hp, fallback: 100),
+      playerArmor: math.max(0, computedStats.finalStats.armor),
+      monsterAttackCooldownRemaining: 2,
+      monsterAttackInterval: 2,
       logs: [
         BattleLogEntry(
           time: 0,
@@ -75,6 +81,8 @@ class BattleSimulator {
 
     final nextTime = state.elapsedSeconds + seconds;
     var monster = state.monster;
+    var playerCurrentHp = state.playerCurrentHp;
+    var monsterAttackCooldown = state.monsterAttackCooldownRemaining - seconds;
     final logs = [...state.logs];
     var skillRuntimes = [
       for (final runtime in state.skillRuntimes) runtime.tickCooldown(seconds),
@@ -158,13 +166,41 @@ class BattleSimulator {
       );
     }
 
-    if (monster.attack > 0) {
-      logs.add(BattleLogEntry(
+    if (monsterAttackCooldown <= 0) {
+      final result = _applyMonsterAttack(
+        monster: monster,
+        playerCurrentHp: playerCurrentHp,
+        playerMaxHp: state.playerMaxHp,
+        playerArmor: state.playerArmor,
         time: nextTime,
-        type: BattleLogType.monsterCounter,
-        message: '${monster.monsterId} prepares a counterattack.',
-        metadata: {'monsterAttack': monster.attack},
-      ));
+        logs: logs,
+      );
+      playerCurrentHp = result.playerCurrentHp;
+      monsterAttackCooldown = state.monsterAttackInterval;
+
+      if (playerCurrentHp <= 0) {
+        logs.add(BattleLogEntry(
+          time: nextTime,
+          type: BattleLogType.playerDeath,
+          message: 'Player was defeated.',
+          metadata: {'battleId': state.battleId},
+        ));
+        logs.add(BattleLogEntry(
+          time: nextTime,
+          type: BattleLogType.defeat,
+          message: 'Battle lost.',
+          metadata: {'battleId': state.battleId},
+        ));
+        return state.copyWith(
+          skillRuntimes: skillRuntimes,
+          monster: monster,
+          elapsedSeconds: nextTime,
+          logs: logs,
+          playerCurrentHp: 0,
+          monsterAttackCooldownRemaining: monsterAttackCooldown,
+          result: BattleResult.defeat,
+        );
+      }
     }
 
     return state.copyWith(
@@ -172,6 +208,8 @@ class BattleSimulator {
       monster: monster,
       elapsedSeconds: nextTime,
       logs: logs,
+      playerCurrentHp: playerCurrentHp,
+      monsterAttackCooldownRemaining: monsterAttackCooldown,
     );
   }
 
@@ -219,10 +257,72 @@ class BattleSimulator {
     ));
     return _DamageApplication(monster: damagedMonster);
   }
+
+  _MonsterAttackApplication _applyMonsterAttack({
+    required MonsterRuntime monster,
+    required double playerCurrentHp,
+    required double playerMaxHp,
+    required double playerArmor,
+    required double time,
+    required List<BattleLogEntry> logs,
+  }) {
+    if (monster.attack <= 0) {
+      logs.add(BattleLogEntry(
+        time: time,
+        type: BattleLogType.monsterAttack,
+        message: '${monster.monsterId} attacks but deals no damage.',
+        metadata: {'monsterAttack': monster.attack, 'finalDamage': 0},
+      ));
+      return _MonsterAttackApplication(playerCurrentHp: playerCurrentHp);
+    }
+
+    final damage = _damageAfterArmor(
+      rawDamage: monster.attack,
+      armor: playerArmor,
+    );
+    final nextHp = math.max(0, playerCurrentHp - damage).toDouble();
+    logs.add(BattleLogEntry(
+      time: time,
+      type: BattleLogType.monsterAttack,
+      message:
+          '${monster.monsterId} attacks for ${damage.toStringAsFixed(1)} damage.',
+      metadata: {
+        'monsterId': monster.monsterId,
+        'rawDamage': monster.attack,
+        'finalDamage': damage,
+      },
+    ));
+    logs.add(BattleLogEntry(
+      time: time,
+      type: BattleLogType.playerHp,
+      message:
+          'Player HP: ${nextHp.toStringAsFixed(1)} / ${playerMaxHp.toStringAsFixed(1)}.',
+      metadata: {
+        'currentHp': nextHp,
+        'maxHp': playerMaxHp,
+      },
+    ));
+
+    return _MonsterAttackApplication(playerCurrentHp: nextHp);
+  }
+
+  double _safePositive(double value, {required double fallback}) {
+    if (!value.isFinite || value <= 0) {
+      return fallback;
+    }
+
+    return value;
+  }
 }
 
 class _DamageApplication {
   const _DamageApplication({required this.monster});
 
   final MonsterRuntime monster;
+}
+
+class _MonsterAttackApplication {
+  const _MonsterAttackApplication({required this.playerCurrentHp});
+
+  final double playerCurrentHp;
 }

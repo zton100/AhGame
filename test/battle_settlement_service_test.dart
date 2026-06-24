@@ -52,6 +52,26 @@ void main() {
     expect(report.saveData.inventory.materials, isEmpty);
   });
 
+  test('defeat battle does not grant rewards or equipment drops', () {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24));
+
+    final report = _service().settle(
+      battle: _battle(result: BattleResult.defeat),
+      monster: _monster(experience: 12, gold: 3, dropPoolId: 'drop_equipment'),
+      saveData: save,
+      database: _database(includeDrop: true),
+      seed: 3,
+    );
+
+    expect(report.accepted, isFalse);
+    expect(report.reason, BattleSettlementReason.notVictory);
+    expect(report.saveData, save);
+    expect(report.generatedEquipment, isEmpty);
+    expect(report.rejectedEquipment, isEmpty);
+    expect(report.saveData.playerProgress.experience, 0);
+    expect(report.saveData.inventory.materials, isEmpty);
+  });
+
   test('gold and monster material rewards are stored as materials', () {
     final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24));
 

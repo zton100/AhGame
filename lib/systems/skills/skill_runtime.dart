@@ -12,6 +12,14 @@ class SkillRuntime {
     required this.currentCooldown,
   }) : cooldownRemaining = 0;
 
+  factory SkillRuntime.fromJson(Map<String, Object?> json) {
+    return SkillRuntime(
+      skillId: json['skillId'] as String,
+      cooldownRemaining: (json['cooldownRemaining'] as num).toDouble(),
+      currentCooldown: (json['currentCooldown'] as num).toDouble(),
+    );
+  }
+
   final String skillId;
   final double cooldownRemaining;
   final double currentCooldown;
@@ -45,5 +53,13 @@ class SkillRuntime {
       cooldownRemaining: cooldownRemaining ?? this.cooldownRemaining,
       currentCooldown: currentCooldown ?? this.currentCooldown,
     );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'skillId': skillId,
+      'cooldownRemaining': cooldownRemaining,
+      'currentCooldown': currentCooldown,
+    };
   }
 }

@@ -26,8 +26,28 @@ void main() {
     expect(battle.monster.monsterId, 'training_dummy');
     expect(battle.result, BattleResult.running);
     expect(battle.isFinished, isFalse);
+    expect(battle.playerMaxHp, 100);
+    expect(battle.playerCurrentHp, 100);
+    expect(battle.playerArmor, 6);
     expect(battle.skillRuntimes.single.skillId, 'toxic_slash');
     expect(battle.logs.single.type, BattleLogType.battleStarted);
+  });
+
+  test('BattleState JSON round trip preserves player survival fields', () {
+    final battle = _createBattle(attack: 50).copyWith(
+      playerCurrentHp: 42,
+      monsterAttackCooldownRemaining: 1,
+    );
+
+    final restored = BattleState.fromJson(battle.toJson());
+
+    expect(restored.battleId, battle.battleId);
+    expect(restored.playerMaxHp, 100);
+    expect(restored.playerCurrentHp, 42);
+    expect(restored.playerArmor, 6);
+    expect(restored.monsterAttackCooldownRemaining, 1);
+    expect(restored.monsterAttackInterval, 2);
+    expect(restored.skillRuntimes.single.skillId, 'toxic_slash');
   });
 
   test('tick casts an active skill, damages monster, and enters cooldown', () {
@@ -83,6 +103,80 @@ void main() {
         contains(BattleLogType.monsterDeath));
     expect(battle.logs.map((log) => log.type), contains(BattleLogType.victory));
   });
+
+  test('monster counterattack lowers player HP on cooldown', () {
+    final battle = _simulator()
+        .createBattle(
+          character: _character(),
+          computedStats: _stats(attack: 5, armor: 0),
+          skillLoadout: SkillLoadout(activeSkillIds: ['toxic_slash']),
+          monster: _aggressiveMonster(attack: 20),
+          skillService: _skillService(),
+        )
+        .copyWith(monsterAttackCooldownRemaining: 0);
+
+    final afterTick = _simulator().tick(battle, 1);
+
+    expect(afterTick.playerCurrentHp, lessThan(battle.playerCurrentHp));
+    expect(afterTick.playerCurrentHp, 80);
+    expect(afterTick.logs.map((log) => log.type),
+        contains(BattleLogType.monsterAttack));
+    expect(afterTick.logs.map((log) => log.type),
+        contains(BattleLogType.playerHp));
+  });
+
+  test('player HP does not go below zero and defeat finishes battle', () {
+    final battle = _simulator()
+        .createBattle(
+          character: _character(),
+          computedStats: _stats(attack: 1, hp: 10, armor: 0),
+          skillLoadout: SkillLoadout(activeSkillIds: ['toxic_slash']),
+          monster: _aggressiveMonster(attack: 999),
+          skillService: _skillService(),
+        )
+        .copyWith(monsterAttackCooldownRemaining: 0);
+
+    final afterTick = _simulator().tick(battle, 1);
+    final afterFinishedTick = _simulator().tick(afterTick, 1);
+
+    expect(afterTick.playerCurrentHp, 0);
+    expect(afterTick.result, BattleResult.defeat);
+    expect(afterTick.isFinished, isTrue);
+    expect(afterFinishedTick, same(afterTick));
+    expect(afterTick.logs.map((log) => log.type),
+        contains(BattleLogType.playerDeath));
+    expect(
+        afterTick.logs.map((log) => log.type), contains(BattleLogType.defeat));
+  });
+
+  test('player armor reduces monster counterattack damage', () {
+    final unarmored = _simulator().tick(
+      _simulator()
+          .createBattle(
+            character: _character(),
+            computedStats: _stats(attack: 5, armor: 0),
+            skillLoadout: SkillLoadout(activeSkillIds: ['toxic_slash']),
+            monster: _aggressiveMonster(attack: 50),
+            skillService: _skillService(),
+          )
+          .copyWith(monsterAttackCooldownRemaining: 0),
+      1,
+    );
+    final armored = _simulator().tick(
+      _simulator()
+          .createBattle(
+            character: _character(),
+            computedStats: _stats(attack: 5, armor: 100),
+            skillLoadout: SkillLoadout(activeSkillIds: ['toxic_slash']),
+            monster: _aggressiveMonster(attack: 50),
+            skillService: _skillService(),
+          )
+          .copyWith(monsterAttackCooldownRemaining: 0),
+      1,
+    );
+
+    expect(armored.playerCurrentHp, greaterThan(unarmored.playerCurrentHp));
+  });
 }
 
 BattleState _createBattle({required double attack}) {
@@ -111,9 +205,13 @@ CharacterState _character() {
   );
 }
 
-ComputedStats _stats({required double attack}) {
+ComputedStats _stats({
+  required double attack,
+  double hp = 100,
+  double armor = 6,
+}) {
   return const StatAggregationService().compute(
-    base: StatBlock(hp: 100, attack: attack, armor: 6),
+    base: StatBlock(hp: hp, attack: attack, armor: armor),
   );
 }
 
@@ -126,6 +224,18 @@ MonsterRuntime _trainingDummy() {
     attack: 0,
     armor: 0,
     tags: ['training', 'dummy'],
+  );
+}
+
+MonsterRuntime _aggressiveMonster({required double attack}) {
+  return MonsterRuntime(
+    monsterId: 'skeleton_grunt',
+    level: 1,
+    maxHp: 500,
+    currentHp: 500,
+    attack: attack,
+    armor: 0,
+    tags: const ['undead'],
   );
 }
 

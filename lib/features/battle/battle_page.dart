@@ -275,6 +275,12 @@ class _BattlePageContent extends StatelessWidget {
                 value:
                     '${_formatNumber(battle.monster.currentHp)} / ${_formatNumber(battle.monster.maxHp)}',
               ),
+            if (battle != null)
+              _InfoRow(
+                label: 'Player HP',
+                value:
+                    '${_formatNumber(battle.playerCurrentHp)} / ${_formatNumber(battle.playerMaxHp)}',
+              ),
           ],
         ),
         const SizedBox(height: 12),
@@ -306,6 +312,13 @@ class _BattlePageContent extends StatelessWidget {
         if (controller.errorMessage != null) ...[
           const SizedBox(height: 12),
           _WarningBanner(message: controller.errorMessage!),
+        ],
+        if (battle?.result == BattleResult.defeat) ...[
+          const SizedBox(height: 12),
+          const _WarningBanner(
+            message:
+                'Battle failed. Enhance gear, adjust equipment, or repeat cleared stages to grow stronger.',
+          ),
         ],
         if (controller.advancedAfterSettlement) ...[
           const SizedBox(height: 12),
@@ -405,6 +418,11 @@ class _AutoBattleSummary extends StatelessWidget {
           ),
         if (state.stopReason == AutoBattleStopReason.chapterComplete)
           const _SuccessBanner(message: 'Current chapter is complete.'),
+        if (state.stopReason == AutoBattleStopReason.battleFailed)
+          const _WarningBanner(
+            message:
+                'Battle failed. Enhance gear, adjust equipment, or repeat cleared stages to grow stronger.',
+          ),
         const SizedBox(height: 8),
         Text('Last Auto Battle Logs',
             style: Theme.of(context).textTheme.titleMedium),

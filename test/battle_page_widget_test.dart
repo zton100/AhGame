@@ -41,6 +41,8 @@ void main() {
     expect(find.text('Skeleton Grunt'), findsOneWidget);
     expect(find.text('running'), findsOneWidget);
     expect(find.text('85 / 85'), findsOneWidget);
+    expect(find.text('Player HP'), findsOneWidget);
+    expect(find.text('100 / 100'), findsOneWidget);
   });
 
   testWidgets('ticking battle damages the monster', (tester) async {
@@ -163,6 +165,64 @@ void main() {
     expect(updatedSave.playerProgress.currentStageId, '1-2');
     expect(updatedSave.playerProgress.experience, 12);
   });
+
+  testWidgets('BattlePage displays defeat state and player HP', (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+
+    await tester.pumpWidget(
+      _app(
+        saveService: saveService,
+        database: _database(
+          classHp: 10,
+          classAttack: 1,
+          monsterHp: 500,
+          monsterAttack: 999,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Start Battle'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Auto Finish'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Player HP'), findsOneWidget);
+    expect(find.text('defeat'), findsOneWidget);
+    expect(
+      find.text(
+        'Battle failed. Enhance gear, adjust equipment, or repeat cleared stages to grow stronger.',
+      ),
+      findsOneWidget,
+    );
+
+    final save = await saveService.loadOrCreate();
+    expect(save.playerProgress.experience, 0);
+    expect(save.playerProgress.currentStageId, '1-1');
+  });
+
+  testWidgets('BattlePage displays auto battle failure stop reason',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+
+    await tester.pumpWidget(
+      _app(
+        saveService: saveService,
+        database: _database(
+          classHp: 10,
+          classAttack: 1,
+          monsterHp: 500,
+          monsterAttack: 999,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run 1 Battle'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Stop Reason'), findsOneWidget);
+    expect(find.text('battleFailed'), findsOneWidget);
+    expect(find.textContaining('Battle lost.'), findsOneWidget);
+  });
 }
 
 Widget _app({
@@ -186,7 +246,14 @@ Widget _app({
   );
 }
 
-GameDatabase _database({int secondStageRequiredLevel = 1}) {
+GameDatabase _database({
+  int secondStageRequiredLevel = 1,
+  num classHp = 100,
+  num classAttack = 18,
+  num classArmor = 6,
+  num monsterHp = 85,
+  num monsterAttack = 10,
+}) {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
       'schemaVersion': 1,
@@ -195,7 +262,11 @@ GameDatabase _database({int secondStageRequiredLevel = 1}) {
           'id': 'exile',
           'name': 'Exile',
           'tags': ['poison'],
-          'baseStats': {'hp': 100, 'attack': 18, 'armor': 6},
+          'baseStats': {
+            'hp': classHp,
+            'attack': classAttack,
+            'armor': classArmor
+          },
           'growth': {'hp': 10, 'attack': 2, 'armor': 1},
         },
       ],
@@ -228,7 +299,11 @@ GameDatabase _database({int secondStageRequiredLevel = 1}) {
           'name': 'Skeleton Grunt',
           'level': 1,
           'tags': ['undead'],
-          'baseStats': {'hp': 85, 'attack': 10, 'armor': 4},
+          'baseStats': {
+            'hp': monsterHp,
+            'attack': monsterAttack,
+            'armor': 4,
+          },
           'rewards': {
             'experience': 12,
             'gold': 3,

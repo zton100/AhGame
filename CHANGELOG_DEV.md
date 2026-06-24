@@ -1,5 +1,53 @@
 # CHANGELOG_DEV
 
+## S24 Combat Survival First Slice - 2026-06-24
+
+### Added files
+
+- No new production files; this slice extends the existing battle, auto battle, and BattlePage layers.
+
+### Modified files
+
+- `lib/models/battle_state.dart`
+- `lib/systems/skills/skill_runtime.dart`
+- `lib/systems/battle/battle_simulator.dart`
+- `lib/features/battle/battle_page.dart`
+- `test/battle_simulator_test.dart`
+- `test/battle_settlement_service_test.dart`
+- `test/auto_battle_service_test.dart`
+- `test/battle_page_widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added player survival fields to `BattleState`: `playerMaxHp`, `playerCurrentHp`, `playerArmor`, monster attack cooldown, and monster attack interval.
+- Added `BattleState` / `BattleLogEntry` JSON round-trip support and `SkillRuntime` JSON helpers for battle runtime persistence/debugging.
+- Added monster counterattack damage to `BattleSimulator` with simple armor mitigation and minimum damage.
+- Added defeat result handling: player HP cannot drop below `0`, defeat finishes the battle, and finished battles no longer tick.
+- Added combat logs for `monsterAttack`, `playerHp`, `playerDeath`, and `defeat`.
+- Confirmed non-victory settlement remains blocked; defeat battles do not grant rewards or drops.
+- Updated `AutoBattleService` coverage for `battleFailed` stop behavior after defeat.
+- Added BattlePage Player HP display and defeat warning for manual and auto battle flows.
+
+### Tests
+
+- Added BattleSimulator tests for player HP initialization, JSON round trip, monster attacks, HP floor, armor mitigation, defeat logs, and victory preservation.
+- Added BattleSettlementService defeat test to prove no experience, gold, materials, or equipment drops are granted.
+- Added AutoBattleService tests for stopping on battle failure without saving rewards or progressing stages.
+- Added BattlePage widget tests for Player HP, defeat status, defeat warning, and auto battle `battleFailed` display.
+- Targeted tests passed: `I:\dev\flutter\bin\flutter.bat test test/battle_simulator_test.dart test/battle_settlement_service_test.dart test/auto_battle_service_test.dart test/battle_page_widget_test.dart`
+
+### Save impact
+
+- `SaveData.saveVersion` remains `5`.
+- `BattleState` is runtime state, not a persisted SaveData field.
+- No new SaveData fields or migrations were added.
+
+### Remaining
+
+- No dodge, block, shield, lifesteal, status effects, monster skills, offline rewards, abyss systems, art, animation, or commercial systems were added.
+- Monster behavior remains a fixed-interval basic attack only.
+
 ## S23 Equipment Enhancement First Slice - 2026-06-24
 
 ### Added files
