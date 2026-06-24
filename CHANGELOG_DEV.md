@@ -1,5 +1,54 @@
 # CHANGELOG_DEV
 
+## S19 章节推进与怪物池第一版 - 2026-06-24
+
+### 新增文件
+
+- `assets/data/chapters.json`
+- `lib/models/chapter_config.dart`
+- `lib/systems/chapters/chapter_service.dart`
+- `test/chapter_service_test.dart`
+
+### 修改文件
+
+- `lib/features/battle/battle_controller.dart`
+- `lib/features/battle/battle_page.dart`
+- `lib/models/save_data.dart`
+- `lib/systems/config/reference_resolver.dart`
+- `lib/systems/save/save_migration_service.dart`
+- `test/battle_page_widget_test.dart`
+- `test/save_service_test.dart`
+- `test/seed_data_integration_test.dart`
+- `CHANGELOG_DEV.md`
+
+### 完成内容
+
+- 新增 `chapters.json`，配置 `chapter_1` 和 5 个 stage。
+- 新增 `ChapterConfig` / `StageConfig`，支持 stage 怪物池、等级要求、首通奖励预留与 Boss 关标记。
+- 新增 `ChapterService`，支持读取当前关卡、下一关、进入等级校验和通关推进。
+- BattleController 不再固定 `skeleton_grunt`，改为根据 `SaveData.playerProgress.currentChapterId/currentStageId` 选取当前 stage 的第一个怪物。
+- 战斗胜利结算后，先结算 S17 奖励，再调用 `ChapterService.markStageCleared` 推进到下一关并保存。
+- BattlePage 展示当前章节、关卡、怪物、Boss 状态，并在胜利后显示已推进提示。
+- 配置引用校验新增章节 stage monsterIds -> monsters 表校验。
+
+### 测试结果
+
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+
+### 存档影响
+
+- `saveVersion` 从 3 升级到 4。
+- `PlayerProgress` 新增 `currentChapterId`、`currentStageId`、`highestClearedStageId`。
+- 旧存档缺失章节字段时默认兼容为 `chapter_1 / 1-1`，`highestClearedStageId` 默认为 `null`。
+- v1/v2/v3 存档迁移到 v4 时会自动补齐章节进度字段。
+
+### 待处理问题
+
+- `firstClearRewards` 已在配置模型预留，但第一版尚未发放首通奖励。
+- 多怪物 stage 第一版只取第一个怪物，后续可扩展为随机怪物池或战斗波次。
+- 最后一关通关后当前关卡保持在末关，后续章节系统需要接入下一章节解锁。
+
 ## S18 战斗页第一版 - 2026-06-24
 
 ### 新增文件

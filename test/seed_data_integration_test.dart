@@ -2,6 +2,7 @@ import 'package:abyss_relic/models/affix_config.dart';
 import 'package:abyss_relic/features/equipment/equipment_card_view_model.dart';
 import 'package:abyss_relic/models/inventory_state.dart';
 import 'package:abyss_relic/models/loot_drop.dart';
+import 'package:abyss_relic/systems/chapters/chapter_service.dart';
 import 'package:abyss_relic/systems/build/build_score_service.dart';
 import 'package:abyss_relic/systems/character/class_service.dart';
 import 'package:abyss_relic/systems/character/level_service.dart';
@@ -46,6 +47,7 @@ void main() {
       result.database.findRecord('monsters', 'training_dummy'),
       isNotNull,
     );
+    expect(result.database.findRecord('chapters', 'chapter_1'), isNotNull);
     expect(result.database.findRecord('level_curves', 'default'), isNotNull);
     expect(result.database.findRecord('formula_config', 'default'), isNotNull);
     expect(result.database.findRecord('qualities', 'normal'), isNotNull);
@@ -353,6 +355,23 @@ void main() {
     expect(runtime.monsterId, 'training_dummy');
     expect(runtime.currentHp, runtime.maxHp);
     expect(runtime.takeDamage(runtime.maxHp).isAlive, isFalse);
+  });
+
+  test('seed chapter resolves the first combat stage monster', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final chapter = ChapterService(result.database).requireChapter('chapter_1');
+    final firstStage = chapter.stages.first;
+
+    expect(firstStage.stageId, '1-1');
+    expect(firstStage.monsterIds, ['skeleton_grunt']);
+    expect(firstStage.isBossStage, isFalse);
+    expect(
+      result.database.findRecord('monsters', firstStage.monsterIds.first),
+      isNotNull,
+    );
   });
 
   test('seed equipment drop can materialize and enter inventory', () async {

@@ -22,6 +22,8 @@ void main() {
     expect(find.text('Battle'), findsOneWidget);
     expect(find.text('Start Battle'), findsOneWidget);
     expect(find.text('not_started'), findsOneWidget);
+    expect(find.text('Chapter 1'), findsOneWidget);
+    expect(find.text('1-1 Grave Road'), findsOneWidget);
   });
 
   testWidgets('starting battle creates battle state on the page',
@@ -70,6 +72,8 @@ void main() {
 
     final save = await saveService.loadOrCreate();
     expect(save.playerProgress.experience, 12);
+    expect(save.playerProgress.currentStageId, '1-2');
+    expect(save.playerProgress.highestClearedStageId, '1-1');
     expect(save.inventory.equipmentInstanceIds, hasLength(1));
     final instanceId = save.inventory.equipmentInstanceIds.single;
     expect(save.inventory.equipmentInstances[instanceId]?.templateId,
@@ -96,6 +100,8 @@ void main() {
     final secondSave = await saveService.loadOrCreate();
     expect(secondSave.playerProgress.experience,
         firstSave.playerProgress.experience);
+    expect(secondSave.playerProgress.currentStageId,
+        firstSave.playerProgress.currentStageId);
     expect(secondSave.inventory.equipmentInstanceIds,
         firstSave.inventory.equipmentInstanceIds);
   });
@@ -165,6 +171,45 @@ GameDatabase _database() {
             'materials': {'bone_shard': 1},
           },
           'dropPoolId': 'drop_equipment',
+        },
+        {
+          'id': 'plague_rat',
+          'name': 'Plague Rat',
+          'level': 1,
+          'tags': ['beast', 'poison'],
+          'baseStats': {'hp': 55, 'attack': 8, 'armor': 1},
+          'rewards': {
+            'experience': 9,
+            'gold': 2,
+            'materials': <String, Object?>{},
+          },
+          'dropPoolId': 'drop_equipment',
+        },
+      ],
+    }),
+    _file('assets/data/chapters.json', {
+      'schemaVersion': 1,
+      'chapters': [
+        {
+          'id': 'chapter_1',
+          'chapterId': 'chapter_1',
+          'name': 'Chapter 1',
+          'stages': [
+            {
+              'stageId': '1-1',
+              'stageName': 'Grave Road',
+              'monsterIds': ['skeleton_grunt'],
+              'requiredLevel': 1,
+              'isBossStage': false,
+            },
+            {
+              'stageId': '1-2',
+              'stageName': 'Rat Cellar',
+              'monsterIds': ['plague_rat'],
+              'requiredLevel': 1,
+              'isBossStage': false,
+            },
+          ],
         },
       ],
     }),

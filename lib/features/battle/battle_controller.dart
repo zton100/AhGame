@@ -1,10 +1,12 @@
 import '../../core/save/player_save_provider.dart';
 import '../../models/battle_settlement_report.dart';
 import '../../models/battle_state.dart';
+import '../../models/chapter_config.dart';
 import '../../models/monster_config.dart';
 import '../../models/save_data.dart';
 import '../../systems/battle/battle_settlement_service.dart';
 import '../../systems/battle/battle_simulator.dart';
+import '../../systems/chapters/chapter_service.dart';
 import '../../systems/character/character_service.dart';
 import '../../systems/character/class_service.dart';
 import '../../systems/config/game_database.dart';
@@ -18,21 +20,21 @@ class BattleController {
     BattleSimulator simulator = const BattleSimulator(),
     BattleSettlementService settlementService = const BattleSettlementService(),
     MonsterFactory monsterFactory = const MonsterFactory(),
-    String fixedMonsterId = 'skeleton_grunt',
   })  : _simulator = simulator,
         _settlementService = settlementService,
-        _monsterFactory = monsterFactory,
-        _fixedMonsterId = fixedMonsterId;
+        _monsterFactory = monsterFactory;
 
   final BattleSimulator _simulator;
   final BattleSettlementService _settlementService;
   final MonsterFactory _monsterFactory;
-  final String _fixedMonsterId;
 
   BattleState? battle;
+  ChapterConfig? chapterConfig;
+  StageConfig? stageConfig;
   MonsterConfig? monsterConfig;
   BattleSettlementReport? settlementReport;
   String? errorMessage;
+  bool advancedAfterSettlement = false;
 
   bool get canSettle => battle?.result == BattleResult.victory;
   bool get hasSettled => settlementReport?.accepted == true;
@@ -52,12 +54,39 @@ class BattleController {
       database: database,
     );
     final skillService = SkillService(database);
+    final chapterService = ChapterService(database);
+    final chapter = chapterService.requireChapter(
+      saveData.playerProgress.currentChapterId,
+    );
+    final stage = chapterService.currentStage(saveData.playerProgress);
+    if (!chapterService.canEnterStage(
+      progress: saveData.playerProgress,
+      stage: stage,
+    )) {
+      _clearBattleProgress(
+        chapter: chapter,
+        stage: stage,
+        message: 'Required level ${stage.requiredLevel} for ${stage.stageId}.',
+      );
+      return;
+    }
+    if (stage.monsterIds.isEmpty) {
+      _clearBattleProgress(
+        chapter: chapter,
+        stage: stage,
+        message: 'Stage has no monsters: ${stage.stageId}',
+      );
+      return;
+    }
     final monsterService = MonsterService(database);
-    final config = monsterService.requireMonster(_fixedMonsterId);
+    final config = monsterService.requireMonster(stage.monsterIds.first);
     final monster = _monsterFactory.create(config: config);
 
+    chapterConfig = chapter;
+    stageConfig = stage;
     monsterConfig = config;
     settlementReport = null;
+    advancedAfterSettlement = false;
     errorMessage = null;
     battle = _simulator.createBattle(
       character: character,
@@ -121,13 +150,87 @@ class BattleController {
       database: database,
       seed: seed,
     );
-    settlementReport = report;
-    errorMessage = report.accepted ? null : report.reason.name;
+    final finalReport = report.accepted
+        ? _copyReportWithSaveData(
+            report,
+            ChapterService(database).markStageCleared(report.saveData),
+          )
+        : report;
+    settlementReport = finalReport;
+    advancedAfterSettlement = finalReport.accepted;
+    errorMessage = finalReport.accepted ? null : finalReport.reason.name;
 
-    if (report.accepted) {
-      await saveController.save(report.saveData);
+    if (finalReport.accepted) {
+      await saveController.save(finalReport.saveData);
     }
 
-    return report;
+    return finalReport;
   }
+
+  ChapterBattleProgress progressFor({
+    required SaveData saveData,
+    required GameDatabase database,
+  }) {
+    final chapterService = ChapterService(database);
+    final chapter = chapterService.requireChapter(
+      saveData.playerProgress.currentChapterId,
+    );
+    final stage = chapterService.currentStage(saveData.playerProgress);
+
+    return ChapterBattleProgress(
+      chapterName: chapter.name,
+      stageName: stage.stageName,
+      stageId: stage.stageId,
+      monsterId: stage.monsterIds.isEmpty ? 'none' : stage.monsterIds.first,
+      isBossStage: stage.isBossStage,
+    );
+  }
+
+  BattleSettlementReport _copyReportWithSaveData(
+    BattleSettlementReport report,
+    SaveData saveData,
+  ) {
+    return BattleSettlementReport(
+      accepted: report.accepted,
+      reason: report.reason,
+      saveData: saveData,
+      gainedExperience: report.gainedExperience,
+      gainedGold: report.gainedGold,
+      gainedMaterials: report.gainedMaterials,
+      generatedEquipment: report.generatedEquipment,
+      rejectedEquipment: report.rejectedEquipment,
+      leveledUp: report.leveledUp,
+      newLevel: report.newLevel,
+    );
+  }
+
+  void _clearBattleProgress({
+    required ChapterConfig chapter,
+    required StageConfig stage,
+    required String message,
+  }) {
+    battle = null;
+    chapterConfig = chapter;
+    stageConfig = stage;
+    monsterConfig = null;
+    settlementReport = null;
+    advancedAfterSettlement = false;
+    errorMessage = message;
+  }
+}
+
+class ChapterBattleProgress {
+  const ChapterBattleProgress({
+    required this.chapterName,
+    required this.stageName,
+    required this.stageId,
+    required this.monsterId,
+    required this.isBossStage,
+  });
+
+  final String chapterName;
+  final String stageName;
+  final String stageId;
+  final String monsterId;
+  final bool isBossStage;
 }

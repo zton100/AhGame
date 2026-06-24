@@ -34,6 +34,20 @@ class SaveMigrationService {
       warnings.add('Migrated saveVersion 2 to 3.');
     }
 
+    if (version == 3) {
+      final playerProgress = Map<String, Object?>.from(
+        migrated['playerProgress'] as Map? ?? const {},
+      );
+      playerProgress['currentChapterId'] =
+          playerProgress['currentChapterId'] ?? PlayerProgress.defaultChapterId;
+      playerProgress['currentStageId'] =
+          playerProgress['currentStageId'] ?? PlayerProgress.defaultStageId;
+      migrated['playerProgress'] = playerProgress;
+      version = 4;
+      migrated['saveVersion'] = version;
+      warnings.add('Migrated saveVersion 3 to 4.');
+    }
+
     if (version == SaveData.currentVersion) {
       return MigrationResult(
         success: true,

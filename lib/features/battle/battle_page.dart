@@ -62,6 +62,10 @@ class _BattlePageState extends ConsumerState<BattlePage> {
         return _BattlePageContent(
           controller: _controller,
           saveData: saveData,
+          progress: _controller.progressFor(
+            saveData: saveData,
+            database: result.database,
+          ),
           isSettling: _isSettling,
           onStart: () => _startBattle(saveData, result.database),
           onTick: () => _tick(saveData, result.database),
@@ -135,6 +139,7 @@ class _BattlePageContent extends StatelessWidget {
   const _BattlePageContent({
     required this.controller,
     required this.saveData,
+    required this.progress,
     required this.isSettling,
     required this.onStart,
     required this.onTick,
@@ -144,6 +149,7 @@ class _BattlePageContent extends StatelessWidget {
 
   final BattleController controller;
   final SaveData saveData;
+  final ChapterBattleProgress progress;
   final bool isSettling;
   final VoidCallback onStart;
   final VoidCallback onTick;
@@ -154,7 +160,7 @@ class _BattlePageContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final battle = controller.battle;
     final report = controller.settlementReport;
-    final monsterName = controller.monsterConfig?.name ?? 'skeleton_grunt';
+    final monsterName = controller.monsterConfig?.name ?? progress.monsterId;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -167,6 +173,13 @@ class _BattlePageContent extends StatelessWidget {
             _InfoRow(
                 label: 'Character',
                 value: saveData.playerProgress.currentClassId),
+            _InfoRow(label: 'Chapter', value: progress.chapterName),
+            _InfoRow(
+              label: 'Stage',
+              value: '${progress.stageId} ${progress.stageName}',
+            ),
+            _InfoRow(
+                label: 'Boss stage', value: progress.isBossStage.toString()),
             _InfoRow(label: 'Monster', value: monsterName),
             _InfoRow(
                 label: 'Status', value: battle?.result.name ?? 'not_started'),
@@ -210,6 +223,10 @@ class _BattlePageContent extends StatelessWidget {
         if (controller.errorMessage != null) ...[
           const SizedBox(height: 12),
           _WarningBanner(message: controller.errorMessage!),
+        ],
+        if (controller.advancedAfterSettlement) ...[
+          const SizedBox(height: 12),
+          const _SuccessBanner(message: 'Advanced to next stage.'),
         ],
         const SizedBox(height: 16),
         _Section(
@@ -340,6 +357,27 @@ class _WarningBanner extends StatelessWidget {
         color: AppTheme.danger.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: AppTheme.danger.withValues(alpha: 0.5)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(message),
+      ),
+    );
+  }
+}
+
+class _SuccessBanner extends StatelessWidget {
+  const _SuccessBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),

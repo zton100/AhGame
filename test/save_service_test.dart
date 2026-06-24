@@ -174,6 +174,7 @@ void main() {
     expect(result.warnings, [
       'Migrated saveVersion 1 to 2.',
       'Migrated saveVersion 2 to 3.',
+      'Migrated saveVersion 3 to 4.',
     ]);
   });
 
@@ -201,7 +202,10 @@ void main() {
     expect(result.success, isTrue);
     expect(result.saveData.saveVersion, SaveData.currentVersion);
     expect(result.saveData.lastExitAt, isNull);
-    expect(result.warnings, ['Migrated saveVersion 2 to 3.']);
+    expect(result.warnings, [
+      'Migrated saveVersion 2 to 3.',
+      'Migrated saveVersion 3 to 4.',
+    ]);
   });
 
   test('HiveSaveStore persists save data across store instances', () async {

@@ -16,6 +16,7 @@ class ReferenceResolver {
       ..._checkSoulCoreClasses(database),
       ..._checkDropPoolEntries(database),
       ..._checkMonsterDropPools(database),
+      ..._checkChapterMonsters(database),
       ..._checkEffectIds(database),
     ];
   }
@@ -139,6 +140,42 @@ class ReferenceResolver {
                 'Monster references missing dropPoolId "${monster['dropPoolId']}".',
           ),
     ];
+  }
+
+  List<ConfigValidationError> _checkChapterMonsters(GameDatabase database) {
+    final errors = <ConfigValidationError>[];
+
+    for (final chapter in database.recordsForTable('chapters').values) {
+      final stages = chapter['stages'];
+      if (stages is! List<Object?>) {
+        continue;
+      }
+
+      for (final stage in stages.whereType<Map<String, Object?>>()) {
+        final monsterIds = stage['monsterIds'];
+        if (monsterIds is! List<Object?>) {
+          continue;
+        }
+
+        for (final monsterId in monsterIds.whereType<String>()) {
+          if (database.findRecord('monsters', monsterId) != null) {
+            continue;
+          }
+
+          errors.add(
+            _invalidReference(
+              assetPath: 'assets/data/chapters.json',
+              tableName: 'chapters',
+              recordId: chapter['id'] as String?,
+              field: 'stages.monsterIds',
+              message: 'Stage references missing monster "$monsterId".',
+            ),
+          );
+        }
+      }
+    }
+
+    return errors;
   }
 
   List<ConfigValidationError> _checkEffectIds(GameDatabase database) {
