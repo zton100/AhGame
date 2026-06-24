@@ -1,5 +1,36 @@
 # CHANGELOG_DEV
 
+## S19.5 World Bible and Naming Guide / 世界观与命名规范 - 2026-06-24
+
+### 新增文件
+
+- `docs/world_bible_v0.1.md`
+
+### 修改文件
+
+- `CHANGELOG_DEV.md`
+
+### 完成内容
+
+- 新增轻量世界观文档，明确拾遗者、深渊、遗装、魂核与五个职业的来源。
+- 定义亡骨系、瘟疫系、血月系、灰烬系、寒霜系、圣裁腐化系、深渊系七类怪物阵营。
+- 补充章节推进逻辑、暗黑刷宝风格章节名示例与装备品质世界观解释。
+- 定义装备、技能、怪物、深渊领域命名规则和禁用命名风格。
+- 文档中建议未来可为 `classes.json`、`chapters.json`、`monsters.json`、`equipment_templates.json`、`skills.json`、`soul_cores.json` 增加 `description` / `lore` 字段；本次不修改 schema。
+
+### 测试结果
+
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+
+### 存档影响
+
+- 无存档结构变更，`saveVersion` 不变。
+
+### 待处理问题
+
+- 后续新增章节、怪物、装备、技能和魂核内容时，应优先参考本文档命名规则。
+
 ## S20 Auto Battle Run First Slice / 在线连续战斗第一版 - 2026-06-24
 
 ### 新增文件
