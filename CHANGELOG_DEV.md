@@ -1314,3 +1314,49 @@
 - Add battle reward and drop settlement after the reward contract is specified.
 - Add monster action resolution once enemy skill behavior is defined.
 - Add battle page UI after the simulation state is stable enough to render.
+
+## S17 Battle Settlement System - 2026-06-24
+
+### Added files
+
+- `lib/models/battle_settlement_report.dart`
+- `lib/systems/battle/battle_drop_resolution_service.dart`
+- `lib/systems/battle/battle_settlement_service.dart`
+- `test/battle_settlement_service_test.dart`
+
+### Modified files
+
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `BattleSettlementService` as a separate service from `BattleSimulator`.
+- Added `BattleSettlementReport` with acceptance state, reason, gained experience, gained gold, gained materials, generated equipment, rejected equipment, level-up state, new level, and settled `SaveData`.
+- Victory is required before rewards can be settled.
+- Non-victory battles return `accepted = false` and leave `SaveData` unchanged.
+- Monster experience rewards now flow through `LevelService.addExperience`.
+- Level-up state and new level are reported for future battle result UI.
+- Monster gold is stored as material `gold`.
+- Monster material rewards are merged into `InventorySave.materials`.
+- Added `BattleDropResolutionService` to keep drop compatibility filtering outside the simulator and settlement core.
+- Drop pools are rolled through `DropPoolService`.
+- Equipment drops are materialized through `EquipmentLootMaterializationService`.
+- Generated equipment is committed through `EquipmentLootCommitService`.
+- Full equipment bags reject generated equipment without saving orphan instances.
+- Real seed `skeleton_grunt` settlement now grants experience, gold, and compatible equipment drops through the actual data chain.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\battle_settlement_service_test.dart`
+
+### Save impact
+
+- No save schema change.
+- `saveVersion` remains `3`.
+- Gold and monster materials reuse the existing `InventorySave.materials` list, so old saves remain compatible without migration.
+
+### Remaining
+
+- Add battle result UI after settlement report presentation is specified.
+- Add explicit resource/currency save structure later if gold needs to leave the generic materials list.
+- Expand settlement to support soul cores and non-equipment reward types when those inventory systems are specified.
