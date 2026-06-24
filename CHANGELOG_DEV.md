@@ -1,5 +1,70 @@
 # CHANGELOG_DEV
 
+## S23 Equipment Enhancement First Slice - 2026-06-24
+
+### Added files
+
+- `assets/data/enhancement_config.json`
+- `lib/models/enhancement_config.dart`
+- `lib/systems/equipment/equipment_enhancement_service.dart`
+- `lib/systems/equipment/quality_rank.dart`
+- `test/equipment_enhancement_service_test.dart`
+- `test/quality_rank_test.dart`
+
+### Modified files
+
+- `assets/data/quality_config.json`
+- `lib/core/save/player_save_provider.dart`
+- `lib/core/theme/quality_theme.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `lib/features/equipment/equipment_page_view_model.dart`
+- `lib/models/equipment_instance.dart`
+- `lib/systems/equipment/quality_service.dart`
+- `lib/systems/inventory/auto_salvage_service.dart`
+- `lib/systems/stats/equipment_stat_modifier_service.dart`
+- `test/auto_salvage_service_test.dart`
+- `test/equipment_page_widget_test.dart`
+- `test/equipment_template_service_test.dart`
+- `test/seed_data_integration_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `EnhancementConfig` and `assets/data/enhancement_config.json`.
+- Added `EquipmentEnhancementService` with cost lookup, max level handling, material checks, and deterministic +0 to +10 enhancement.
+- Added `enhanceLevel` to `EquipmentInstance` with JSON round trip, legacy default `0`, and `copyWith`.
+- Enhancement consumes `gold` and `salvage_dust` from inventory materials.
+- Enhanced equipment increases base stat contribution through `EquipmentStatModifierService`; affixes remain unchanged.
+- EquipmentPage detail dialog now shows Enhance Level, next cost, and an `Enhance` action.
+- PlayerSaveController can enhance equipment and persist updated `equipmentInstances`.
+- Enhanced equipment is protected from auto salvage.
+- S22.1: implemented `maxInventoryUsageBeforeSalvage`.
+- S22.1: added `AutoSalvageReport.keptCount`; `rejectedCount` remains as deprecated compatibility for the old kept-count meaning.
+- S22.1: EquipmentPage now explains that auto salvage scans all matching backpack equipment, not only new drops.
+- S22.1: canonical quality order is now `normal / magic / rare / epic / legendary / ancient / mythic / abyss`; legacy `forbidden` ranks as `ancient` for compatibility.
+
+### Tests
+
+- Added tests for `EquipmentInstance.enhanceLevel` JSON round trip and legacy compatibility.
+- Added tests for enhancement config parsing, costs, max level, and seed data loading.
+- Added tests for enhancement success, material consumption, insufficient materials, max level, missing equipment, and final stat increases.
+- Added tests for auto salvage threshold behavior and enhanced-equipment protection.
+- Added tests for canonical quality rank ordering and legacy `forbidden` compatibility.
+- Added EquipmentPage widget coverage for enhancement UI and +1 persistence.
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+
+### Save impact
+
+- `SaveData.saveVersion` remains `5`.
+- `EquipmentInstance.enhanceLevel` is an internal equipment-instance field with default `0`; old equipment instances load safely without migration.
+- No new top-level SaveData fields were added.
+
+### Remaining
+
+- No enhancement failure chance, downgrade, protection stone, reroll, socketing, or deep abyss systems were added.
+- Enhancement UI is intentionally minimal and can be polished later.
+
 ## S22 Auto Salvage and Equipment Filtering First Slice - 2026-06-24
 
 ### Added files

@@ -70,6 +70,53 @@ void main() {
     expect(report.gainedMaterials.single.quantity, 2);
   });
 
+  test('inventory usage threshold prevents auto salvage below threshold', () {
+    final normal = _equipment('normal_blade', 'normal');
+    final report = const AutoSalvageService().processInventory(
+      inventory: _inventory([normal], equipmentCapacity: 10),
+      database: _database(),
+      classId: 'exile',
+      config: AutoSalvageConfig.defaults.copyWith(
+        enabled: true,
+        maxInventoryUsageBeforeSalvage: 0.8,
+      ),
+    );
+
+    expect(report.salvagedEquipmentIds, isEmpty);
+    expect(report.keptCount, 1);
+    expect(
+      report.reasonByEquipmentId['normal_blade'],
+      AutoSalvageReason.inventoryUsageBelowThreshold,
+    );
+  });
+
+  test('inventory usage threshold allows auto salvage at threshold', () {
+    final normal = _equipment('normal_blade', 'normal');
+    final report = const AutoSalvageService().processInventory(
+      inventory: _inventory([normal], equipmentCapacity: 1),
+      database: _database(),
+      classId: 'exile',
+      config: AutoSalvageConfig.defaults.copyWith(
+        enabled: true,
+        maxInventoryUsageBeforeSalvage: 0.8,
+      ),
+    );
+
+    expect(report.salvagedEquipmentIds, ['normal_blade']);
+  });
+
+  test('null inventory usage threshold keeps previous always-on behavior', () {
+    final normal = _equipment('normal_blade', 'normal');
+    final report = const AutoSalvageService().processInventory(
+      inventory: _inventory([normal], equipmentCapacity: 10),
+      database: _database(),
+      classId: 'exile',
+      config: AutoSalvageConfig.defaults.copyWith(enabled: true),
+    );
+
+    expect(report.salvagedEquipmentIds, ['normal_blade']);
+  });
+
   test('rare and above are kept by minQualityToKeep', () {
     final rare = _equipment('rare_blade', 'rare');
     final report = const AutoSalvageService().processInventory(
@@ -155,12 +202,31 @@ void main() {
       AutoSalvageReason.highBuildMatch,
     );
   });
+
+  test('enhanced equipment is kept', () {
+    final enhanced = _equipment(
+      'enhanced_blade',
+      'normal',
+      enhanceLevel: 1,
+    );
+    final report = const AutoSalvageService().processInventory(
+      inventory: _inventory([enhanced]),
+      database: _database(),
+      classId: 'exile',
+      config: AutoSalvageConfig.defaults.copyWith(enabled: true),
+    );
+
+    expect(report.salvagedEquipmentIds, isEmpty);
+    expect(report.reasonByEquipmentId['enhanced_blade'],
+        AutoSalvageReason.enhanced);
+  });
 }
 
 EquipmentInstance _equipment(
   String id,
   String qualityId, {
   List<RolledAffix> affixes = const [],
+  int enhanceLevel = 0,
 }) {
   return EquipmentInstance(
     instanceId: id,
@@ -172,6 +238,7 @@ EquipmentInstance _equipment(
       RolledBaseStat(stat: 'attack', value: 3),
     ],
     rolledAffixes: affixes,
+    enhanceLevel: enhanceLevel,
   );
 }
 
@@ -179,6 +246,7 @@ InventoryState _inventory(
   List<EquipmentInstance> equipment, {
   List<String> lockedIds = const [],
   EquipmentLoadout loadout = const EquipmentLoadout.empty(),
+  int equipmentCapacity = InventoryState.defaultEquipmentCapacity,
 }) {
   return InventoryState(
     equipmentInstanceIds: [for (final item in equipment) item.instanceId],
@@ -186,6 +254,7 @@ InventoryState _inventory(
       for (final item in equipment) item.instanceId: item,
     },
     equipmentLoadout: loadout,
+    equipmentCapacity: equipmentCapacity,
     lockedEquipmentInstanceIds: lockedIds,
   );
 }

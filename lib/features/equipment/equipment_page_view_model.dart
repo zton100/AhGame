@@ -4,6 +4,7 @@ import '../../systems/build/build_score_service.dart';
 import '../../systems/build/build_service.dart';
 import '../../systems/build/equipment_compare_service.dart';
 import '../../systems/config/game_database.dart';
+import '../../systems/equipment/quality_rank.dart';
 import 'equipment_card_view_model.dart';
 
 class EquipmentPageViewModelFactory {
@@ -134,8 +135,8 @@ class EquipmentPageViewModel {
         case EquipmentPageSort.newestFirst:
           return b.equipment.createdAt.compareTo(a.equipment.createdAt);
         case EquipmentPageSort.qualityHighToLow:
-          return _qualityRank(b.card.qualityId).compareTo(
-            _qualityRank(a.card.qualityId),
+          return qualityRank(b.card.qualityId).compareTo(
+            qualityRank(a.card.qualityId),
           );
         case EquipmentPageSort.buildMatchScoreHighToLow:
           return b.card.matchScore.compareTo(a.card.matchScore);
@@ -156,9 +157,9 @@ class EquipmentPageViewModel {
       case EquipmentPageFilter.locked:
         return item.isLocked;
       case EquipmentPageFilter.rarePlus:
-        return _qualityRank(item.card.qualityId) >= _qualityRank('rare');
+        return qualityRank(item.card.qualityId) >= qualityRank('rare');
       case EquipmentPageFilter.legendaryPlus:
-        return _qualityRank(item.card.qualityId) >= _qualityRank('legendary');
+        return qualityRank(item.card.qualityId) >= qualityRank('legendary');
       case EquipmentPageFilter.currentClassUsable:
         return item.isCurrentClassUsable;
     }
@@ -204,19 +205,4 @@ enum EquipmentPageSort {
   const EquipmentPageSort(this.label);
 
   final String label;
-}
-
-int _qualityRank(String qualityId) {
-  const order = [
-    'normal',
-    'magic',
-    'rare',
-    'epic',
-    'legendary',
-    'mythic',
-    'abyss',
-    'forbidden',
-  ];
-  final index = order.indexOf(qualityId);
-  return index < 0 ? 0 : index;
 }

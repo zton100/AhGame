@@ -9,6 +9,7 @@ class EquipmentInstance {
     required this.createdAt,
     required this.rolledBaseStats,
     required this.rolledAffixes,
+    this.enhanceLevel = 0,
   });
 
   factory EquipmentInstance.fromJson(Map<String, Object?> json) {
@@ -33,6 +34,7 @@ class EquipmentInstance {
           else
             RolledAffix.fromJson(Map<String, Object?>.from(affix as Map)),
       ],
+      enhanceLevel: json['enhanceLevel'] as int? ?? 0,
     );
   }
 
@@ -43,6 +45,29 @@ class EquipmentInstance {
   final DateTime createdAt;
   final List<RolledBaseStat> rolledBaseStats;
   final List<RolledAffix> rolledAffixes;
+  final int enhanceLevel;
+
+  EquipmentInstance copyWith({
+    String? instanceId,
+    String? templateId,
+    String? qualityId,
+    int? level,
+    DateTime? createdAt,
+    List<RolledBaseStat>? rolledBaseStats,
+    List<RolledAffix>? rolledAffixes,
+    int? enhanceLevel,
+  }) {
+    return EquipmentInstance(
+      instanceId: instanceId ?? this.instanceId,
+      templateId: templateId ?? this.templateId,
+      qualityId: qualityId ?? this.qualityId,
+      level: level ?? this.level,
+      createdAt: createdAt ?? this.createdAt,
+      rolledBaseStats: rolledBaseStats ?? this.rolledBaseStats,
+      rolledAffixes: rolledAffixes ?? this.rolledAffixes,
+      enhanceLevel: enhanceLevel ?? this.enhanceLevel,
+    );
+  }
 
   Map<String, Object?> toJson() {
     return {
@@ -57,6 +82,7 @@ class EquipmentInstance {
       'rolledAffixes': [
         for (final affix in rolledAffixes) affix.toJson(),
       ],
+      'enhanceLevel': enhanceLevel,
     };
   }
 }

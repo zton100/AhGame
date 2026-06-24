@@ -5,6 +5,7 @@ import '../../models/inventory_state.dart';
 import '../build/build_score_service.dart';
 import '../build/build_service.dart';
 import '../config/game_database.dart';
+import '../equipment/quality_rank.dart';
 import 'equipment_instance_store.dart';
 import 'equipment_inventory_action_service.dart';
 import 'inventory_service.dart';
@@ -48,6 +49,12 @@ class AutoSalvageService {
         reason: AutoSalvageReason.equipped,
       );
     }
+    if (equipment.enhanceLevel > 0) {
+      return const AutoSalvageDecision(
+        keep: true,
+        reason: AutoSalvageReason.enhanced,
+      );
+    }
 
     final templateRecord = database.findRecord(
       'equipment_templates',
@@ -68,14 +75,14 @@ class AutoSalvageService {
     }
 
     if (config.keepLegendaryOrAbove &&
-        _qualityRank(equipment.qualityId) >= _qualityRank('legendary')) {
+        isLegendaryOrAbove(equipment.qualityId)) {
       return const AutoSalvageDecision(
         keep: true,
         reason: AutoSalvageReason.legendaryOrAbove,
       );
     }
-    if (_qualityRank(equipment.qualityId) >=
-        _qualityRank(config.minQualityToKeep)) {
+    if (qualityRank(equipment.qualityId) >=
+        qualityRank(config.minQualityToKeep)) {
       return const AutoSalvageDecision(
         keep: true,
         reason: AutoSalvageReason.qualityKept,
@@ -122,6 +129,18 @@ class AutoSalvageService {
         reasonByEquipmentId: {
           for (final id in inventory.equipmentInstanceIds)
             id: AutoSalvageReason.configDisabled,
+        },
+      );
+    }
+    if (!_hasReachedUsageThreshold(inventory, config)) {
+      return AutoSalvageReport(
+        state: inventory,
+        salvagedEquipmentIds: const [],
+        keptEquipmentIds: inventory.equipmentInstanceIds,
+        gainedMaterials: const [],
+        reasonByEquipmentId: {
+          for (final id in inventory.equipmentInstanceIds)
+            id: AutoSalvageReason.inventoryUsageBelowThreshold,
         },
       );
     }
@@ -212,19 +231,21 @@ class AutoSalvageService {
     }
   }
 
-  int _qualityRank(String qualityId) {
-    const order = [
-      'normal',
-      'magic',
-      'rare',
-      'epic',
-      'legendary',
-      'mythic',
-      'abyss',
-      'forbidden',
-    ];
-    final index = order.indexOf(qualityId);
-    return index < 0 ? 0 : index;
+  bool _hasReachedUsageThreshold(
+    InventoryState inventory,
+    AutoSalvageConfig config,
+  ) {
+    final threshold = config.maxInventoryUsageBeforeSalvage;
+    if (threshold == null) {
+      return true;
+    }
+    if (inventory.equipmentCapacity <= 0) {
+      return true;
+    }
+
+    final usage =
+        inventory.equipmentInstanceIds.length / inventory.equipmentCapacity;
+    return usage >= threshold;
   }
 }
 
@@ -254,6 +275,10 @@ class AutoSalvageReport {
   final Map<String, AutoSalvageReason> reasonByEquipmentId;
 
   int get salvagedCount => salvagedEquipmentIds.length;
+
+  int get keptCount => keptEquipmentIds.length;
+
+  @Deprecated('Use keptCount. rejectedCount historically meant kept count.')
   int get rejectedCount => keptEquipmentIds.length;
 }
 
@@ -266,6 +291,8 @@ enum AutoSalvageReason {
   qualityNotAllowed,
   highBuildMatch,
   lowValue,
+  enhanced,
+  inventoryUsageBelowThreshold,
   unjudgeable,
   notCandidate,
 }

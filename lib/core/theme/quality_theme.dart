@@ -6,6 +6,7 @@ enum EquipmentQuality {
   rare('rare', '稀有', Color(0xFFD6B84A)),
   epic('epic', '史诗', Color(0xFFB36EF0)),
   legendary('legendary', '传奇', Color(0xFFE18A3B)),
+  ancient('ancient', '远古', Color(0xFF9B6B43)),
   mythic('mythic', '神话', Color(0xFFE34F63)),
   abyss('abyss', '深渊', Color(0xFF35D0C2)),
   forbidden('forbidden', '禁忌', Color(0xFF9B1C31));

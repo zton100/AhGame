@@ -33,9 +33,9 @@ void main() {
       'rare',
       'epic',
       'legendary',
+      'ancient',
       'mythic',
       'abyss',
-      'forbidden',
     ]);
     expect(
       QualityService(_databaseWithEquipment())
@@ -116,9 +116,9 @@ GameDatabase _databaseWithEquipment() {
           _quality('rare', 3, 4, 1.18, 0.02),
           _quality('epic', 4, 5, 1.32, 0.05),
           _quality('legendary', 5, 6, 1.5, 0.15),
-          _quality('mythic', 6, 7, 1.75, 0.3),
-          _quality('abyss', 7, 8, 2.05, 0.45),
-          _quality('forbidden', 8, 8, 2.4, 0.65),
+          _quality('ancient', 6, 7, 1.75, 0.3),
+          _quality('mythic', 7, 8, 2.05, 0.45),
+          _quality('abyss', 8, 8, 2.4, 0.65),
         ],
       },
     ),

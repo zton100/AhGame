@@ -1,6 +1,7 @@
 import 'package:abyss_relic/models/affix_config.dart';
 import 'package:abyss_relic/features/equipment/equipment_card_view_model.dart';
 import 'package:abyss_relic/models/inventory_state.dart';
+import 'package:abyss_relic/models/enhancement_config.dart';
 import 'package:abyss_relic/models/loot_drop.dart';
 import 'package:abyss_relic/systems/chapters/chapter_service.dart';
 import 'package:abyss_relic/systems/build/build_score_service.dart';
@@ -49,6 +50,10 @@ void main() {
     );
     expect(result.database.findRecord('chapters', 'chapter_1'), isNotNull);
     expect(result.database.findRecord('level_curves', 'default'), isNotNull);
+    expect(
+      result.database.findRecord('enhancement_config', 'default'),
+      isNotNull,
+    );
     expect(result.database.findRecord('formula_config', 'default'), isNotNull);
     expect(result.database.findRecord('qualities', 'normal'), isNotNull);
     expect(
@@ -122,7 +127,31 @@ void main() {
     expect(templates, hasLength(5));
     expect(templates.map((template) => template.id), contains('rusted_blade'));
     expect(qualities, hasLength(8));
-    expect(qualities.last.id, 'forbidden');
+    expect(qualities.map((quality) => quality.id), [
+      'normal',
+      'magic',
+      'rare',
+      'epic',
+      'legendary',
+      'ancient',
+      'mythic',
+      'abyss',
+    ]);
+  });
+
+  test('seed enhancement config can be parsed', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final config = EnhancementConfig.fromJson(
+      result.database.findRecord('enhancement_config', 'default')!,
+    );
+
+    expect(config.maxLevel, 10);
+    expect(config.costForNextLevel(0).dust, 1);
+    expect(config.costForNextLevel(0).gold, 10);
+    expect(config.multiplierForLevel(10), 1.80);
   });
 
   test('seed equipment templates can generate an equipment instance', () async {

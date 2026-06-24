@@ -42,24 +42,24 @@
       "specialEffectChance": 0.15
     },
     {
-      "id": "mythic",
-      "name": "Mythic",
+      "id": "ancient",
+      "name": "Ancient",
       "affixMin": 6,
       "affixMax": 7,
       "statMultiplier": 1.75,
       "specialEffectChance": 0.3
     },
     {
-      "id": "abyss",
-      "name": "Abyss",
+      "id": "mythic",
+      "name": "Mythic",
       "affixMin": 7,
       "affixMax": 8,
       "statMultiplier": 2.05,
       "specialEffectChance": 0.45
     },
     {
-      "id": "forbidden",
-      "name": "Forbidden",
+      "id": "abyss",
+      "name": "Abyss",
       "affixMin": 8,
       "affixMax": 8,
       "statMultiplier": 2.4,

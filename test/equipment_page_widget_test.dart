@@ -228,6 +228,36 @@ void main() {
     expect(save.inventory.materials.single.quantity, 1);
   });
 
+  testWidgets('EquipmentPage enhances equipment and persists +1',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await _savePoisonBlade(
+      saveService,
+      materials: const [
+        MaterialStack(materialId: 'gold', quantity: 20),
+        MaterialStack(materialId: 'salvage_dust', quantity: 2),
+      ],
+    );
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Poison Blade'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enhance Level: +0'), findsOneWidget);
+    expect(find.text('Enhance'), findsOneWidget);
+
+    await tester.tap(find.text('Enhance'));
+    await tester.pumpAndSettle();
+
+    final save = await saveService.loadOrCreate();
+    expect(
+        save.inventory.equipmentInstances['eq_poison_blade']!.enhanceLevel, 1);
+    expect(find.textContaining('Enhanced to +1'), findsOneWidget);
+    expect(find.text('Poison Blade +1'), findsOneWidget);
+  });
+
   testWidgets('EquipmentPage batch salvages filtered low value equipment',
       (tester) async {
     final saveService = SaveService(store: InMemorySaveStore());
@@ -289,12 +319,14 @@ Future<void> _savePoisonBlade(
   SaveService saveService, {
   bool locked = false,
   EquipmentLoadout loadout = const EquipmentLoadout.empty(),
+  List<MaterialStack> materials = const [],
 }) {
   return saveService.save(SaveData.newGame().copyWith(
     inventory: inventorySaveFromState(InventoryState(
       equipmentInstanceIds: const ['eq_poison_blade'],
       equipmentInstances: {'eq_poison_blade': _equipment()},
       equipmentLoadout: loadout,
+      materials: materials,
       lockedEquipmentInstanceIds: locked ? const ['eq_poison_blade'] : const [],
     )),
   ));
@@ -508,6 +540,29 @@ GameDatabase _database() {
           'affixMax': 1,
           'statMultiplier': 1.18,
           'specialEffectChance': 0.02,
+        },
+      ],
+    }),
+    _file('assets/data/enhancement_config.json', {
+      'schemaVersion': 1,
+      'enhancement_config': [
+        {
+          'id': 'default',
+          'maxLevel': 10,
+          'dustCostByLevel': [1, 2, 3, 5, 8, 12, 18, 25, 35, 50],
+          'goldCostByLevel': [10, 20, 35, 55, 80, 120, 180, 260, 360, 500],
+          'statMultiplierByLevel': [
+            1.05,
+            1.10,
+            1.16,
+            1.22,
+            1.30,
+            1.38,
+            1.47,
+            1.57,
+            1.68,
+            1.80,
+          ],
         },
       ],
     }),

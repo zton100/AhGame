@@ -1,5 +1,6 @@
 import '../../models/quality_config.dart';
 import '../config/game_database.dart';
+import 'quality_rank.dart';
 
 class QualityService {
   const QualityService(this._database);
@@ -12,7 +13,7 @@ class QualityService {
         .values
         .map(QualityConfig.fromJson)
         .toList();
-    configured.sort((a, b) => _orderFor(a.id).compareTo(_orderFor(b.id)));
+    configured.sort((a, b) => qualityRank(a.id).compareTo(qualityRank(b.id)));
     return List.unmodifiable(configured);
   }
 
@@ -28,18 +29,5 @@ class QualityService {
     }
 
     return quality;
-  }
-
-  int _orderFor(String qualityId) {
-    return const [
-      'normal',
-      'magic',
-      'rare',
-      'epic',
-      'legendary',
-      'mythic',
-      'abyss',
-      'forbidden',
-    ].indexOf(qualityId);
   }
 }

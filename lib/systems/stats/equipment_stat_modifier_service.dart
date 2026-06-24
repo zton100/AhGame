@@ -3,14 +3,19 @@ import '../../models/equipment_instance.dart';
 import '../config/game_database.dart';
 import '../equipment/affix_effect_resolver.dart';
 import '../equipment/affix_roll_service.dart';
+import '../equipment/equipment_enhancement_service.dart';
 import 'stat_aggregation_service.dart';
 
 class EquipmentStatModifierService {
   const EquipmentStatModifierService({
     AffixEffectResolver affixEffectResolver = const AffixEffectResolver(),
-  }) : _affixEffectResolver = affixEffectResolver;
+    EquipmentEnhancementService enhancementService =
+        const EquipmentEnhancementService(),
+  })  : _affixEffectResolver = affixEffectResolver,
+        _enhancementService = enhancementService;
 
   final AffixEffectResolver _affixEffectResolver;
+  final EquipmentEnhancementService _enhancementService;
 
   EquipmentStatModifierResult modifiersForEquipment({
     required EquipmentInstance equipment,
@@ -35,7 +40,7 @@ class EquipmentStatModifierService {
 
       modifiers.add(StatModifier.flat(
         stat: statKey,
-        value: stat.value,
+        value: stat.value * _enhancementMultiplier(equipment, database),
         source: 'equipment:${equipment.instanceId}:base:${stat.stat}',
       ));
     }
@@ -145,6 +150,20 @@ class EquipmentStatModifierService {
           source: source,
         );
     }
+  }
+
+  double _enhancementMultiplier(
+    EquipmentInstance equipment,
+    GameDatabase database,
+  ) {
+    if (equipment.enhanceLevel <= 0) {
+      return 1.0;
+    }
+
+    return _enhancementService.multiplierForLevel(
+      level: equipment.enhanceLevel,
+      database: database,
+    );
   }
 }
 

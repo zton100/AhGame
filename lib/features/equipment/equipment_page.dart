@@ -9,6 +9,7 @@ import '../../models/inventory_state.dart';
 import '../../models/save_data.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
+import '../../systems/equipment/equipment_enhancement_service.dart';
 import '../../systems/inventory/equipment_inventory_action_service.dart';
 import 'equipment_card_view_model.dart';
 import 'equipment_page_view_model.dart';
@@ -258,6 +259,11 @@ class _EquipmentControls extends ConsumerWidget {
             config.copyWith(enabled: enabled),
           ),
         ),
+        Text(
+          '开启后会自动处理背包中符合规则的全部低价值装备，不只处理新掉落装备。锁定、已穿戴、高品质和高 BD 匹配装备会默认保留。',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
         Wrap(
           spacing: 12,
           runSpacing: 8,
@@ -411,7 +417,9 @@ class _EquipmentCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          card.title,
+                          item.equipment.enhanceLevel > 0
+                              ? '${card.title} +${item.equipment.enhanceLevel}'
+                              : card.title,
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
@@ -535,10 +543,16 @@ class _EquipmentDetailDialog extends ConsumerWidget {
                 Text('rejectedTags: ${_tags(card.rejectedTags)}'),
               ],
             ),
+            const SizedBox(height: 12),
+            _EnhancementSection(item: item, database: database),
           ],
         ),
       ),
       actions: [
+        TextButton(
+          onPressed: () => _enhance(context, ref),
+          child: const Text('Enhance'),
+        ),
         TextButton(
           onPressed: () => _equip(context, ref),
           child: const Text('穿戴'),
@@ -578,6 +592,37 @@ class _EquipmentDetailDialog extends ConsumerWidget {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('穿戴失败：$error')),
+      );
+    }
+  }
+
+  Future<void> _enhance(BuildContext context, WidgetRef ref) async {
+    try {
+      final result =
+          await ref.read(playerSaveProvider.notifier).enhanceEquipment(
+                database: database,
+                instanceId: item.equipment.instanceId,
+              );
+      if (!context.mounted) {
+        return;
+      }
+      if (!result.accepted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_enhancementFailureMessage(result.reason))),
+        );
+        return;
+      }
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Enhanced to +${result.newLevel}')),
+      );
+    } on Object catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('强化失败：$error')),
       );
     }
   }
@@ -634,6 +679,44 @@ class _EquipmentDetailDialog extends ConsumerWidget {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('分解失败：$error')),
+      );
+    }
+  }
+}
+
+class _EnhancementSection extends StatelessWidget {
+  const _EnhancementSection({
+    required this.item,
+    required this.database,
+  });
+
+  final EquipmentPageItemViewModel item;
+  final GameDatabase database;
+
+  @override
+  Widget build(BuildContext context) {
+    final service = const EquipmentEnhancementService();
+    try {
+      final config = service.requireConfig(database);
+      final level = item.equipment.enhanceLevel;
+      final cost =
+          level >= config.maxLevel ? null : config.costForNextLevel(level);
+      return _DetailSection(
+        title: 'Enhancement',
+        children: [
+          Text('Enhance Level: +$level'),
+          if (cost == null)
+            const Text('Max Enhance Level')
+          else
+            Text(
+              'Next Cost: gold x${cost.gold}, salvage_dust x${cost.dust}',
+            ),
+        ],
+      );
+    } on Object catch (error) {
+      return _DetailSection(
+        title: 'Enhancement',
+        children: [Text('Enhancement config unavailable: $error')],
       );
     }
   }
@@ -838,18 +921,14 @@ class _EquipmentMessage extends StatelessWidget {
     required this.title,
     required this.message,
     required this.icon,
-    this.action,
   });
 
   final String title;
   final String message;
   final IconData icon;
-  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
-    final action = this.action;
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -865,10 +944,6 @@ class _EquipmentMessage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            if (action != null) ...[
-              const SizedBox(height: 16),
-              action,
-            ],
           ],
         ),
       ),
@@ -886,6 +961,23 @@ String _salvageFailureMessage(EquipmentInventoryActionReason reason) {
       return '装备不存在，无法分解';
     case EquipmentInventoryActionReason.salvaged:
       return '分解失败';
+  }
+}
+
+String _enhancementFailureMessage(EquipmentEnhancementReason reason) {
+  switch (reason) {
+    case EquipmentEnhancementReason.equipmentNotFound:
+      return '装备不存在，无法强化';
+    case EquipmentEnhancementReason.maxLevelReached:
+      return '装备已达到最大强化等级';
+    case EquipmentEnhancementReason.insufficientDust:
+      return 'salvage_dust 不足，无法强化';
+    case EquipmentEnhancementReason.insufficientGold:
+      return 'gold 不足，无法强化';
+    case EquipmentEnhancementReason.invalidConfig:
+      return '强化配置异常';
+    case EquipmentEnhancementReason.enhanced:
+      return '强化失败';
   }
 }
 

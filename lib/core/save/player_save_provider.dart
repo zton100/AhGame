@@ -10,6 +10,7 @@ import '../../systems/drop/drop_pool_service.dart';
 import '../../systems/drop/equipment_loot_materialization_service.dart';
 import '../../systems/equipment/affix_roll_service.dart';
 import '../../systems/equipment/equipment_generation_service.dart';
+import '../../systems/equipment/equipment_enhancement_service.dart';
 import '../../systems/equipment/equipment_service.dart';
 import '../../systems/equipment/equipment_template_service.dart';
 import '../../systems/equipment/quality_service.dart';
@@ -157,11 +158,20 @@ class PlayerSaveController extends AsyncNotifier<SaveData> {
   }) async {
     final currentSave =
         state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    final config = currentSave.inventory.autoSalvageConfig;
     final report = const AutoSalvageService().processInventory(
       inventory: inventoryStateFromSave(currentSave.inventory),
       database: database,
       classId: currentSave.playerProgress.currentClassId,
-      config: currentSave.inventory.autoSalvageConfig.copyWith(enabled: true),
+      config: AutoSalvageConfig(
+        enabled: true,
+        minQualityToKeep: config.minQualityToKeep,
+        keepLegendaryOrAbove: config.keepLegendaryOrAbove,
+        keepLocked: config.keepLocked,
+        keepEquipped: config.keepEquipped,
+        minBuildMatchScoreToKeep: config.minBuildMatchScoreToKeep,
+        allowedQualityIdsToSalvage: config.allowedQualityIdsToSalvage,
+      ),
       candidateInstanceIds: candidateInstanceIds,
     );
     if (report.salvagedCount > 0) {
@@ -174,6 +184,30 @@ class PlayerSaveController extends AsyncNotifier<SaveData> {
     }
 
     return report;
+  }
+
+  Future<EquipmentEnhancementResult> enhanceEquipment({
+    required GameDatabase database,
+    required String instanceId,
+  }) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    final result = const EquipmentEnhancementService().enhance(
+      state: inventoryStateFromSave(currentSave.inventory),
+      instanceId: instanceId,
+      database: database,
+    );
+    if (!result.accepted) {
+      return result;
+    }
+
+    await save(currentSave.copyWith(
+      inventory: inventorySaveFromState(
+        result.state,
+        autoSalvageConfig: currentSave.inventory.autoSalvageConfig,
+      ),
+    ));
+    return result;
   }
 
   LootDrop _testEquipmentDrop(GameDatabase database) {
