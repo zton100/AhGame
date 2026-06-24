@@ -220,6 +220,37 @@ void main() {
     expect(report.reasonByEquipmentId['enhanced_blade'],
         AutoSalvageReason.enhanced);
   });
+
+  test('best current-class item per slot is kept as a future replacement', () {
+    final best = _equipment(
+      'best_poison_blade',
+      'normal',
+      affixes: [
+        const RolledAffix(
+          affixId: 'poison_edge',
+          rollValue: 10,
+          exclusiveGroup: null,
+        ),
+      ],
+    );
+    final low = _equipment('plain_blade', 'normal');
+    final report = const AutoSalvageService().processInventory(
+      inventory: _inventory([low, best]),
+      database: _database(poisonWeight: 80),
+      classId: 'exile',
+      config: AutoSalvageConfig.defaults.copyWith(
+        enabled: true,
+        minBuildMatchScoreToKeep: 999,
+      ),
+    );
+
+    expect(report.salvagedEquipmentIds, ['plain_blade']);
+    expect(report.keptEquipmentIds, ['best_poison_blade']);
+    expect(
+      report.reasonByEquipmentId['best_poison_blade'],
+      AutoSalvageReason.bestForSlot,
+    );
+  });
 }
 
 EquipmentInstance _equipment(

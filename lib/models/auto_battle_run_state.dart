@@ -20,6 +20,7 @@ class AutoBattleRunState {
     this.farmingStageId,
     this.farmingBecauseLevelTooLow = false,
     this.farmingBecauseBattleFailed = false,
+    this.farmingBecauseUnsafe = false,
     this.progressionStageId,
     this.autoSalvagedEquipmentCount = 0,
     this.autoSalvageMaterials = const {},
@@ -44,6 +45,7 @@ class AutoBattleRunState {
   final String? farmingStageId;
   final bool farmingBecauseLevelTooLow;
   final bool farmingBecauseBattleFailed;
+  final bool farmingBecauseUnsafe;
   final String? progressionStageId;
   final int autoSalvagedEquipmentCount;
   final Map<String, int> autoSalvageMaterials;
@@ -65,6 +67,7 @@ class AutoBattleRunState {
     bool clearFarmingStageId = false,
     bool? farmingBecauseLevelTooLow,
     bool? farmingBecauseBattleFailed,
+    bool? farmingBecauseUnsafe,
     String? progressionStageId,
     bool clearProgressionStageId = false,
     int? autoSalvagedEquipmentCount,
@@ -91,6 +94,7 @@ class AutoBattleRunState {
           farmingBecauseLevelTooLow ?? this.farmingBecauseLevelTooLow,
       farmingBecauseBattleFailed:
           farmingBecauseBattleFailed ?? this.farmingBecauseBattleFailed,
+      farmingBecauseUnsafe: farmingBecauseUnsafe ?? this.farmingBecauseUnsafe,
       progressionStageId: clearProgressionStageId
           ? null
           : progressionStageId ?? this.progressionStageId,
@@ -107,6 +111,7 @@ class AutoBattleRunState {
     String? farmingStageId,
     bool farmingBecauseLevelTooLow = false,
     bool farmingBecauseBattleFailed = false,
+    bool farmingBecauseUnsafe = false,
     required String progressionStageId,
     int autoSalvagedCount = 0,
     List<MaterialStack> autoSalvageGainedMaterials = const [],
@@ -146,6 +151,7 @@ class AutoBattleRunState {
       clearFarmingStageId: farmingStageId == null,
       farmingBecauseLevelTooLow: farmingBecauseLevelTooLow,
       farmingBecauseBattleFailed: farmingBecauseBattleFailed,
+      farmingBecauseUnsafe: farmingBecauseUnsafe,
       progressionStageId: progressionStageId,
       autoSalvagedEquipmentCount:
           autoSalvagedEquipmentCount + autoSalvagedCount,

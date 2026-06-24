@@ -352,6 +352,10 @@ class _EquipmentControls extends ConsumerWidget {
                   : () => _salvageFiltered(context, ref),
               child: const Text('Salvage filtered low-value'),
             ),
+            FilledButton.tonal(
+              onPressed: () => _enhanceRecommended(context, ref),
+              child: const Text('Enhance recommended equipped'),
+            ),
           ],
         ),
       ],
@@ -380,6 +384,25 @@ class _EquipmentControls extends ConsumerWidget {
       SnackBar(
         content: Text(
           'Auto salvaged ${report.salvagedCount}, gained ${_materialsText(report.gainedMaterials)}',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _enhanceRecommended(BuildContext context, WidgetRef ref) async {
+    final result =
+        await ref.read(playerSaveProvider.notifier).enhanceRecommendedEquipment(
+              database: database,
+            );
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.accepted
+              ? 'Enhanced recommended equipment to +${result.newLevel}'
+              : _enhancementFailureMessage(result.reason),
         ),
       ),
     );

@@ -224,8 +224,7 @@ void main() {
     expect(find.textContaining('Battle lost.'), findsOneWidget);
   });
 
-  testWidgets('BattlePage displays battle-failed farming fallback',
-      (tester) async {
+  testWidgets('BattlePage displays unsafe farming fallback', (tester) async {
     final saveService = SaveService(store: InMemorySaveStore());
     final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
       playerProgress: SaveData.newGame().playerProgress.copyWith(
@@ -250,11 +249,13 @@ void main() {
     await tester.tap(find.text('Run 1 Battle'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Farming Because Battle Failed'), findsOneWidget);
+    expect(find.text('Progress Mode'), findsOneWidget);
+    expect(find.text('farming_unsafe'), findsOneWidget);
+    expect(find.text('Farming Because Unsafe'), findsOneWidget);
     expect(find.text('true'), findsOneWidget);
     expect(
       find.text(
-        'Current progression stage failed. Auto battle is farming the highest cleared stage you can survive.',
+        'Current progression stage looks unsafe. Auto battle is farming the highest cleared stage first.',
       ),
       findsOneWidget,
     );

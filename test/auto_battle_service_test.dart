@@ -3,16 +3,21 @@ import 'package:abyss_relic/models/auto_salvage_config.dart';
 import 'package:abyss_relic/models/battle_state.dart';
 import 'package:abyss_relic/models/data_file_meta.dart';
 import 'package:abyss_relic/models/loaded_data_file.dart';
+import 'package:abyss_relic/models/monster_runtime.dart';
 import 'package:abyss_relic/models/save_data.dart';
 import 'package:abyss_relic/systems/auto_battle/auto_battle_service.dart';
+import 'package:abyss_relic/systems/battle/battle_readiness_service.dart';
 import 'package:abyss_relic/systems/config/game_database.dart';
+import 'package:abyss_relic/systems/stats/stat_aggregation_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('runOneBattle grants experience', () async {
     SaveData? saved;
 
-    final result = await _service().runOneBattle(
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runOneBattle(
       saveData: SaveData.newGame(now: DateTime.utc(2026, 6, 24)),
       database: _database(),
       save: (saveData) async => saved = saveData,
@@ -27,7 +32,9 @@ void main() {
   });
 
   test('runOneBattle stores generated equipment in the save', () async {
-    final result = await _service().runOneBattle(
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runOneBattle(
       saveData: SaveData.newGame(now: DateTime.utc(2026, 6, 24)),
       database: _database(),
       save: (_) async {},
@@ -43,7 +50,9 @@ void main() {
   test('runManyBattles accumulates rewards across battles', () async {
     var saveCount = 0;
 
-    final result = await _service().runManyBattles(
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runManyBattles(
       saveData: SaveData.newGame(now: DateTime.utc(2026, 6, 24)),
       database: _database(),
       maxBattles: 2,
@@ -60,7 +69,9 @@ void main() {
   });
 
   test('runManyBattles stops when maxBattles is reached', () async {
-    final result = await _service().runManyBattles(
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runManyBattles(
       saveData: SaveData.newGame(now: DateTime.utc(2026, 6, 24)),
       database: _database(stageCount: 3),
       maxBattles: 2,
@@ -80,7 +91,9 @@ void main() {
           ),
     );
 
-    final result = await _service().runOneBattle(
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runOneBattle(
       saveData: save,
       database: _database(secondStageRequiredLevel: 99),
       save: (_) async {},
@@ -103,7 +116,9 @@ void main() {
           ),
     );
 
-    final result = await _service().runOneBattle(
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runOneBattle(
       saveData: save,
       database: _database(secondStageRequiredLevel: 99),
       save: (_) async => fail('level too low should not save'),
@@ -124,7 +139,9 @@ void main() {
           ),
     );
 
-    final result = await _service().runManyBattles(
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runManyBattles(
       saveData: save,
       database: _database(secondStageRequiredLevel: 2),
       maxBattles: 2,
@@ -252,7 +269,7 @@ void main() {
     expect(result.saveData.playerProgress.currentStageId, '1-1');
   });
 
-  test('current stage defeat farms highest cleared stage instead of stopping',
+  test('unsafe progression farms highest cleared stage instead of stopping',
       () async {
     final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
       playerProgress: SaveData.newGame().playerProgress.copyWith(
@@ -278,12 +295,41 @@ void main() {
     expect(result.saveData.playerProgress.currentStageId, '1-2');
     expect(result.progressionStageId, '1-2');
     expect(result.farmingStageId, '1-1');
-    expect(result.farmingBecauseBattleFailed, isTrue);
+    expect(result.farmingBecauseUnsafe, isTrue);
+    expect(result.farmingBecauseBattleFailed, isFalse);
     expect(result.lastBattleLogs.map((log) => log.message),
         contains('Battle victory.'));
   });
 
-  test('runManyBattles repeats failed progression fallback until max battles',
+  test('unsafe current stage farms highest cleared stage before attempting',
+      () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+
+    final result = await _service().runOneBattle(
+      saveData: save,
+      database: _database(
+        monsterHp: 20,
+        monsterAttack: 0,
+        secondMonsterHp: 500,
+        secondMonsterAttack: 999,
+      ),
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 1);
+    expect(result.totalExperience, 12);
+    expect(result.farmingStageId, '1-1');
+    expect(result.farmingBecauseUnsafe, isTrue);
+    expect(result.farmingBecauseBattleFailed, isFalse);
+    expect(result.saveData.playerProgress.currentStageId, '1-2');
+  });
+
+  test('runManyBattles repeats unsafe progression fallback until max battles',
       () async {
     final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
       playerProgress: SaveData.newGame().playerProgress.copyWith(
@@ -308,12 +354,38 @@ void main() {
     expect(result.totalExperience, 24);
     expect(result.saveData.playerProgress.currentStageId, '1-2');
     expect(result.farmingStageId, '1-1');
-    expect(result.farmingBecauseBattleFailed, isTrue);
+    expect(result.farmingBecauseUnsafe, isTrue);
+    expect(result.farmingBecauseBattleFailed, isFalse);
     expect(result.stopReason, AutoBattleStopReason.maxBattlesReached);
   });
 }
 
-AutoBattleService _service() => const AutoBattleService();
+AutoBattleService _service({
+  BattleReadinessService readinessService = const BattleReadinessService(),
+}) {
+  return AutoBattleService(readinessService: readinessService);
+}
+
+class _AlwaysSafeReadinessService extends BattleReadinessService {
+  const _AlwaysSafeReadinessService();
+
+  @override
+  BattleReadinessReport evaluate({
+    required ComputedStats characterStats,
+    required MonsterRuntime monster,
+    int maxSeconds = 100,
+  }) {
+    return const BattleReadinessReport(
+      safeToAttempt: true,
+      reason: BattleReadinessReason.safe,
+      estimatedSecondsToKill: 1,
+      estimatedIncomingDamage: 0,
+      playerEffectiveHp: 100,
+      playerDamagePerSecond: 100,
+      monsterDamagePerHit: 0,
+    );
+  }
+}
 
 GameDatabase _database({
   int stageCount = 2,

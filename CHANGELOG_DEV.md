@@ -1,5 +1,63 @@
 # CHANGELOG_DEV
 
+## S26-S30 Auto Battle Progression Polish - 2026-06-24
+
+### Added files
+
+- `lib/systems/battle/battle_readiness_service.dart`
+- `lib/systems/equipment/auto_enhancement_service.dart`
+- `test/battle_readiness_service_test.dart`
+- `test/auto_enhancement_service_test.dart`
+
+### Modified files
+
+- `assets/data/chapters.json`
+- `assets/data/monsters.json`
+- `lib/core/save/player_save_provider.dart`
+- `lib/features/battle/battle_page.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `lib/models/auto_battle_run_state.dart`
+- `lib/systems/auto_battle/auto_battle_service.dart`
+- `lib/systems/inventory/auto_salvage_service.dart`
+- `test/auto_battle_service_test.dart`
+- `test/auto_salvage_service_test.dart`
+- `test/battle_page_widget_test.dart`
+- `test/chapter_service_test.dart`
+- `test/equipment_page_widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- S26: Added battle readiness estimates for progression stages, including low damage and low survivability detection.
+- S26: Auto battle can farm the highest cleared farmable stage when the current progression stage looks unsafe.
+- S26: BattlePage now displays progress mode, unsafe farming state, and last settlement summary fields.
+- S27: Added recommended equipment enhancement flow for equipped gear, prioritizing the main weapon when possible.
+- S27: PlayerSaveController can enhance recommended equipped gear and EquipmentPage exposes the action.
+- S28: Auto salvage now preserves the best current-class candidate per slot as a future replacement.
+- S29: Expanded chapter 1 from 5 stages to 10 stages and added supporting monster configs.
+- S30: Added BattlePage and EquipmentPage smoke coverage for the new summary and recommended enhancement UI.
+
+### Tests
+
+- Added BattleReadinessService coverage for safe encounters, low damage, low survivability, and armor mitigation.
+- Added AutoEnhancementService coverage for recommendation, successful enhancement, insufficient resources, and empty loadouts.
+- Added AutoBattleService coverage for unsafe progression fallback and repeated fallback farming.
+- Added AutoSalvageService coverage for best-slot protection.
+- Updated ChapterService tests for the 10-stage chapter 1 structure.
+- Targeted tests passed: `I:\dev\flutter\bin\flutter.bat test test\battle_page_widget_test.dart test\equipment_page_widget_test.dart test\chapter_service_test.dart test\seed_data_integration_test.dart test\monster_system_test.dart`
+
+### Save impact
+
+- `SaveData.saveVersion` remains `5`.
+- `farmingBecauseUnsafe` is runtime auto battle state only.
+- Recommended enhancement uses existing equipment enhancement persistence.
+- Chapter and monster seed data changed, but no SaveData schema migration was required.
+
+### Remaining
+
+- Readiness is still an estimate, not a full combat forecast.
+- No offline rewards, abyss system, automatic skill tuning, auto equip, art pass, or complex monster AI were added.
+
 ## S25 Failed Progression Fallback Farming - 2026-06-24
 
 ### Added files

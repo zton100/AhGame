@@ -117,20 +117,20 @@ void main() {
     final service = ChapterService(_database());
     final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
       playerProgress:
-          SaveData.newGame().playerProgress.copyWith(currentStageId: '1-5'),
+          SaveData.newGame().playerProgress.copyWith(currentStageId: '1-10'),
     );
 
     final advanced = service.markStageCleared(save);
 
-    expect(advanced.playerProgress.highestClearedStageId, '1-5');
-    expect(advanced.playerProgress.currentStageId, '1-5');
+    expect(advanced.playerProgress.highestClearedStageId, '1-10');
+    expect(advanced.playerProgress.currentStageId, '1-10');
   });
 
   test('ChapterConfig parses chapter and stage records', () {
     final chapter = ChapterConfig.fromJson(_chapterRecord());
 
     expect(chapter.chapterId, 'chapter_1');
-    expect(chapter.stages, hasLength(5));
+    expect(chapter.stages, hasLength(10));
     expect(chapter.stages.last.isBossStage, isTrue);
   });
 }
@@ -181,8 +181,43 @@ Map<String, Object?> _chapterRecord() {
       {
         'stageId': '1-5',
         'stageName': 'Bone Gate',
-        'monsterIds': ['skeleton_grunt'],
+        'monsterIds': ['grave_guardian'],
         'requiredLevel': 4,
+        'isBossStage': true,
+      },
+      {
+        'stageId': '1-6',
+        'stageName': 'Plague Tunnels',
+        'monsterIds': ['plague_carrier'],
+        'requiredLevel': 4,
+        'isBossStage': false,
+      },
+      {
+        'stageId': '1-7',
+        'stageName': 'Blood Moon Aisle',
+        'monsterIds': ['blood_acolyte'],
+        'requiredLevel': 5,
+        'isBossStage': false,
+      },
+      {
+        'stageId': '1-8',
+        'stageName': 'Ashen Reliquary',
+        'monsterIds': ['ash_wraith'],
+        'requiredLevel': 5,
+        'isBossStage': false,
+      },
+      {
+        'stageId': '1-9',
+        'stageName': 'Frost Bone Watch',
+        'monsterIds': ['frost_bone_archer'],
+        'requiredLevel': 6,
+        'isBossStage': false,
+      },
+      {
+        'stageId': '1-10',
+        'stageName': 'Relic Gate',
+        'monsterIds': ['relic_gatekeeper'],
+        'requiredLevel': 6,
         'isBossStage': true,
       },
     ],

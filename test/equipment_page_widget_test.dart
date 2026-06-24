@@ -32,6 +32,7 @@ void main() {
     expect(find.text('击败敌人后获得的装备会出现在这里。'), findsOneWidget);
     expect(find.text('Enable Auto Salvage'), findsOneWidget);
     expect(find.text('Keep Rare+'), findsOneWidget);
+    expect(find.text('Enhance recommended equipped'), findsOneWidget);
   });
 
   testWidgets('EquipmentPage generates test equipment through SaveData',

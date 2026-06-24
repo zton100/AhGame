@@ -37,8 +37,43 @@
         {
           "stageId": "1-5",
           "stageName": "Bone Gate",
-          "monsterIds": ["skeleton_grunt"],
+          "monsterIds": ["grave_guardian"],
           "requiredLevel": 4,
+          "isBossStage": true
+        },
+        {
+          "stageId": "1-6",
+          "stageName": "Plague Ossuary",
+          "monsterIds": ["plague_carrier"],
+          "requiredLevel": 5,
+          "isBossStage": false
+        },
+        {
+          "stageId": "1-7",
+          "stageName": "Blood Moon Steps",
+          "monsterIds": ["blood_acolyte"],
+          "requiredLevel": 6,
+          "isBossStage": false
+        },
+        {
+          "stageId": "1-8",
+          "stageName": "Ashen Crypt",
+          "monsterIds": ["ash_wraith"],
+          "requiredLevel": 7,
+          "isBossStage": false
+        },
+        {
+          "stageId": "1-9",
+          "stageName": "Frost-Bit Chapel",
+          "monsterIds": ["frost_bone_archer"],
+          "requiredLevel": 8,
+          "isBossStage": false
+        },
+        {
+          "stageId": "1-10",
+          "stageName": "Relic Throne Gate",
+          "monsterIds": ["relic_gatekeeper"],
+          "requiredLevel": 9,
           "isBossStage": true
         }
       ]

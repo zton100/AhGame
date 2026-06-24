@@ -27,6 +27,7 @@ class AutoSalvageService {
     required String classId,
     required AutoSalvageConfig config,
     required BuildAssessment assessment,
+    Set<String> protectedBestSlotInstanceIds = const {},
   }) {
     if (!config.enabled) {
       return const AutoSalvageDecision(
@@ -106,6 +107,12 @@ class AutoSalvageService {
         reason: AutoSalvageReason.highBuildMatch,
       );
     }
+    if (protectedBestSlotInstanceIds.contains(equipment.instanceId)) {
+      return const AutoSalvageDecision(
+        keep: true,
+        reason: AutoSalvageReason.bestForSlot,
+      );
+    }
 
     return const AutoSalvageDecision(
       keep: false,
@@ -154,6 +161,12 @@ class AutoSalvageService {
       classId: classId,
       equipment: equipment,
     );
+    final protectedBestSlotInstanceIds = _bestBySlotInstanceIds(
+      equipment: equipment,
+      database: database,
+      classId: classId,
+      assessment: assessment,
+    );
     final salvaged = <String>[];
     final kept = <String>[];
     final reasons = <String, AutoSalvageReason>{};
@@ -173,6 +186,7 @@ class AutoSalvageService {
         classId: classId,
         config: config,
         assessment: assessment,
+        protectedBestSlotInstanceIds: protectedBestSlotInstanceIds,
       );
       reasons[item.instanceId] = decision.reason;
       if (decision.keep) {
@@ -210,6 +224,45 @@ class AutoSalvageService {
       ],
       reasonByEquipmentId: Map.unmodifiable(reasons),
     );
+  }
+
+  Set<String> _bestBySlotInstanceIds({
+    required List<EquipmentInstance> equipment,
+    required GameDatabase database,
+    required String classId,
+    required BuildAssessment assessment,
+  }) {
+    final scoreService = BuildScoreService(database);
+    final bestBySlot = <String, ({String instanceId, double score})>{};
+    for (final item in equipment) {
+      final templateRecord = database.findRecord(
+        'equipment_templates',
+        item.templateId,
+      );
+      if (templateRecord == null) {
+        continue;
+      }
+      final template = EquipmentTemplate.fromJson(templateRecord);
+      if (!template.allowedClasses.contains(classId)) {
+        continue;
+      }
+
+      final score = scoreService
+          .scoreEquipment(equipment: item, assessment: assessment)
+          .matchScore;
+      if (score <= 0) {
+        continue;
+      }
+      final current = bestBySlot[template.slot.id];
+      if (current == null || score > current.score) {
+        bestBySlot[template.slot.id] = (
+          instanceId: item.instanceId,
+          score: score,
+        );
+      }
+    }
+
+    return {for (final value in bestBySlot.values) value.instanceId};
   }
 
   int _salvageDustForQuality(String qualityId) {
@@ -292,6 +345,7 @@ enum AutoSalvageReason {
   highBuildMatch,
   lowValue,
   enhanced,
+  bestForSlot,
   inventoryUsageBelowThreshold,
   unjudgeable,
   notCandidate,

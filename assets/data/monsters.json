@@ -55,6 +55,72 @@
       "dropPoolId": "drop_chapter_1",
       "skills": [],
       "resistances": {}
+    },
+    {
+      "id": "grave_guardian",
+      "name": "Grave Guardian",
+      "level": 4,
+      "tags": ["undead", "elite", "physical"],
+      "baseStats": {"hp": 180, "attack": 22, "armor": 8},
+      "rewards": {"experience": 36, "gold": 12, "materials": {"bone_shard": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"shadow": 0.15, "holy": -0.12}
+    },
+    {
+      "id": "plague_carrier",
+      "name": "Plague Carrier",
+      "level": 5,
+      "tags": ["plague", "poison", "undead"],
+      "baseStats": {"hp": 155, "attack": 24, "armor": 4},
+      "rewards": {"experience": 42, "gold": 14, "materials": {"plague_ichor": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": ["toxic_slash"],
+      "resistances": {"poison": 0.3, "fire": -0.08}
+    },
+    {
+      "id": "blood_acolyte",
+      "name": "Blood Acolyte",
+      "level": 6,
+      "tags": ["blood", "cultist", "shadow"],
+      "baseStats": {"hp": 170, "attack": 28, "armor": 5},
+      "rewards": {"experience": 50, "gold": 17, "materials": {"blood_tallow": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"shadow": 0.12, "holy": -0.08}
+    },
+    {
+      "id": "ash_wraith",
+      "name": "Ash Wraith",
+      "level": 7,
+      "tags": ["ash", "fire", "spirit"],
+      "baseStats": {"hp": 165, "attack": 32, "armor": 3},
+      "rewards": {"experience": 58, "gold": 20, "materials": {"ash_cinder": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": ["ember_bolt"],
+      "resistances": {"fire": 0.25, "frost": -0.1}
+    },
+    {
+      "id": "frost_bone_archer",
+      "name": "Frost Bone Archer",
+      "level": 8,
+      "tags": ["undead", "frost", "ranged"],
+      "baseStats": {"hp": 175, "attack": 34, "armor": 6},
+      "rewards": {"experience": 66, "gold": 23, "materials": {"frost_bone": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"frost": 0.25, "fire": -0.1}
+    },
+    {
+      "id": "relic_gatekeeper",
+      "name": "Relic Gatekeeper",
+      "level": 9,
+      "tags": ["undead", "boss", "abyss"],
+      "baseStats": {"hp": 260, "attack": 40, "armor": 12},
+      "rewards": {"experience": 90, "gold": 35, "materials": {"relic_fragment": 2}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"shadow": 0.2, "holy": -0.15}
     }
   ]
 }

@@ -367,6 +367,7 @@ class _AutoBattleSummary extends StatelessWidget {
           label: 'Completed Battles',
           value: state.battlesCompleted.toString(),
         ),
+        _InfoRow(label: 'Progress Mode', value: _progressMode(state)),
         _InfoRow(label: 'Total EXP', value: state.totalExperience.toString()),
         _InfoRow(label: 'Total Gold', value: state.totalGold.toString()),
         _InfoRow(
@@ -394,6 +395,22 @@ class _AutoBattleSummary extends StatelessWidget {
               .toString(),
         ),
         _InfoRow(label: 'Stop Reason', value: state.stopReason.name),
+        if (state.lastSettlementReport != null) ...[
+          _InfoRow(
+            label: 'Last EXP',
+            value: state.lastSettlementReport!.gainedExperience.toString(),
+          ),
+          _InfoRow(
+            label: 'Last Drops',
+            value: state.lastSettlementReport!.generatedEquipment.length
+                .toString(),
+          ),
+          _InfoRow(
+            label: 'Last Rejected',
+            value:
+                state.lastSettlementReport!.rejectedEquipment.length.toString(),
+          ),
+        ],
         _InfoRow(
           label: 'Progression Stage',
           value: state.progressionStageId ?? '-',
@@ -410,6 +427,10 @@ class _AutoBattleSummary extends StatelessWidget {
           label: 'Farming Because Battle Failed',
           value: state.farmingBecauseBattleFailed.toString(),
         ),
+        _InfoRow(
+          label: 'Farming Because Unsafe',
+          value: state.farmingBecauseUnsafe.toString(),
+        ),
         if (state.farmingBecauseLevelTooLow)
           const _WarningBanner(
             message:
@@ -419,6 +440,11 @@ class _AutoBattleSummary extends StatelessWidget {
           const _WarningBanner(
             message:
                 'Current progression stage failed. Auto battle is farming the highest cleared stage you can survive.',
+          ),
+        if (state.farmingBecauseUnsafe)
+          const _WarningBanner(
+            message:
+                'Current progression stage looks unsafe. Auto battle is farming the highest cleared stage first.',
           ),
         if (state.stopReason == AutoBattleStopReason.levelTooLow)
           const _WarningBanner(
@@ -629,4 +655,21 @@ String _formatNumber(double value) {
   }
 
   return value.toStringAsFixed(1);
+}
+
+String _progressMode(AutoBattleRunState state) {
+  if (state.farmingBecauseLevelTooLow) {
+    return 'farming_level_too_low';
+  }
+  if (state.farmingBecauseUnsafe) {
+    return 'farming_unsafe';
+  }
+  if (state.farmingBecauseBattleFailed) {
+    return 'farming_after_failure';
+  }
+  if (state.battlesCompleted > 0) {
+    return 'progression';
+  }
+
+  return 'idle';
 }

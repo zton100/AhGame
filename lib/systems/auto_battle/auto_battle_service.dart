@@ -4,6 +4,7 @@ import '../../models/battle_settlement_report.dart';
 import '../../models/battle_state.dart';
 import '../../models/inventory_state.dart';
 import '../../models/save_data.dart';
+import '../battle/battle_readiness_service.dart';
 import '../battle/battle_settlement_service.dart';
 import '../battle/battle_simulator.dart';
 import '../chapters/chapter_service.dart';
@@ -24,17 +25,20 @@ class AutoBattleService {
     BattleSettlementService settlementService = const BattleSettlementService(),
     MonsterFactory monsterFactory = const MonsterFactory(),
     AutoSalvageService autoSalvageService = const AutoSalvageService(),
+    BattleReadinessService readinessService = const BattleReadinessService(),
     DateTime Function()? now,
   })  : _simulator = simulator,
         _settlementService = settlementService,
         _monsterFactory = monsterFactory,
         _autoSalvageService = autoSalvageService,
+        _readinessService = readinessService,
         _now = now;
 
   final BattleSimulator _simulator;
   final BattleSettlementService _settlementService;
   final MonsterFactory _monsterFactory;
   final AutoSalvageService _autoSalvageService;
+  final BattleReadinessService _readinessService;
   final DateTime Function()? _now;
 
   AutoBattleRunState startRun(SaveData saveData) {
@@ -121,6 +125,7 @@ class AutoBattleService {
     final progressionStage = chapterService.currentProgressionStage(progress);
     final shouldFarmForLevel = chapterService.shouldFarmPreviousStage(progress);
     var farmingBecauseBattleFailed = false;
+    var farmingBecauseUnsafe = false;
     var stage = shouldFarmForLevel
         ? chapterService.highestFarmableStage(progress)
         : progressionStage;
@@ -154,6 +159,21 @@ class AutoBattleService {
 
     final monsterService = MonsterService(database);
     var monsterConfig = monsterService.requireMonster(stage.monsterIds.first);
+    if (!shouldFarmForLevel && stage.stageId == progressionStage.stageId) {
+      final readiness = _evaluateReadiness(
+        saveData: state.saveData,
+        database: database,
+        monsterId: monsterConfig.id,
+      );
+      final fallbackStage = chapterService.highestFarmableStage(progress);
+      if (!readiness.safeToAttempt &&
+          fallbackStage != null &&
+          fallbackStage.stageId != stage.stageId) {
+        stage = fallbackStage;
+        farmingBecauseUnsafe = true;
+        monsterConfig = monsterService.requireMonster(stage.monsterIds.first);
+      }
+    }
     var battle = _createBattle(
       saveData: state.saveData,
       database: database,
@@ -224,7 +244,9 @@ class AutoBattleService {
       );
     }
 
-    final didFarm = shouldFarmForLevel || farmingBecauseBattleFailed;
+    final didFarm = shouldFarmForLevel ||
+        farmingBecauseBattleFailed ||
+        farmingBecauseUnsafe;
     var nextSave = didFarm
         ? settlement.saveData
         : chapterService.markStageCleared(settlement.saveData);
@@ -257,6 +279,7 @@ class AutoBattleService {
           farmingStageId: didFarm ? stage.stageId : null,
           farmingBecauseLevelTooLow: shouldFarmForLevel,
           farmingBecauseBattleFailed: farmingBecauseBattleFailed,
+          farmingBecauseUnsafe: farmingBecauseUnsafe,
           progressionStageId: progressionStage.stageId,
           autoSalvagedCount: autoSalvageReport?.salvagedCount ?? 0,
           autoSalvageGainedMaterials:
@@ -266,6 +289,31 @@ class AutoBattleService {
           isRunning: stopReason == AutoBattleStopReason.none,
           stopReason: stopReason,
         );
+  }
+
+  BattleReadinessReport _evaluateReadiness({
+    required SaveData saveData,
+    required GameDatabase database,
+    required String monsterId,
+  }) {
+    final character = CharacterService(
+      classService: ClassService(database),
+    ).restoreFromSave(saveData);
+    final inventory = _inventoryStateFromSave(saveData.inventory);
+    final computedStats = const CharacterFinalStatsService().compute(
+      character: character,
+      loadout: inventory.equipmentLoadout,
+      inventory: inventory,
+      database: database,
+    );
+    final monster = _monsterFactory.create(
+      config: MonsterService(database).requireMonster(monsterId),
+    );
+
+    return _readinessService.evaluate(
+      characterStats: computedStats.computedStats,
+      monster: monster,
+    );
   }
 
   BattleState _finishBattle(BattleState battle) {
