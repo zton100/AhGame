@@ -44,6 +44,11 @@ class EquipmentPageViewModelFactory {
             isEquipped: inventory.equipmentLoadout.equippedBySlot.containsValue(
               item.instanceId,
             ),
+            isCurrentClassUsable: _isUsableForClass(
+              item,
+              database: database,
+              classId: classId,
+            ),
             card: cardFactory.create(
               equipment: item,
               assessment: assessment,
@@ -88,6 +93,21 @@ class EquipmentPageViewModelFactory {
 
     return inventory.equipmentInstances[equippedId];
   }
+
+  bool _isUsableForClass(
+    EquipmentInstance equipment, {
+    required GameDatabase database,
+    required String classId,
+  }) {
+    final template = database.findRecord(
+      'equipment_templates',
+      equipment.templateId,
+    );
+    final allowedClasses = List<String>.from(
+      template?['allowedClasses'] as List? ?? const [],
+    );
+    return allowedClasses.contains(classId);
+  }
 }
 
 class EquipmentPageViewModel {
@@ -100,6 +120,49 @@ class EquipmentPageViewModel {
   final List<String> missingInstanceIds;
 
   bool get isEmpty => items.isEmpty;
+
+  List<EquipmentPageItemViewModel> visibleItems({
+    required EquipmentPageFilter filter,
+    required EquipmentPageSort sort,
+  }) {
+    final filtered = [
+      for (final item in items)
+        if (_matchesFilter(item, filter)) item,
+    ];
+    filtered.sort((a, b) {
+      switch (sort) {
+        case EquipmentPageSort.newestFirst:
+          return b.equipment.createdAt.compareTo(a.equipment.createdAt);
+        case EquipmentPageSort.qualityHighToLow:
+          return _qualityRank(b.card.qualityId).compareTo(
+            _qualityRank(a.card.qualityId),
+          );
+        case EquipmentPageSort.buildMatchScoreHighToLow:
+          return b.card.matchScore.compareTo(a.card.matchScore);
+      }
+    });
+    return filtered;
+  }
+
+  bool _matchesFilter(
+    EquipmentPageItemViewModel item,
+    EquipmentPageFilter filter,
+  ) {
+    switch (filter) {
+      case EquipmentPageFilter.all:
+        return true;
+      case EquipmentPageFilter.equipped:
+        return item.isEquipped;
+      case EquipmentPageFilter.locked:
+        return item.isLocked;
+      case EquipmentPageFilter.rarePlus:
+        return _qualityRank(item.card.qualityId) >= _qualityRank('rare');
+      case EquipmentPageFilter.legendaryPlus:
+        return _qualityRank(item.card.qualityId) >= _qualityRank('legendary');
+      case EquipmentPageFilter.currentClassUsable:
+        return item.isCurrentClassUsable;
+    }
+  }
 }
 
 class EquipmentPageItemViewModel {
@@ -108,6 +171,7 @@ class EquipmentPageItemViewModel {
     required this.slotLabel,
     required this.isLocked,
     required this.isEquipped,
+    required this.isCurrentClassUsable,
     required this.card,
   });
 
@@ -115,5 +179,44 @@ class EquipmentPageItemViewModel {
   final String slotLabel;
   final bool isLocked;
   final bool isEquipped;
+  final bool isCurrentClassUsable;
   final EquipmentCardViewModel card;
+}
+
+enum EquipmentPageFilter {
+  all('All'),
+  equipped('Equipped'),
+  locked('Locked'),
+  rarePlus('Rare+'),
+  legendaryPlus('Legendary+'),
+  currentClassUsable('Current Class Usable');
+
+  const EquipmentPageFilter(this.label);
+
+  final String label;
+}
+
+enum EquipmentPageSort {
+  newestFirst('Newest first'),
+  qualityHighToLow('Quality high to low'),
+  buildMatchScoreHighToLow('Build match score high to low');
+
+  const EquipmentPageSort(this.label);
+
+  final String label;
+}
+
+int _qualityRank(String qualityId) {
+  const order = [
+    'normal',
+    'magic',
+    'rare',
+    'epic',
+    'legendary',
+    'mythic',
+    'abyss',
+    'forbidden',
+  ];
+  final index = order.indexOf(qualityId);
+  return index < 0 ? 0 : index;
 }

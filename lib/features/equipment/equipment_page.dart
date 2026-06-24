@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/save/player_save_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/auto_salvage_config.dart';
 import '../../models/inventory_state.dart';
+import '../../models/save_data.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
 import '../../systems/inventory/equipment_inventory_action_service.dart';
@@ -20,6 +22,8 @@ class EquipmentPage extends ConsumerStatefulWidget {
 
 class _EquipmentPageState extends ConsumerState<EquipmentPage> {
   var _isGeneratingTestEquipment = false;
+  var _filter = EquipmentPageFilter.all;
+  var _sort = EquipmentPageSort.newestFirst;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +65,12 @@ class _EquipmentPageState extends ConsumerState<EquipmentPage> {
         );
         return _EquipmentPageContent(
           viewModel: viewModel,
+          saveData: saveData,
           database: result.database,
+          filter: _filter,
+          sort: _sort,
+          onFilterChanged: (filter) => setState(() => _filter = filter),
+          onSortChanged: (sort) => setState(() => _sort = sort),
           debugAction: _DebugGenerateButton(
             isGenerating: _isGeneratingTestEquipment,
             onPressed: _isGeneratingTestEquipment
@@ -111,22 +120,57 @@ class _EquipmentPageState extends ConsumerState<EquipmentPage> {
 class _EquipmentPageContent extends StatelessWidget {
   const _EquipmentPageContent({
     required this.viewModel,
+    required this.saveData,
     required this.database,
+    required this.filter,
+    required this.sort,
+    required this.onFilterChanged,
+    required this.onSortChanged,
     required this.debugAction,
   });
 
   final EquipmentPageViewModel viewModel;
+  final SaveData saveData;
   final GameDatabase database;
+  final EquipmentPageFilter filter;
+  final EquipmentPageSort sort;
+  final ValueChanged<EquipmentPageFilter> onFilterChanged;
+  final ValueChanged<EquipmentPageSort> onSortChanged;
   final Widget debugAction;
 
   @override
   Widget build(BuildContext context) {
+    final visibleItems = viewModel.visibleItems(filter: filter, sort: sort);
     if (viewModel.isEmpty) {
-      return _EquipmentMessage(
-        title: '背包暂无装备',
-        message: '击败敌人后获得的装备会出现在这里。',
-        icon: Icons.inventory_2_outlined,
-        action: debugAction,
+      return ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child:
+                    Text('装备', style: Theme.of(context).textTheme.titleLarge),
+              ),
+              debugAction,
+            ],
+          ),
+          const SizedBox(height: 12),
+          _EquipmentControls(
+            config: saveData.inventory.autoSalvageConfig,
+            filter: filter,
+            sort: sort,
+            visibleItems: visibleItems,
+            database: database,
+            onFilterChanged: onFilterChanged,
+            onSortChanged: onSortChanged,
+          ),
+          const SizedBox(height: 16),
+          const _EquipmentMessage(
+            title: '背包暂无装备',
+            message: '击败敌人后获得的装备会出现在这里。',
+            icon: Icons.inventory_2_outlined,
+          ),
+        ],
       );
     }
 
@@ -159,11 +203,179 @@ class _EquipmentPageContent extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 12),
-        for (final item in viewModel.items) ...[
-          _EquipmentCard(item: item, database: database),
-          const SizedBox(height: 12),
-        ],
+        _EquipmentControls(
+          config: saveData.inventory.autoSalvageConfig,
+          filter: filter,
+          sort: sort,
+          visibleItems: visibleItems,
+          database: database,
+          onFilterChanged: onFilterChanged,
+          onSortChanged: onSortChanged,
+        ),
+        const SizedBox(height: 12),
+        if (visibleItems.isEmpty)
+          const _WarningBanner(message: '当前筛选没有装备。')
+        else
+          for (final item in visibleItems) ...[
+            _EquipmentCard(item: item, database: database),
+            const SizedBox(height: 12),
+          ],
       ],
+    );
+  }
+}
+
+class _EquipmentControls extends ConsumerWidget {
+  const _EquipmentControls({
+    required this.config,
+    required this.filter,
+    required this.sort,
+    required this.visibleItems,
+    required this.database,
+    required this.onFilterChanged,
+    required this.onSortChanged,
+  });
+
+  final AutoSalvageConfig config;
+  final EquipmentPageFilter filter;
+  final EquipmentPageSort sort;
+  final List<EquipmentPageItemViewModel> visibleItems;
+  final GameDatabase database;
+  final ValueChanged<EquipmentPageFilter> onFilterChanged;
+  final ValueChanged<EquipmentPageSort> onSortChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return _Panel(
+      title: 'Auto Salvage / Filter',
+      children: [
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Enable Auto Salvage'),
+          value: config.enabled,
+          onChanged: (enabled) => _updateConfig(
+            ref,
+            config.copyWith(enabled: enabled),
+          ),
+        ),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            DropdownButton<String>(
+              value: config.minQualityToKeep,
+              items: const [
+                DropdownMenuItem(value: 'normal', child: Text('Keep Normal+')),
+                DropdownMenuItem(value: 'magic', child: Text('Keep Magic+')),
+                DropdownMenuItem(value: 'rare', child: Text('Keep Rare+')),
+                DropdownMenuItem(value: 'epic', child: Text('Keep Epic+')),
+                DropdownMenuItem(
+                  value: 'legendary',
+                  child: Text('Keep Legendary+'),
+                ),
+              ],
+              onChanged: (qualityId) {
+                if (qualityId == null) {
+                  return;
+                }
+                _updateConfig(
+                  ref,
+                  config.copyWith(minQualityToKeep: qualityId),
+                );
+              },
+            ),
+            SizedBox(
+              width: 180,
+              child: TextFormField(
+                key: ValueKey(config.minBuildMatchScoreToKeep),
+                initialValue:
+                    config.minBuildMatchScoreToKeep.toStringAsFixed(0),
+                decoration: const InputDecoration(
+                  labelText: 'Min BD score',
+                  isDense: true,
+                ),
+                keyboardType: TextInputType.number,
+                onFieldSubmitted: (value) {
+                  final score = double.tryParse(value);
+                  if (score == null) {
+                    return;
+                  }
+                  _updateConfig(
+                    ref,
+                    config.copyWith(minBuildMatchScoreToKeep: score),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            DropdownButton<EquipmentPageFilter>(
+              value: filter,
+              items: [
+                for (final value in EquipmentPageFilter.values)
+                  DropdownMenuItem(value: value, child: Text(value.label)),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  onFilterChanged(value);
+                }
+              },
+            ),
+            DropdownButton<EquipmentPageSort>(
+              value: sort,
+              items: [
+                for (final value in EquipmentPageSort.values)
+                  DropdownMenuItem(value: value, child: Text(value.label)),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  onSortChanged(value);
+                }
+              },
+            ),
+            OutlinedButton(
+              onPressed: visibleItems.isEmpty
+                  ? null
+                  : () => _salvageFiltered(context, ref),
+              child: const Text('Salvage filtered low-value'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _updateConfig(
+    WidgetRef ref,
+    AutoSalvageConfig next,
+  ) async {
+    await ref.read(playerSaveProvider.notifier).updateAutoSalvageConfig(next);
+  }
+
+  Future<void> _salvageFiltered(BuildContext context, WidgetRef ref) async {
+    final report =
+        await ref.read(playerSaveProvider.notifier).autoSalvageEquipment(
+      database: database,
+      candidateInstanceIds: [
+        for (final item in visibleItems) item.equipment.instanceId,
+      ],
+    );
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Auto salvaged ${report.salvagedCount}, gained ${_materialsText(report.gainedMaterials)}',
+        ),
+      ),
     );
   }
 }
@@ -445,6 +657,38 @@ class _DetailSection extends StatelessWidget {
         const SizedBox(height: 6),
         ...children,
       ],
+    );
+  }
+}
+
+class _Panel extends StatelessWidget {
+  const _Panel({
+    required this.title,
+    required this.children,
+  });
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceRaised.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.surfaceRaised),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
+      ),
     );
   }
 }

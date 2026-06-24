@@ -1,3 +1,4 @@
+import 'auto_salvage_config.dart';
 import 'equipment_instance.dart';
 import 'equipment_loadout.dart';
 import 'inventory_state.dart';
@@ -54,7 +55,7 @@ class SaveData {
     );
   }
 
-  static const int currentVersion = 4;
+  static const int currentVersion = 5;
 
   final int saveVersion;
   final DateTime createdAt;
@@ -186,6 +187,7 @@ class InventorySave {
     this.equipmentCapacity = InventoryState.defaultEquipmentCapacity,
     this.materials = const [],
     this.lockedEquipmentInstanceIds = const [],
+    this.autoSalvageConfig = AutoSalvageConfig.defaults,
   });
 
   factory InventorySave.fromJson(Map<String, Object?> json) {
@@ -214,6 +216,11 @@ class InventorySave {
       lockedEquipmentInstanceIds: List<String>.from(
         json['lockedEquipmentInstanceIds'] as List? ?? const [],
       ),
+      autoSalvageConfig: json['autoSalvageConfig'] is Map
+          ? AutoSalvageConfig.fromJson(
+              Map<String, Object?>.from(json['autoSalvageConfig'] as Map),
+            )
+          : AutoSalvageConfig.defaults,
     );
   }
 
@@ -223,6 +230,7 @@ class InventorySave {
   final int equipmentCapacity;
   final List<MaterialStack> materials;
   final List<String> lockedEquipmentInstanceIds;
+  final AutoSalvageConfig autoSalvageConfig;
 
   InventorySave copyWith({
     List<String>? equipmentInstanceIds,
@@ -231,6 +239,7 @@ class InventorySave {
     int? equipmentCapacity,
     List<MaterialStack>? materials,
     List<String>? lockedEquipmentInstanceIds,
+    AutoSalvageConfig? autoSalvageConfig,
   }) {
     return InventorySave(
       equipmentInstanceIds: equipmentInstanceIds ?? this.equipmentInstanceIds,
@@ -240,6 +249,7 @@ class InventorySave {
       materials: materials ?? this.materials,
       lockedEquipmentInstanceIds:
           lockedEquipmentInstanceIds ?? this.lockedEquipmentInstanceIds,
+      autoSalvageConfig: autoSalvageConfig ?? this.autoSalvageConfig,
     );
   }
 
@@ -286,6 +296,7 @@ class InventorySave {
         for (final material in materials) material.toJson(),
       ],
       'lockedEquipmentInstanceIds': lockedEquipmentInstanceIds,
+      'autoSalvageConfig': autoSalvageConfig.toJson(),
     };
   }
 }

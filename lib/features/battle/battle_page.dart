@@ -370,6 +370,16 @@ class _AutoBattleSummary extends StatelessWidget {
           label: 'Rejected Equipment',
           value: state.rejectedEquipmentCount.toString(),
         ),
+        _InfoRow(
+          label: 'Auto Salvaged Equipment',
+          value: state.autoSalvagedEquipmentCount.toString(),
+        ),
+        _InfoRow(
+          label: 'Auto Salvage Materials',
+          value: state.autoSalvageMaterials.values
+              .fold<int>(0, (total, quantity) => total + quantity)
+              .toString(),
+        ),
         _InfoRow(label: 'Stop Reason', value: state.stopReason.name),
         _InfoRow(
           label: 'Progression Stage',

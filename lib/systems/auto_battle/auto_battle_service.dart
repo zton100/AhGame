@@ -1,4 +1,5 @@
 import '../../models/auto_battle_run_state.dart';
+import '../../models/auto_salvage_config.dart';
 import '../../models/battle_settlement_report.dart';
 import '../../models/battle_state.dart';
 import '../../models/inventory_state.dart';
@@ -9,6 +10,7 @@ import '../chapters/chapter_service.dart';
 import '../character/character_service.dart';
 import '../character/class_service.dart';
 import '../config/game_database.dart';
+import '../inventory/auto_salvage_service.dart';
 import '../monsters/monster_factory.dart';
 import '../monsters/monster_service.dart';
 import '../skills/skill_service.dart';
@@ -21,15 +23,18 @@ class AutoBattleService {
     BattleSimulator simulator = const BattleSimulator(),
     BattleSettlementService settlementService = const BattleSettlementService(),
     MonsterFactory monsterFactory = const MonsterFactory(),
+    AutoSalvageService autoSalvageService = const AutoSalvageService(),
     DateTime Function()? now,
   })  : _simulator = simulator,
         _settlementService = settlementService,
         _monsterFactory = monsterFactory,
+        _autoSalvageService = autoSalvageService,
         _now = now;
 
   final BattleSimulator _simulator;
   final BattleSettlementService _settlementService;
   final MonsterFactory _monsterFactory;
+  final AutoSalvageService _autoSalvageService;
   final DateTime Function()? _now;
 
   AutoBattleRunState startRun(SaveData saveData) {
@@ -189,9 +194,21 @@ class AutoBattleService {
       );
     }
 
-    final nextSave = shouldFarm
+    var nextSave = shouldFarm
         ? settlement.saveData
         : chapterService.markStageCleared(settlement.saveData);
+    final autoSalvageReport = _runAutoSalvageIfEnabled(
+      saveData: nextSave,
+      database: database,
+    );
+    if (autoSalvageReport != null) {
+      nextSave = nextSave.copyWith(
+        inventory: _inventorySaveFromState(
+          autoSalvageReport.state,
+          autoSalvageConfig: nextSave.inventory.autoSalvageConfig,
+        ),
+      );
+    }
     final finalReport = _copyReportWithSaveData(settlement, nextSave);
     await save(nextSave);
 
@@ -209,6 +226,9 @@ class AutoBattleService {
           farmingStageId: shouldFarm ? stage.stageId : null,
           farmingBecauseLevelTooLow: shouldFarm,
           progressionStageId: progressionStage.stageId,
+          autoSalvagedCount: autoSalvageReport?.salvagedCount ?? 0,
+          autoSalvageGainedMaterials:
+              autoSalvageReport?.gainedMaterials ?? const [],
         )
         .copyWith(
           isRunning: stopReason == AutoBattleStopReason.none,
@@ -261,6 +281,23 @@ class AutoBattleService {
       newLevel: report.newLevel,
     );
   }
+
+  AutoSalvageReport? _runAutoSalvageIfEnabled({
+    required SaveData saveData,
+    required GameDatabase database,
+  }) {
+    final config = saveData.inventory.autoSalvageConfig;
+    if (!config.enabled) {
+      return null;
+    }
+
+    return _autoSalvageService.processInventory(
+      inventory: _inventoryStateFromSave(saveData.inventory),
+      database: database,
+      classId: saveData.playerProgress.currentClassId,
+      config: config,
+    );
+  }
 }
 
 InventoryState _inventoryStateFromSave(InventorySave save) {
@@ -271,5 +308,20 @@ InventoryState _inventoryStateFromSave(InventorySave save) {
     equipmentCapacity: save.equipmentCapacity,
     materials: save.materials,
     lockedEquipmentInstanceIds: save.lockedEquipmentInstanceIds,
+  );
+}
+
+InventorySave _inventorySaveFromState(
+  InventoryState state, {
+  required AutoSalvageConfig autoSalvageConfig,
+}) {
+  return InventorySave(
+    equipmentInstanceIds: state.equipmentInstanceIds,
+    equipmentInstances: state.equipmentInstances,
+    equipmentLoadout: state.equipmentLoadout,
+    equipmentCapacity: state.equipmentCapacity,
+    materials: state.materials,
+    lockedEquipmentInstanceIds: state.lockedEquipmentInstanceIds,
+    autoSalvageConfig: autoSalvageConfig,
   );
 }

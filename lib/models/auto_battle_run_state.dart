@@ -1,5 +1,6 @@
 import 'battle_settlement_report.dart';
 import 'battle_state.dart';
+import 'inventory_state.dart';
 import 'save_data.dart';
 
 class AutoBattleRunState {
@@ -19,6 +20,8 @@ class AutoBattleRunState {
     this.farmingStageId,
     this.farmingBecauseLevelTooLow = false,
     this.progressionStageId,
+    this.autoSalvagedEquipmentCount = 0,
+    this.autoSalvageMaterials = const {},
   });
 
   factory AutoBattleRunState.initial(SaveData saveData) {
@@ -40,6 +43,8 @@ class AutoBattleRunState {
   final String? farmingStageId;
   final bool farmingBecauseLevelTooLow;
   final String? progressionStageId;
+  final int autoSalvagedEquipmentCount;
+  final Map<String, int> autoSalvageMaterials;
 
   AutoBattleRunState copyWith({
     SaveData? saveData,
@@ -59,6 +64,8 @@ class AutoBattleRunState {
     bool? farmingBecauseLevelTooLow,
     String? progressionStageId,
     bool clearProgressionStageId = false,
+    int? autoSalvagedEquipmentCount,
+    Map<String, int>? autoSalvageMaterials,
   }) {
     return AutoBattleRunState(
       saveData: saveData ?? this.saveData,
@@ -82,6 +89,9 @@ class AutoBattleRunState {
       progressionStageId: clearProgressionStageId
           ? null
           : progressionStageId ?? this.progressionStageId,
+      autoSalvagedEquipmentCount:
+          autoSalvagedEquipmentCount ?? this.autoSalvagedEquipmentCount,
+      autoSalvageMaterials: autoSalvageMaterials ?? this.autoSalvageMaterials,
     );
   }
 
@@ -92,10 +102,22 @@ class AutoBattleRunState {
     String? farmingStageId,
     bool farmingBecauseLevelTooLow = false,
     required String progressionStageId,
+    int autoSalvagedCount = 0,
+    List<MaterialStack> autoSalvageGainedMaterials = const [],
   }) {
     final materials = Map<String, int>.from(totalMaterials);
     for (final material in report.gainedMaterials) {
       materials.update(
+        material.materialId,
+        (quantity) => quantity + material.quantity,
+        ifAbsent: () => material.quantity,
+      );
+    }
+    final autoSalvageMaterials = Map<String, int>.from(
+      this.autoSalvageMaterials,
+    );
+    for (final material in autoSalvageGainedMaterials) {
+      autoSalvageMaterials.update(
         material.materialId,
         (quantity) => quantity + material.quantity,
         ifAbsent: () => material.quantity,
@@ -118,6 +140,9 @@ class AutoBattleRunState {
       clearFarmingStageId: farmingStageId == null,
       farmingBecauseLevelTooLow: farmingBecauseLevelTooLow,
       progressionStageId: progressionStageId,
+      autoSalvagedEquipmentCount:
+          autoSalvagedEquipmentCount + autoSalvagedCount,
+      autoSalvageMaterials: Map.unmodifiable(autoSalvageMaterials),
     );
   }
 }

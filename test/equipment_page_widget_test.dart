@@ -3,6 +3,7 @@ import 'package:abyss_relic/core/theme/app_theme.dart';
 import 'package:abyss_relic/features/equipment/equipment_page.dart';
 import 'package:abyss_relic/features/equipment/equipment_page_view_model.dart';
 import 'package:abyss_relic/models/affix_config.dart';
+import 'package:abyss_relic/models/auto_salvage_config.dart';
 import 'package:abyss_relic/models/data_file_meta.dart';
 import 'package:abyss_relic/models/equipment_instance.dart';
 import 'package:abyss_relic/models/equipment_loadout.dart';
@@ -29,6 +30,8 @@ void main() {
 
     expect(find.text('背包暂无装备'), findsOneWidget);
     expect(find.text('击败敌人后获得的装备会出现在这里。'), findsOneWidget);
+    expect(find.text('Enable Auto Salvage'), findsOneWidget);
+    expect(find.text('Keep Rare+'), findsOneWidget);
   });
 
   testWidgets('EquipmentPage generates test equipment through SaveData',
@@ -42,7 +45,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Rusted Blade'), findsOneWidget);
-    expect(find.textContaining('Rare'), findsOneWidget);
+    expect(find.textContaining('Rare'), findsWidgets);
     expect(find.textContaining('BD'), findsWidgets);
     expect(find.textContaining('推荐 poison'), findsOneWidget);
   });
@@ -80,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Poison Blade'), findsOneWidget);
-    expect(find.textContaining('Rare'), findsOneWidget);
+    expect(find.textContaining('Rare'), findsWidgets);
     expect(find.textContaining('BD'), findsWidgets);
     expect(find.textContaining('推荐 poison'), findsOneWidget);
 
@@ -225,6 +228,37 @@ void main() {
     expect(save.inventory.materials.single.quantity, 1);
   });
 
+  testWidgets('EquipmentPage batch salvages filtered low value equipment',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await saveService.save(SaveData.newGame().copyWith(
+      inventory: InventorySave(
+        equipmentInstanceIds: const ['eq_normal_blade'],
+        equipmentInstances: {'eq_normal_blade': _normalEquipment()},
+        autoSalvageConfig: const AutoSalvageConfig(
+          enabled: true,
+          minQualityToKeep: 'rare',
+        ),
+      ),
+    ));
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Plain Blade'), findsOneWidget);
+    expect(find.text('Salvage filtered low-value'), findsOneWidget);
+
+    await tester.tap(find.text('Salvage filtered low-value'));
+    await tester.pumpAndSettle();
+
+    final save = await saveService.loadOrCreate();
+    expect(save.inventory.equipmentInstanceIds, isEmpty);
+    expect(save.inventory.equipmentInstances, isEmpty);
+    expect(save.inventory.materials.single.materialId, 'salvage_dust');
+    expect(save.inventory.materials.single.quantity, 1);
+    expect(find.textContaining('Auto salvaged 1'), findsOneWidget);
+  });
+
   test('PlayerSaveController fails when equipping missing equipment', () async {
     final container = ProviderContainer(
       overrides: [
@@ -318,6 +352,20 @@ EquipmentInstance _summonEquipment() {
   );
 }
 
+EquipmentInstance _normalEquipment() {
+  return EquipmentInstance(
+    instanceId: 'eq_normal_blade',
+    templateId: 'plain_blade',
+    qualityId: 'normal',
+    level: 1,
+    createdAt: DateTime.utc(2026, 6, 24),
+    rolledBaseStats: const [
+      RolledBaseStat(stat: 'attack', value: 2),
+    ],
+    rolledAffixes: const [],
+  );
+}
+
 GameDatabase _database() {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
@@ -342,6 +390,24 @@ GameDatabase _database() {
     _file('assets/data/equipment_templates.json', {
       'schemaVersion': 1,
       'equipment_templates': [
+        {
+          'id': 'plain_blade',
+          'name': 'Plain Blade',
+          'slot': 'main_weapon',
+          'allowedClasses': ['exile'],
+          'minLevel': 1,
+          'qualityPool': ['normal'],
+          'baseStats': [
+            {'stat': 'attack', 'min': 1, 'max': 3},
+          ],
+          'affixRules': {
+            'prefixMin': 0,
+            'prefixMax': 0,
+            'suffixMin': 0,
+            'suffixMax': 0,
+            'allowedTags': <String>[],
+          },
+        },
         {
           'id': 'rusted_blade',
           'name': 'Rusted Blade',

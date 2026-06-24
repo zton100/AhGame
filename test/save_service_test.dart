@@ -171,10 +171,12 @@ void main() {
     expect(result.saveData.saveVersion, SaveData.currentVersion);
     expect(result.saveData.playerProgress.level, 3);
     expect(result.saveData.inventory.equipmentInstanceIds, ['eq_1']);
+    expect(result.saveData.inventory.autoSalvageConfig.enabled, isFalse);
     expect(result.warnings, [
       'Migrated saveVersion 1 to 2.',
       'Migrated saveVersion 2 to 3.',
       'Migrated saveVersion 3 to 4.',
+      'Migrated saveVersion 4 to 5.',
     ]);
   });
 
@@ -202,9 +204,12 @@ void main() {
     expect(result.success, isTrue);
     expect(result.saveData.saveVersion, SaveData.currentVersion);
     expect(result.saveData.lastExitAt, isNull);
+    expect(
+        result.saveData.inventory.autoSalvageConfig.minQualityToKeep, 'rare');
     expect(result.warnings, [
       'Migrated saveVersion 2 to 3.',
       'Migrated saveVersion 3 to 4.',
+      'Migrated saveVersion 4 to 5.',
     ]);
   });
 

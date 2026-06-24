@@ -48,6 +48,27 @@ class SaveMigrationService {
       warnings.add('Migrated saveVersion 3 to 4.');
     }
 
+    if (version == 4) {
+      final inventory = Map<String, Object?>.from(
+        migrated['inventory'] as Map? ?? const {},
+      );
+      inventory['autoSalvageConfig'] = inventory['autoSalvageConfig'] ??
+          const {
+            'enabled': false,
+            'minQualityToKeep': 'rare',
+            'keepLegendaryOrAbove': true,
+            'keepLocked': true,
+            'keepEquipped': true,
+            'minBuildMatchScoreToKeep': 60,
+            'allowedQualityIdsToSalvage': <String>[],
+            'maxInventoryUsageBeforeSalvage': null,
+          };
+      migrated['inventory'] = inventory;
+      version = 5;
+      migrated['saveVersion'] = version;
+      warnings.add('Migrated saveVersion 4 to 5.');
+    }
+
     if (version == SaveData.currentVersion) {
       return MigrationResult(
         success: true,

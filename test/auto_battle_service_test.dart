@@ -1,4 +1,5 @@
 import 'package:abyss_relic/models/auto_battle_run_state.dart';
+import 'package:abyss_relic/models/auto_salvage_config.dart';
 import 'package:abyss_relic/models/data_file_meta.dart';
 import 'package:abyss_relic/models/loaded_data_file.dart';
 import 'package:abyss_relic/models/save_data.dart';
@@ -176,6 +177,35 @@ void main() {
     expect(result.saveData.inventory.equipmentInstanceIds, ['existing']);
     expect(result.saveData.inventory.equipmentInstances, isEmpty);
   });
+
+  test('runManyBattles accumulates auto salvaged equipment', () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      inventory: const InventorySave(
+        equipmentInstanceIds: [],
+        autoSalvageConfig: AutoSalvageConfig(enabled: true),
+      ),
+    );
+
+    final result = await _service().runManyBattles(
+      saveData: save,
+      database: _database(stageCount: 3, equipmentQualityPool: ['normal']),
+      maxBattles: 2,
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 2);
+    expect(result.autoSalvagedEquipmentCount, 2);
+    expect(result.autoSalvageMaterials['salvage_dust'], 2);
+    expect(result.saveData.inventory.equipmentInstanceIds, isEmpty);
+    expect(result.saveData.inventory.equipmentInstances, isEmpty);
+    expect(
+      result.saveData.inventory.materials
+          .where((material) => material.materialId == 'salvage_dust')
+          .single
+          .quantity,
+      2,
+    );
+  });
 }
 
 AutoBattleService _service() => const AutoBattleService();
@@ -183,6 +213,7 @@ AutoBattleService _service() => const AutoBattleService();
 GameDatabase _database({
   int stageCount = 2,
   int secondStageRequiredLevel = 1,
+  List<String> equipmentQualityPool = const ['rare'],
 }) {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
@@ -286,7 +317,7 @@ GameDatabase _database({
           'slot': 'main_weapon',
           'allowedClasses': ['exile'],
           'minLevel': 1,
-          'qualityPool': ['rare'],
+          'qualityPool': equipmentQualityPool,
           'baseStats': [
             {'stat': 'attack', 'min': 8, 'max': 14},
           ],
@@ -303,6 +334,14 @@ GameDatabase _database({
     _file('assets/data/quality_config.json', {
       'schemaVersion': 1,
       'qualities': [
+        {
+          'id': 'normal',
+          'name': 'Normal',
+          'affixMin': 0,
+          'affixMax': 0,
+          'statMultiplier': 1.0,
+          'specialEffectChance': 0.0,
+        },
         {
           'id': 'rare',
           'name': 'Rare',

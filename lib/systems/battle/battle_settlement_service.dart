@@ -113,7 +113,10 @@ class BattleSettlementService {
     inventory = committed.state;
 
     currentSave = currentSave.copyWith(
-      inventory: _inventorySaveFromState(inventory),
+      inventory: _inventorySaveFromState(
+        inventory,
+        previous: currentSave.inventory,
+      ),
     );
 
     return BattleSettlementReport(
@@ -177,7 +180,10 @@ InventoryState _inventoryStateFromSave(InventorySave save) {
   );
 }
 
-InventorySave _inventorySaveFromState(InventoryState state) {
+InventorySave _inventorySaveFromState(
+  InventoryState state, {
+  required InventorySave previous,
+}) {
   return InventorySave(
     equipmentInstanceIds: state.equipmentInstanceIds,
     equipmentInstances: state.equipmentInstances,
@@ -185,5 +191,6 @@ InventorySave _inventorySaveFromState(InventoryState state) {
     equipmentCapacity: state.equipmentCapacity,
     materials: state.materials,
     lockedEquipmentInstanceIds: state.lockedEquipmentInstanceIds,
+    autoSalvageConfig: previous.autoSalvageConfig,
   );
 }

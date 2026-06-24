@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/inventory_state.dart';
 import '../../models/loot_drop.dart';
+import '../../models/auto_salvage_config.dart';
 import '../../models/save_data.dart';
 import '../../models/equipment_template.dart';
 import '../../systems/config/game_database.dart';
@@ -14,6 +15,7 @@ import '../../systems/equipment/equipment_template_service.dart';
 import '../../systems/equipment/quality_service.dart';
 import '../../systems/inventory/equipment_inventory_action_service.dart';
 import '../../systems/inventory/equipment_loot_commit_service.dart';
+import '../../systems/inventory/auto_salvage_service.dart';
 import '../../systems/save/in_memory_save_store.dart';
 import '../../systems/save/save_service.dart';
 
@@ -63,7 +65,10 @@ class PlayerSaveController extends AsyncNotifier<SaveData> {
     );
 
     await save(currentSave.copyWith(
-      inventory: inventorySaveFromState(committed.state),
+      inventory: inventorySaveFromState(
+        committed.state,
+        autoSalvageConfig: currentSave.inventory.autoSalvageConfig,
+      ),
     ));
   }
 
@@ -130,9 +135,45 @@ class PlayerSaveController extends AsyncNotifier<SaveData> {
     }
 
     await save(currentSave.copyWith(
-      inventory: inventorySaveFromState(result.state),
+      inventory: inventorySaveFromState(
+        result.state,
+        autoSalvageConfig: currentSave.inventory.autoSalvageConfig,
+      ),
     ));
     return result;
+  }
+
+  Future<void> updateAutoSalvageConfig(AutoSalvageConfig config) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    await save(currentSave.copyWith(
+      inventory: currentSave.inventory.copyWith(autoSalvageConfig: config),
+    ));
+  }
+
+  Future<AutoSalvageReport> autoSalvageEquipment({
+    required GameDatabase database,
+    required Iterable<String> candidateInstanceIds,
+  }) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    final report = const AutoSalvageService().processInventory(
+      inventory: inventoryStateFromSave(currentSave.inventory),
+      database: database,
+      classId: currentSave.playerProgress.currentClassId,
+      config: currentSave.inventory.autoSalvageConfig.copyWith(enabled: true),
+      candidateInstanceIds: candidateInstanceIds,
+    );
+    if (report.salvagedCount > 0) {
+      await save(currentSave.copyWith(
+        inventory: inventorySaveFromState(
+          report.state,
+          autoSalvageConfig: currentSave.inventory.autoSalvageConfig,
+        ),
+      ));
+    }
+
+    return report;
   }
 
   LootDrop _testEquipmentDrop(GameDatabase database) {
@@ -161,7 +202,10 @@ InventoryState inventoryStateFromSave(InventorySave save) {
   );
 }
 
-InventorySave inventorySaveFromState(InventoryState state) {
+InventorySave inventorySaveFromState(
+  InventoryState state, {
+  AutoSalvageConfig autoSalvageConfig = AutoSalvageConfig.defaults,
+}) {
   return InventorySave(
     equipmentInstanceIds: state.equipmentInstanceIds,
     equipmentInstances: state.equipmentInstances,
@@ -169,5 +213,6 @@ InventorySave inventorySaveFromState(InventoryState state) {
     equipmentCapacity: state.equipmentCapacity,
     materials: state.materials,
     lockedEquipmentInstanceIds: state.lockedEquipmentInstanceIds,
+    autoSalvageConfig: autoSalvageConfig,
   );
 }

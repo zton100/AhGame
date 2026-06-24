@@ -1,5 +1,59 @@
 # CHANGELOG_DEV
 
+## S22 Auto Salvage and Equipment Filtering First Slice - 2026-06-24
+
+### Added files
+
+- `lib/models/auto_salvage_config.dart`
+- `lib/systems/inventory/auto_salvage_service.dart`
+- `test/auto_salvage_service_test.dart`
+
+### Modified files
+
+- `lib/models/save_data.dart`
+- `lib/models/auto_battle_run_state.dart`
+- `lib/systems/save/save_migration_service.dart`
+- `lib/systems/battle/battle_settlement_service.dart`
+- `lib/systems/auto_battle/auto_battle_service.dart`
+- `lib/core/save/player_save_provider.dart`
+- `lib/features/battle/battle_page.dart`
+- `lib/features/equipment/equipment_page_view_model.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `test/auto_battle_service_test.dart`
+- `test/equipment_page_widget_test.dart`
+- `test/save_service_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `AutoSalvageConfig` with persistent defaults for disabled auto salvage, minimum quality, legendary protection, locked/equipped protection, and build-score protection.
+- Added `AutoSalvageService` and `AutoSalvageReport` for keep/salvage decisions, batch processing, gained materials, and reason tracking.
+- Integrated optional auto salvage into `AutoBattleService` after each accepted settlement and before saving the final SaveData.
+- Added auto battle summary counters for auto salvaged equipment and auto salvage materials.
+- Added EquipmentPage filtering and sorting first slice: All, Equipped, Locked, Rare+, Legendary+, Current Class Usable; Newest first, Quality high to low, Build match score high to low.
+- Added manual batch salvage first slice through `Salvage filtered low-value`.
+- Preserved `autoSalvageConfig` when settlement, equipment generation, manual salvage, and batch salvage write inventory state back to SaveData.
+
+### Tests
+
+- Added tests for `AutoSalvageConfig` JSON round trip and legacy default config compatibility.
+- Added tests for normal/magic auto salvage, rare quality retention, locked/equipped protection, legendary retention, high build-match retention, equipment removal, and salvage dust gain.
+- Added AutoBattleService test coverage for accumulated auto salvaged equipment and materials.
+- Added EquipmentPage widget coverage for auto salvage settings and manual batch salvage.
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+
+### Save impact
+
+- `saveVersion` upgraded from 4 to 5.
+- `InventorySave` now persists `autoSalvageConfig`.
+- v1-v4 saves migrate to v5 and receive default disabled auto salvage settings.
+
+### Remaining
+
+- Auto salvage settings UI is intentionally minimal: switch, minimum quality, and minimum BD score.
+- No offline rewards, auto timers, equipment enhancement, deep abyss systems, server sync, or commercial systems were added.
+
 ## S21 Repeat Farm Previous Cleared Stage - 2026-06-24
 
 ### Added files
