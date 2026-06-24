@@ -1272,3 +1272,45 @@
 - Add combat encounter orchestration after automatic battle requirements are specified.
 - Expand monster skills and resistance formulas when the combat resolver starts consuming them.
 - Add monster-specific drop pools once progression chapters and enemy families are defined.
+
+## S16 Battle Simulator First Slice - 2026-06-24
+
+### Added files
+
+- `lib/models/battle_state.dart`
+- `lib/systems/battle/battle_simulator.dart`
+- `test/battle_simulator_test.dart`
+
+### Modified files
+
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added immutable `BattleState` as the first battle-page data source.
+- Added `BattleLogEntry`, `BattleResult`, and `BattleLogType`.
+- Added `BattleSimulator.createBattle` to create a battle from `CharacterState`, `ComputedStats`, `SkillLoadout`, `MonsterRuntime`, and `SkillService`.
+- Battle creation initializes active `SkillRuntime` values and snapshots active `SkillConfig` values into the state.
+- Added `BattleSimulator.tick` to advance elapsed time and skill cooldowns.
+- The simulator casts the first ready active skill by loadout order.
+- If no active skill is ready, the simulator performs a basic attack.
+- Skill and basic attack damage use `ComputedStats.finalStats.attack`.
+- Damage now applies the first simple armor formula: `rawDamage * (100 / (100 + armor))`, with minimum damage of 1.
+- Monster death marks the battle as `victory`.
+- Battle logs now cover battle start, skill cast, basic attack, damage, monster remaining hp, monster death, and victory.
+- Monster counterattack is intentionally limited to a simple log placeholder when the monster has attack.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\battle_simulator_test.dart`
+
+### Save impact
+
+- No save schema change.
+- `BattleState` is not persisted yet; future battle/idle systems can decide whether to store current encounters or only resolved reports.
+
+### Remaining
+
+- Add battle reward and drop settlement after the reward contract is specified.
+- Add monster action resolution once enemy skill behavior is defined.
+- Add battle page UI after the simulation state is stable enough to render.
