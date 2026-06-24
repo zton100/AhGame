@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/routing/app_route.dart';
 import '../../core/theme/app_theme.dart';
 import '../../systems/navigation/navigation_service.dart';
+import '../battle/battle_page.dart';
 import '../character/character_page.dart';
 import '../debug/debug_page.dart';
 import '../equipment/equipment_page.dart';
@@ -72,11 +73,7 @@ class _MainShellState extends State<MainShell> {
   Widget _buildPageForRoute(AppRoute route) {
     switch (route) {
       case AppRoute.battle:
-        return FeaturePlaceholderPage(
-          title: route.label,
-          routeId: route.id,
-          summary: '自动战斗、掉落提示和战斗日志会在这里接入。',
-        );
+        return const BattlePage();
       case AppRoute.equipment:
         return const EquipmentPage();
       case AppRoute.build:

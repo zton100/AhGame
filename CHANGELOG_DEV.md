@@ -1,5 +1,43 @@
 # CHANGELOG_DEV
 
+## S18 战斗页第一版 - 2026-06-24
+
+### 新增文件
+
+- `lib/features/battle/battle_controller.dart`
+- `lib/features/battle/battle_page.dart`
+- `test/battle_page_widget_test.dart`
+
+### 修改文件
+
+- `lib/features/shell/main_shell.dart`
+- `CHANGELOG_DEV.md`
+
+### 完成内容
+
+- 将 MainShell 的 battle tab 从占位页替换为真实 `BattlePage`。
+- 新增 `BattleController`，负责创建战斗、tick 推进、自动推进到结束、胜利结算与保存。
+- `BattlePage` 接入真实 `playerSaveProvider` 与 `gameDatabaseLoadProvider`。
+- 第一版固定挑战 `skeleton_grunt`，完整串联角色存档、最终属性、技能配置、怪物运行时、战斗模拟与 S17 结算。
+- 页面展示怪物名、怪物 HP、战斗状态、最近 20 条日志与胜利结算报告。
+- 胜利后自动调用 `BattleSettlementService`，并通过 `PlayerSaveController.save` 保存奖励结果。
+- 同一场战斗只允许结算一次，避免重复获得经验、金币、材料和装备。
+
+### 测试结果
+
+- 通过：`I:\dev\flutter\bin\flutter.bat test`
+- 通过：`I:\dev\flutter\bin\flutter.bat analyze`
+
+### 存档影响
+
+- 无新增存档字段，`saveVersion` 不需要升级。
+- 战斗页只读取现有 `SaveData`，结算后保存 S17 已支持的经验、材料与装备实例数据。
+
+### 待处理问题
+
+- 后续章节系统需要替换固定怪物选择。
+- 后续战斗页可以加入更完整的行动队列、怪物反击展示和掉落详情。
+
 开发日志用于记录每个系统的新增文件、修改文件、完成内容、测试结果、存档影响和待处理问题。
 
 ## S01 项目架构与目录规范系统 - 2026-06-23
