@@ -223,6 +223,42 @@ void main() {
     expect(find.text('battleFailed'), findsOneWidget);
     expect(find.textContaining('Battle lost.'), findsOneWidget);
   });
+
+  testWidgets('BattlePage displays battle-failed farming fallback',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+    await saveService.save(save);
+
+    await tester.pumpWidget(
+      _app(
+        saveService: saveService,
+        database: _database(
+          monsterHp: 20,
+          monsterAttack: 0,
+          secondMonsterHp: 500,
+          secondMonsterAttack: 999,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run 1 Battle'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Farming Because Battle Failed'), findsOneWidget);
+    expect(find.text('true'), findsOneWidget);
+    expect(
+      find.text(
+        'Current progression stage failed. Auto battle is farming the highest cleared stage you can survive.',
+      ),
+      findsOneWidget,
+    );
+  });
 }
 
 Widget _app({
@@ -253,6 +289,8 @@ GameDatabase _database({
   num classArmor = 6,
   num monsterHp = 85,
   num monsterAttack = 10,
+  num secondMonsterHp = 55,
+  num secondMonsterAttack = 8,
 }) {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
@@ -316,7 +354,11 @@ GameDatabase _database({
           'name': 'Plague Rat',
           'level': 1,
           'tags': ['beast', 'poison'],
-          'baseStats': {'hp': 55, 'attack': 8, 'armor': 1},
+          'baseStats': {
+            'hp': secondMonsterHp,
+            'attack': secondMonsterAttack,
+            'armor': 1,
+          },
           'rewards': {
             'experience': 9,
             'gold': 2,

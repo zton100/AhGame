@@ -119,8 +119,9 @@ class AutoBattleService {
     final chapterService = ChapterService(database);
     final progress = state.saveData.playerProgress;
     final progressionStage = chapterService.currentProgressionStage(progress);
-    final shouldFarm = chapterService.shouldFarmPreviousStage(progress);
-    final stage = shouldFarm
+    final shouldFarmForLevel = chapterService.shouldFarmPreviousStage(progress);
+    var farmingBecauseBattleFailed = false;
+    var stage = shouldFarmForLevel
         ? chapterService.highestFarmableStage(progress)
         : progressionStage;
     if (stage == null) {
@@ -151,17 +152,15 @@ class AutoBattleService {
       );
     }
 
-    final monsterConfig =
-        MonsterService(database).requireMonster(stage.monsterIds.first);
+    final monsterService = MonsterService(database);
+    var monsterConfig = monsterService.requireMonster(stage.monsterIds.first);
     var battle = _createBattle(
       saveData: state.saveData,
       database: database,
       monsterId: monsterConfig.id,
     );
 
-    for (var i = 0; i < 100 && !battle.isFinished; i += 1) {
-      battle = _simulator.tick(battle, 1);
-    }
+    battle = _finishBattle(battle);
 
     if (!battle.isFinished) {
       return state.copyWith(
@@ -171,11 +170,42 @@ class AutoBattleService {
       );
     }
     if (battle.result != BattleResult.victory) {
-      return state.copyWith(
-        isRunning: false,
-        lastBattleLogs: battle.logs,
-        stopReason: AutoBattleStopReason.battleFailed,
+      final fallbackStage = shouldFarmForLevel
+          ? null
+          : chapterService.highestFarmableStage(progress);
+      if (fallbackStage == null || fallbackStage.stageId == stage.stageId) {
+        return state.copyWith(
+          isRunning: false,
+          lastBattleLogs: battle.logs,
+          stopReason: AutoBattleStopReason.battleFailed,
+        );
+      }
+
+      stage = fallbackStage;
+      farmingBecauseBattleFailed = true;
+      monsterConfig = monsterService.requireMonster(stage.monsterIds.first);
+      battle = _finishBattle(
+        _createBattle(
+          saveData: state.saveData,
+          database: database,
+          monsterId: monsterConfig.id,
+        ),
       );
+
+      if (!battle.isFinished) {
+        return state.copyWith(
+          isRunning: false,
+          lastBattleLogs: battle.logs,
+          stopReason: AutoBattleStopReason.battleNotFinished,
+        );
+      }
+      if (battle.result != BattleResult.victory) {
+        return state.copyWith(
+          isRunning: false,
+          lastBattleLogs: battle.logs,
+          stopReason: AutoBattleStopReason.battleFailed,
+        );
+      }
     }
 
     final settlement = _settlementService.settle(
@@ -194,7 +224,8 @@ class AutoBattleService {
       );
     }
 
-    var nextSave = shouldFarm
+    final didFarm = shouldFarmForLevel || farmingBecauseBattleFailed;
+    var nextSave = didFarm
         ? settlement.saveData
         : chapterService.markStageCleared(settlement.saveData);
     final autoSalvageReport = _runAutoSalvageIfEnabled(
@@ -214,7 +245,7 @@ class AutoBattleService {
 
     final nextProgressionStage =
         chapterService.maybeNextProgressionStage(progress);
-    final stopReason = !shouldFarm && nextProgressionStage == null
+    final stopReason = !didFarm && nextProgressionStage == null
         ? AutoBattleStopReason.chapterComplete
         : AutoBattleStopReason.none;
 
@@ -223,8 +254,9 @@ class AutoBattleService {
           report: finalReport,
           logs: battle.logs,
           saveData: nextSave,
-          farmingStageId: shouldFarm ? stage.stageId : null,
-          farmingBecauseLevelTooLow: shouldFarm,
+          farmingStageId: didFarm ? stage.stageId : null,
+          farmingBecauseLevelTooLow: shouldFarmForLevel,
+          farmingBecauseBattleFailed: farmingBecauseBattleFailed,
           progressionStageId: progressionStage.stageId,
           autoSalvagedCount: autoSalvageReport?.salvagedCount ?? 0,
           autoSalvageGainedMaterials:
@@ -234,6 +266,15 @@ class AutoBattleService {
           isRunning: stopReason == AutoBattleStopReason.none,
           stopReason: stopReason,
         );
+  }
+
+  BattleState _finishBattle(BattleState battle) {
+    var state = battle;
+    for (var i = 0; i < 100 && !state.isFinished; i += 1) {
+      state = _simulator.tick(state, 1);
+    }
+
+    return state;
   }
 
   BattleState _createBattle({

@@ -19,6 +19,7 @@ class AutoBattleRunState {
     this.lastSettlementReport,
     this.farmingStageId,
     this.farmingBecauseLevelTooLow = false,
+    this.farmingBecauseBattleFailed = false,
     this.progressionStageId,
     this.autoSalvagedEquipmentCount = 0,
     this.autoSalvageMaterials = const {},
@@ -42,6 +43,7 @@ class AutoBattleRunState {
   final BattleSettlementReport? lastSettlementReport;
   final String? farmingStageId;
   final bool farmingBecauseLevelTooLow;
+  final bool farmingBecauseBattleFailed;
   final String? progressionStageId;
   final int autoSalvagedEquipmentCount;
   final Map<String, int> autoSalvageMaterials;
@@ -62,6 +64,7 @@ class AutoBattleRunState {
     String? farmingStageId,
     bool clearFarmingStageId = false,
     bool? farmingBecauseLevelTooLow,
+    bool? farmingBecauseBattleFailed,
     String? progressionStageId,
     bool clearProgressionStageId = false,
     int? autoSalvagedEquipmentCount,
@@ -86,6 +89,8 @@ class AutoBattleRunState {
           clearFarmingStageId ? null : farmingStageId ?? this.farmingStageId,
       farmingBecauseLevelTooLow:
           farmingBecauseLevelTooLow ?? this.farmingBecauseLevelTooLow,
+      farmingBecauseBattleFailed:
+          farmingBecauseBattleFailed ?? this.farmingBecauseBattleFailed,
       progressionStageId: clearProgressionStageId
           ? null
           : progressionStageId ?? this.progressionStageId,
@@ -101,6 +106,7 @@ class AutoBattleRunState {
     required SaveData saveData,
     String? farmingStageId,
     bool farmingBecauseLevelTooLow = false,
+    bool farmingBecauseBattleFailed = false,
     required String progressionStageId,
     int autoSalvagedCount = 0,
     List<MaterialStack> autoSalvageGainedMaterials = const [],
@@ -139,6 +145,7 @@ class AutoBattleRunState {
       farmingStageId: farmingStageId,
       clearFarmingStageId: farmingStageId == null,
       farmingBecauseLevelTooLow: farmingBecauseLevelTooLow,
+      farmingBecauseBattleFailed: farmingBecauseBattleFailed,
       progressionStageId: progressionStageId,
       autoSalvagedEquipmentCount:
           autoSalvagedEquipmentCount + autoSalvagedCount,

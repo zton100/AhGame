@@ -1,5 +1,47 @@
 # CHANGELOG_DEV
 
+## S25 Failed Progression Fallback Farming - 2026-06-24
+
+### Added files
+
+- No new production files; this slice extends existing auto battle run state, auto battle orchestration, and BattlePage summary display.
+
+### Modified files
+
+- `lib/models/auto_battle_run_state.dart`
+- `lib/systems/auto_battle/auto_battle_service.dart`
+- `lib/features/battle/battle_page.dart`
+- `test/auto_battle_service_test.dart`
+- `test/battle_page_widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added `farmingBecauseBattleFailed` to `AutoBattleRunState`.
+- Updated `AutoBattleService` so a failed current progression battle can fall back to the highest cleared farmable stage.
+- Fallback farming settles rewards and saves SaveData, but does not advance `currentStageId`.
+- `runManyBattles` can now continue farming after progression defeat instead of stopping immediately, as long as a survivable cleared stage exists.
+- Existing `battleFailed` stop behavior is preserved when no cleared farmable stage exists or fallback farming also fails.
+- BattlePage auto battle summary now displays battle-failure farming state and guidance text.
+
+### Tests
+
+- Added AutoBattleService coverage for progression defeat fallback farming.
+- Added AutoBattleService coverage for repeated fallback farming until `maxBattlesReached`.
+- Added BattlePage widget coverage for battle-failed farming status and warning text.
+- Targeted tests passed: `I:\dev\flutter\bin\flutter.bat test test/auto_battle_service_test.dart test/battle_page_widget_test.dart`
+
+### Save impact
+
+- `SaveData.saveVersion` remains `5`.
+- `farmingBecauseBattleFailed` is runtime auto battle state only.
+- No new persisted SaveData fields or migrations were added.
+
+### Remaining
+
+- The system does not yet estimate whether a stage is survivable before trying it.
+- No automatic gear optimization, skill loadout changes, offline rewards, abyss systems, or combat AI were added.
+
 ## S24 Combat Survival First Slice - 2026-06-24
 
 ### Added files

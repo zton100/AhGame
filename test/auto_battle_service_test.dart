@@ -251,6 +251,66 @@ void main() {
     expect(result.battlesCompleted, 0);
     expect(result.saveData.playerProgress.currentStageId, '1-1');
   });
+
+  test('current stage defeat farms highest cleared stage instead of stopping',
+      () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+
+    final result = await _service().runOneBattle(
+      saveData: save,
+      database: _database(
+        monsterHp: 20,
+        monsterAttack: 0,
+        secondMonsterHp: 500,
+        secondMonsterAttack: 999,
+      ),
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 1);
+    expect(result.stopReason, AutoBattleStopReason.maxBattlesReached);
+    expect(result.totalExperience, 12);
+    expect(result.saveData.playerProgress.currentStageId, '1-2');
+    expect(result.progressionStageId, '1-2');
+    expect(result.farmingStageId, '1-1');
+    expect(result.farmingBecauseBattleFailed, isTrue);
+    expect(result.lastBattleLogs.map((log) => log.message),
+        contains('Battle victory.'));
+  });
+
+  test('runManyBattles repeats failed progression fallback until max battles',
+      () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+
+    final result = await _service().runManyBattles(
+      saveData: save,
+      database: _database(
+        monsterHp: 20,
+        monsterAttack: 0,
+        secondMonsterHp: 500,
+        secondMonsterAttack: 999,
+      ),
+      maxBattles: 2,
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 2);
+    expect(result.totalExperience, 24);
+    expect(result.saveData.playerProgress.currentStageId, '1-2');
+    expect(result.farmingStageId, '1-1');
+    expect(result.farmingBecauseBattleFailed, isTrue);
+    expect(result.stopReason, AutoBattleStopReason.maxBattlesReached);
+  });
 }
 
 AutoBattleService _service() => const AutoBattleService();
@@ -264,6 +324,8 @@ GameDatabase _database({
   num classArmor = 6,
   num monsterHp = 85,
   num monsterAttack = 10,
+  num secondMonsterHp = 55,
+  num secondMonsterAttack = 8,
 }) {
   return GameDatabase.fromFiles([
     _file('assets/data/classes.json', {
@@ -315,7 +377,16 @@ GameDatabase _database({
           3,
           {'bone_shard': 1},
         ),
-        _monster('plague_rat', 'Plague Rat', 55, 8, 1, 9, 2, {}),
+        _monster(
+          'plague_rat',
+          'Plague Rat',
+          secondMonsterHp,
+          secondMonsterAttack,
+          1,
+          9,
+          2,
+          {},
+        ),
       ],
     }),
     _file('assets/data/chapters.json', {

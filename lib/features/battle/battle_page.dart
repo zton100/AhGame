@@ -406,10 +406,19 @@ class _AutoBattleSummary extends StatelessWidget {
           label: 'Farming Because Level Too Low',
           value: state.farmingBecauseLevelTooLow.toString(),
         ),
+        _InfoRow(
+          label: 'Farming Because Battle Failed',
+          value: state.farmingBecauseBattleFailed.toString(),
+        ),
         if (state.farmingBecauseLevelTooLow)
           const _WarningBanner(
             message:
                 'Current stage level is too high. Auto battle is farming the highest cleared stage you can enter.',
+          ),
+        if (state.farmingBecauseBattleFailed)
+          const _WarningBanner(
+            message:
+                'Current progression stage failed. Auto battle is farming the highest cleared stage you can survive.',
           ),
         if (state.stopReason == AutoBattleStopReason.levelTooLow)
           const _WarningBanner(
