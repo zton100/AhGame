@@ -1187,3 +1187,46 @@
 - Add richer slot labels and equipment comparison summaries.
 - Add collapsible breakdown sections after the page needs denser presentation.
 - Wire character page into future class switching and unlock systems.
+
+## S14 Skill Runtime System - 2026-06-24
+
+### Added files
+
+- `lib/models/skill_config.dart`
+- `lib/models/skill_loadout.dart`
+- `lib/systems/skills/skill_service.dart`
+- `lib/systems/skills/skill_runtime.dart`
+- `lib/systems/skills/skill_effect_preview_service.dart`
+- `test/skill_runtime_system_test.dart`
+
+### Modified files
+
+- `lib/models/save_data.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added strong `SkillConfig` and `SkillEffectConfig` models for records loaded from `assets/data/skills.json`.
+- Added `SkillService` for requiring skills, listing skills by class, filtering by tag, and validating class ownership.
+- Added `SkillRuntime` for cooldown state, ticking, cast readiness, and entering cooldown after cast.
+- Added `SkillLoadout` with active, passive, and ultimate slots plus JSON round-trip support.
+- Enforced loadout JSON validation for up to 3 active skills and up to 3 passive skills.
+- Extended `PlayerProgress` with persisted `skillLoadout`.
+- Old saves without `skillLoadout` now default to the current class base skill.
+- Added `SkillEffectPreviewService` to preview direct skill damage from `ComputedStats.attack`.
+- Existing `deal_damage` skill effects are treated as the current direct-damage preview source.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\skill_runtime_system_test.dart`
+
+### Save impact
+
+- `PlayerProgress` now writes optional `skillLoadout`.
+- `saveVersion` remains `3` because old saves missing `skillLoadout` are filled during `PlayerProgress.fromJson`.
+
+### Remaining
+
+- Add skill equip/change actions after the skill page or character skill panel is specified.
+- Expand preview formulas when non-direct effects, status effects, summons, and resource costs enter combat runtime.
+- Add UI only after S14 runtime contracts settle.

@@ -2,6 +2,7 @@ import 'equipment_instance.dart';
 import 'equipment_loadout.dart';
 import 'inventory_state.dart';
 import 'settings_save.dart';
+import 'skill_loadout.dart';
 
 class SaveData {
   const SaveData({
@@ -21,10 +22,11 @@ class SaveData {
       createdAt: timestamp,
       lastSavedAt: timestamp,
       lastExitAt: null,
-      playerProgress: const PlayerProgress(
+      playerProgress: PlayerProgress(
         currentClassId: 'exile',
         level: 1,
         experience: 0,
+        skillLoadout: SkillLoadout.defaultForClass('exile'),
       ),
       inventory: const InventorySave(equipmentInstanceIds: []),
       settings: const SettingsSave(),
@@ -106,29 +108,39 @@ class PlayerProgress {
     required this.currentClassId,
     required this.level,
     required this.experience,
+    this.skillLoadout = const SkillLoadout.empty(),
   });
 
   factory PlayerProgress.fromJson(Map<String, Object?> json) {
+    final currentClassId = json['currentClassId'] as String;
     return PlayerProgress(
-      currentClassId: json['currentClassId'] as String,
+      currentClassId: currentClassId,
       level: json['level'] as int,
       experience: json['experience'] as int,
+      skillLoadout: json['skillLoadout'] is Map
+          ? SkillLoadout.fromJson(
+              Map<String, Object?>.from(json['skillLoadout'] as Map),
+            )
+          : SkillLoadout.defaultForClass(currentClassId),
     );
   }
 
   final String currentClassId;
   final int level;
   final int experience;
+  final SkillLoadout skillLoadout;
 
   PlayerProgress copyWith({
     String? currentClassId,
     int? level,
     int? experience,
+    SkillLoadout? skillLoadout,
   }) {
     return PlayerProgress(
       currentClassId: currentClassId ?? this.currentClassId,
       level: level ?? this.level,
       experience: experience ?? this.experience,
+      skillLoadout: skillLoadout ?? this.skillLoadout,
     );
   }
 
@@ -137,6 +149,7 @@ class PlayerProgress {
       'currentClassId': currentClassId,
       'level': level,
       'experience': experience,
+      'skillLoadout': skillLoadout.toJson(),
     };
   }
 }
