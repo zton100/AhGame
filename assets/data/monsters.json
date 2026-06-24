@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "monsters": [
+    {
+      "id": "skeleton_grunt",
+      "name": "Skeleton Grunt",
+      "level": 1,
+      "tags": ["undead", "melee", "physical"],
+      "baseStats": {"hp": 85, "attack": 10, "armor": 4},
+      "rewards": {"experience": 12, "gold": 3, "materials": {}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"shadow": 0.15, "holy": -0.1}
+    },
+    {
+      "id": "plague_rat",
+      "name": "Plague Rat",
+      "level": 1,
+      "tags": ["beast", "poison", "fast"],
+      "baseStats": {"hp": 55, "attack": 8, "armor": 1},
+      "rewards": {"experience": 9, "gold": 2, "materials": {}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": ["toxic_slash"],
+      "resistances": {"poison": 0.25}
+    },
+    {
+      "id": "blood_cultist",
+      "name": "Blood Cultist",
+      "level": 3,
+      "tags": ["human", "bleed", "shadow"],
+      "baseStats": {"hp": 120, "attack": 16, "armor": 3},
+      "rewards": {"experience": 22, "gold": 7, "materials": {}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"shadow": 0.1}
+    },
+    {
+      "id": "abyss_imp",
+      "name": "Abyss Imp",
+      "level": 4,
+      "tags": ["demon", "fire", "abyss"],
+      "baseStats": {"hp": 105, "attack": 20, "armor": 2},
+      "rewards": {"experience": 28, "gold": 9, "materials": {}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": ["ember_bolt"],
+      "resistances": {"fire": 0.2, "frost": -0.05}
+    },
+    {
+      "id": "training_dummy",
+      "name": "Training Dummy",
+      "level": 1,
+      "tags": ["training", "dummy"],
+      "baseStats": {"hp": 200, "attack": 0, "armor": 0},
+      "rewards": {"experience": 0, "gold": 0, "materials": {}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {}
+    }
+  ]
+}

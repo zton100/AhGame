@@ -18,6 +18,8 @@ import 'package:abyss_relic/systems/equipment/equipment_generation_service.dart'
 import 'package:abyss_relic/systems/equipment/quality_service.dart';
 import 'package:abyss_relic/systems/inventory/equipment_loot_commit_service.dart';
 import 'package:abyss_relic/systems/inventory/loot_inventory_service.dart';
+import 'package:abyss_relic/systems/monsters/monster_factory.dart';
+import 'package:abyss_relic/systems/monsters/monster_service.dart';
 import 'package:abyss_relic/systems/stats/damage_formula_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,6 +40,10 @@ void main() {
     expect(result.database.findRecord('skills', 'toxic_slash'), isNotNull);
     expect(
       result.database.findRecord('drop_pools', 'drop_chapter_1'),
+      isNotNull,
+    );
+    expect(
+      result.database.findRecord('monsters', 'training_dummy'),
       isNotNull,
     );
     expect(result.database.findRecord('level_curves', 'default'), isNotNull);
@@ -330,6 +336,23 @@ void main() {
     expect(drops, hasLength(1));
     expect(drops.single.refId, isNotEmpty);
     expect(drops.single.quantity, greaterThan(0));
+  });
+
+  test('seed monster can create a runtime and bind a drop pool', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final monsterService = MonsterService(result.database);
+    final config = monsterService.requireMonster('training_dummy');
+    final runtime = const MonsterFactory().create(config: config);
+
+    expect(config.dropPoolId, 'drop_chapter_1');
+    expect(
+        result.database.findRecord('drop_pools', config.dropPoolId), isNotNull);
+    expect(runtime.monsterId, 'training_dummy');
+    expect(runtime.currentHp, runtime.maxHp);
+    expect(runtime.takeDamage(runtime.maxHp).isAlive, isFalse);
   });
 
   test('seed equipment drop can materialize and enter inventory', () async {

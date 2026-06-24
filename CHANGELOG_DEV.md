@@ -1230,3 +1230,45 @@
 - Add skill equip/change actions after the skill page or character skill panel is specified.
 - Expand preview formulas when non-direct effects, status effects, summons, and resource costs enter combat runtime.
 - Add UI only after S14 runtime contracts settle.
+
+## S15 Monster System - 2026-06-24
+
+### Added files
+
+- `assets/data/monsters.json`
+- `lib/models/monster_config.dart`
+- `lib/models/monster_runtime.dart`
+- `lib/systems/monsters/monster_service.dart`
+- `lib/systems/monsters/monster_factory.dart`
+- `test/monster_system_test.dart`
+
+### Modified files
+
+- `lib/systems/config/reference_resolver.dart`
+- `test/seed_data_integration_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added seed monster data for `skeleton_grunt`, `plague_rat`, `blood_cultist`, `abyss_imp`, and `training_dummy`.
+- Added `MonsterConfig` with level, tags, base stats, rewards, drop pool binding, optional skills, and optional resistances.
+- Added `MonsterService` for requiring monsters, filtering by tag, filtering by level range, and validating drop pool references.
+- Added global `ReferenceResolver` validation for monster `dropPoolId`.
+- Added `MonsterRuntime` with hp, attack, armor, tags, alive checks, damage, optional healing, and JSON round-trip support.
+- Added `MonsterFactory` for creating runtime monsters from config with simple level scaling.
+- Verified real seed monster data can create a runtime monster and bind to `drop_chapter_1`.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat test test\monster_system_test.dart test\seed_data_integration_test.dart`
+
+### Save impact
+
+- No save schema change.
+- Monster runtime state is not persisted yet; future combat/encounter systems can decide when to store encounter snapshots.
+
+### Remaining
+
+- Add combat encounter orchestration after automatic battle requirements are specified.
+- Expand monster skills and resistance formulas when the combat resolver starts consuming them.
+- Add monster-specific drop pools once progression chapters and enemy families are defined.

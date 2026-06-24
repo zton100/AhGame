@@ -15,6 +15,7 @@ class ReferenceResolver {
       ..._checkEquipmentClasses(database),
       ..._checkSoulCoreClasses(database),
       ..._checkDropPoolEntries(database),
+      ..._checkMonsterDropPools(database),
       ..._checkEffectIds(database),
     ];
   }
@@ -118,6 +119,26 @@ class ReferenceResolver {
     }
 
     return errors;
+  }
+
+  List<ConfigValidationError> _checkMonsterDropPools(GameDatabase database) {
+    return [
+      for (final monster in database.recordsForTable('monsters').values)
+        if (monster['dropPoolId'] is String &&
+            database.findRecord(
+                  'drop_pools',
+                  monster['dropPoolId'] as String,
+                ) ==
+                null)
+          _invalidReference(
+            assetPath: 'assets/data/monsters.json',
+            tableName: 'monsters',
+            recordId: monster['id'] as String?,
+            field: 'dropPoolId',
+            message:
+                'Monster references missing dropPoolId "${monster['dropPoolId']}".',
+          ),
+    ];
   }
 
   List<ConfigValidationError> _checkEffectIds(GameDatabase database) {
