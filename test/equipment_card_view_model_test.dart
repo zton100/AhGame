@@ -27,7 +27,7 @@ void main() {
 
     expect(viewModel.title, 'Poison Blade');
     expect(viewModel.qualityId, 'rare');
-    expect(viewModel.qualityLabel, 'Rare');
+    expect(viewModel.qualityLabel, '稀有');
     expect(viewModel.qualityColorValue, 0xFFD6B84A);
     expect(viewModel.baseStats.single.label, 'attack');
     expect(viewModel.affixes.map((affix) => affix.name), [
@@ -167,7 +167,7 @@ GameDatabase _database() {
       'qualities': [
         {
           'id': 'rare',
-          'name': 'Rare',
+          'name': '稀有',
           'affixMin': 3,
           'affixMax': 4,
           'statMultiplier': 1.18,

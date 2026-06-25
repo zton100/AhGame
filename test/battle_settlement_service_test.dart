@@ -307,7 +307,7 @@ GameDatabase _database({required bool includeDrop}) {
       'qualities': [
         {
           'id': 'rare',
-          'name': 'Rare',
+          'name': '稀有',
           'affixMin': 0,
           'affixMax': 0,
           'statMultiplier': 1.18,

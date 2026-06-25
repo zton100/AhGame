@@ -4,7 +4,7 @@ enum AppRoute {
   build('build', 'BD'),
   abyss('abyss', '深渊'),
   character('character', '角色'),
-  debug('debug', 'Debug');
+  debug('debug', '调试');
 
   const AppRoute(this.id, this.label);
 

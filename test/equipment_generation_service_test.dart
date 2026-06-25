@@ -206,7 +206,7 @@ EquipmentGenerationService _generationService() {
         'qualities': [
           {
             'id': 'rare',
-            'name': 'Rare',
+            'name': '稀有',
             'affixMin': 3,
             'affixMax': 4,
             'statMultiplier': 1.18,

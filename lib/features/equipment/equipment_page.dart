@@ -248,11 +248,11 @@ class _EquipmentControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return _Panel(
-      title: 'Auto Salvage / Filter',
+      title: '自动分解 / 筛选',
       children: [
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Enable Auto Salvage'),
+          title: const Text('启用自动分解'),
           value: config.enabled,
           onChanged: (enabled) => _updateConfig(
             ref,
@@ -272,13 +272,13 @@ class _EquipmentControls extends ConsumerWidget {
             DropdownButton<String>(
               value: config.minQualityToKeep,
               items: const [
-                DropdownMenuItem(value: 'normal', child: Text('Keep Normal+')),
-                DropdownMenuItem(value: 'magic', child: Text('Keep Magic+')),
-                DropdownMenuItem(value: 'rare', child: Text('Keep Rare+')),
-                DropdownMenuItem(value: 'epic', child: Text('Keep Epic+')),
+                DropdownMenuItem(value: 'normal', child: Text('保留普通+')),
+                DropdownMenuItem(value: 'magic', child: Text('保留魔法+')),
+                DropdownMenuItem(value: 'rare', child: Text('保留稀有+')),
+                DropdownMenuItem(value: 'epic', child: Text('保留史诗+')),
                 DropdownMenuItem(
                   value: 'legendary',
-                  child: Text('Keep Legendary+'),
+                  child: Text('保留传奇+'),
                 ),
               ],
               onChanged: (qualityId) {
@@ -350,15 +350,15 @@ class _EquipmentControls extends ConsumerWidget {
               onPressed: visibleItems.isEmpty
                   ? null
                   : () => _salvageFiltered(context, ref),
-              child: const Text('Salvage filtered low-value'),
+              child: const Text('分解当前筛选低价值装备'),
             ),
             FilledButton.tonal(
               onPressed: () => _enhanceRecommended(context, ref),
-              child: const Text('Enhance recommended equipped'),
+              child: const Text('强化推荐穿戴装备'),
             ),
             FilledButton.tonal(
               onPressed: () => _equipRecommended(context, ref),
-              child: const Text('Equip recommended upgrade'),
+              child: const Text('穿戴推荐升级装备'),
             ),
           ],
         ),
@@ -387,7 +387,7 @@ class _EquipmentControls extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Auto salvaged ${report.salvagedCount}, gained ${_materialsText(report.gainedMaterials)}',
+          '已自动分解 ${report.salvagedCount} 件，获得 ${_materialsText(report.gainedMaterials)}',
         ),
       ),
     );
@@ -405,7 +405,7 @@ class _EquipmentControls extends ConsumerWidget {
       SnackBar(
         content: Text(
           result.accepted
-              ? 'Enhanced recommended equipment to +${result.newLevel}'
+              ? '推荐装备已强化到 +${result.newLevel}'
               : _enhancementFailureMessage(result.reason),
         ),
       ),
@@ -424,8 +424,8 @@ class _EquipmentControls extends ConsumerWidget {
       SnackBar(
         content: Text(
           result.accepted
-              ? 'Equipped recommended ${result.candidate?.template.name ?? 'upgrade'}'
-              : 'No recommended equipment upgrade found.',
+              ? '已穿戴推荐装备：${result.candidate?.template.name ?? '升级装备'}'
+              : '没有找到推荐升级装备。',
         ),
       ),
     );
@@ -585,8 +585,8 @@ class _EquipmentDetailDialog extends ConsumerWidget {
                 Text('匹配变化: ${_signed(card.matchScoreDelta)}'),
                 Text('攻击变化: ${_signed(card.attackDelta)}'),
                 Text('推荐: ${card.recommendationLabel}'),
-                Text('matchedTags: ${_tags(card.matchedTags)}'),
-                Text('rejectedTags: ${_tags(card.rejectedTags)}'),
+                Text('匹配标签: ${_tags(card.matchedTags)}'),
+                Text('排斥标签: ${_tags(card.rejectedTags)}'),
               ],
             ),
             const SizedBox(height: 12),
@@ -597,7 +597,7 @@ class _EquipmentDetailDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => _enhance(context, ref),
-          child: const Text('Enhance'),
+          child: const Text('强化'),
         ),
         TextButton(
           onPressed: () => _equip(context, ref),
@@ -661,7 +661,7 @@ class _EquipmentDetailDialog extends ConsumerWidget {
 
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Enhanced to +${result.newLevel}')),
+        SnackBar(content: Text('已强化到 +${result.newLevel}')),
       );
     } on Object catch (error) {
       if (!context.mounted) {
@@ -748,21 +748,21 @@ class _EnhancementSection extends StatelessWidget {
       final cost =
           level >= config.maxLevel ? null : config.costForNextLevel(level);
       return _DetailSection(
-        title: 'Enhancement',
+        title: '强化',
         children: [
-          Text('Enhance Level: +$level'),
+          Text('强化等级：+$level'),
           if (cost == null)
-            const Text('Max Enhance Level')
+            const Text('已达最高强化等级')
           else
             Text(
-              'Next Cost: gold x${cost.gold}, salvage_dust x${cost.dust}',
+              '下一级消耗：金币 x${cost.gold}，分解尘 x${cost.dust}',
             ),
         ],
       );
     } on Object catch (error) {
       return _DetailSection(
-        title: 'Enhancement',
-        children: [Text('Enhancement config unavailable: $error')],
+        title: '强化',
+        children: [Text('强化配置不可用：$error')],
       );
     }
   }
@@ -1017,9 +1017,9 @@ String _enhancementFailureMessage(EquipmentEnhancementReason reason) {
     case EquipmentEnhancementReason.maxLevelReached:
       return '装备已达到最大强化等级';
     case EquipmentEnhancementReason.insufficientDust:
-      return 'salvage_dust 不足，无法强化';
+      return '分解尘不足，无法强化';
     case EquipmentEnhancementReason.insufficientGold:
-      return 'gold 不足，无法强化';
+      return '金币不足，无法强化';
     case EquipmentEnhancementReason.invalidConfig:
       return '强化配置异常';
     case EquipmentEnhancementReason.enhanced:
@@ -1033,8 +1033,31 @@ String _materialsText(List<MaterialStack> materials) {
   }
 
   return materials
-      .map((material) => '${material.materialId} x${material.quantity}')
+      .map((material) =>
+          '${_materialLabel(material.materialId)} x${material.quantity}')
       .join(', ');
+}
+
+String _materialLabel(String materialId) {
+  switch (materialId) {
+    case 'gold':
+      return '金币';
+    case 'salvage_dust':
+      return '分解尘';
+    case 'bone_shard':
+      return '骨片';
+    case 'plague_ichor':
+      return '瘟疫脓液';
+    case 'blood_tallow':
+      return '血脂';
+    case 'ash_cinder':
+      return '灰烬余烬';
+    case 'frost_bone':
+      return '霜骨';
+    case 'relic_fragment':
+      return '遗装碎片';
+  }
+  return materialId;
 }
 
 String _affixLine(EquipmentAffixViewModel affix) {
@@ -1058,5 +1081,5 @@ String _signed(double value) {
 }
 
 String _tags(List<String> tags) {
-  return tags.isEmpty ? 'none' : tags.join(', ');
+  return tags.isEmpty ? '无' : tags.join(', ');
 }

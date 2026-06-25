@@ -110,7 +110,7 @@ GameDatabase _database() {
         'qualities': [
           {
             'id': 'rare',
-            'name': 'Rare',
+            'name': '稀有',
             'affixMin': 1,
             'affixMax': 1,
             'statMultiplier': 1.18,

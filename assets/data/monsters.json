@@ -3,7 +3,7 @@
   "monsters": [
     {
       "id": "skeleton_grunt",
-      "name": "Skeleton Grunt",
+      "name": "亡骨杂兵",
       "level": 1,
       "tags": ["undead", "melee", "physical"],
       "baseStats": {"hp": 85, "attack": 10, "armor": 4},
@@ -14,7 +14,7 @@
     },
     {
       "id": "plague_rat",
-      "name": "Plague Rat",
+      "name": "瘟疫鼠",
       "level": 1,
       "tags": ["beast", "poison", "fast"],
       "baseStats": {"hp": 55, "attack": 8, "armor": 1},
@@ -25,7 +25,7 @@
     },
     {
       "id": "blood_cultist",
-      "name": "Blood Cultist",
+      "name": "血月信徒",
       "level": 3,
       "tags": ["human", "bleed", "shadow"],
       "baseStats": {"hp": 120, "attack": 16, "armor": 3},
@@ -36,7 +36,7 @@
     },
     {
       "id": "abyss_imp",
-      "name": "Abyss Imp",
+      "name": "深渊小鬼",
       "level": 4,
       "tags": ["demon", "fire", "abyss"],
       "baseStats": {"hp": 105, "attack": 20, "armor": 2},
@@ -47,7 +47,7 @@
     },
     {
       "id": "training_dummy",
-      "name": "Training Dummy",
+      "name": "训练假人",
       "level": 1,
       "tags": ["training", "dummy"],
       "baseStats": {"hp": 200, "attack": 0, "armor": 0},
@@ -58,7 +58,7 @@
     },
     {
       "id": "grave_guardian",
-      "name": "Grave Guardian",
+      "name": "亡骨守门人",
       "level": 4,
       "tags": ["undead", "elite", "physical"],
       "baseStats": {"hp": 180, "attack": 22, "armor": 8},
@@ -69,7 +69,7 @@
     },
     {
       "id": "plague_carrier",
-      "name": "Plague Carrier",
+      "name": "瘟疫携带者",
       "level": 5,
       "tags": ["plague", "poison", "undead"],
       "baseStats": {"hp": 155, "attack": 24, "armor": 4},
@@ -80,7 +80,7 @@
     },
     {
       "id": "blood_acolyte",
-      "name": "Blood Acolyte",
+      "name": "血月侍僧",
       "level": 6,
       "tags": ["blood", "cultist", "shadow"],
       "baseStats": {"hp": 170, "attack": 28, "armor": 5},
@@ -91,7 +91,7 @@
     },
     {
       "id": "ash_wraith",
-      "name": "Ash Wraith",
+      "name": "灰烬残魂",
       "level": 7,
       "tags": ["ash", "fire", "spirit"],
       "baseStats": {"hp": 165, "attack": 32, "armor": 3},
@@ -102,7 +102,7 @@
     },
     {
       "id": "frost_bone_archer",
-      "name": "Frost Bone Archer",
+      "name": "霜骨弓手",
       "level": 8,
       "tags": ["undead", "frost", "ranged"],
       "baseStats": {"hp": 175, "attack": 34, "armor": 6},
@@ -113,7 +113,7 @@
     },
     {
       "id": "relic_gatekeeper",
-      "name": "Relic Gatekeeper",
+      "name": "遗装守门人",
       "level": 9,
       "tags": ["undead", "boss", "abyss"],
       "baseStats": {"hp": 260, "attack": 40, "armor": 12},
@@ -124,7 +124,7 @@
     },
     {
       "id": "plague_acolyte",
-      "name": "Plague Acolyte",
+      "name": "瘟疫侍僧",
       "level": 10,
       "tags": ["plague", "cultist", "poison"],
       "baseStats": {"hp": 245, "attack": 42, "armor": 8},
@@ -135,7 +135,7 @@
     },
     {
       "id": "blood_incense_priest",
-      "name": "Blood Incense Priest",
+      "name": "血香祭司",
       "level": 11,
       "tags": ["blood", "cultist", "shadow"],
       "baseStats": {"hp": 270, "attack": 46, "armor": 9},
@@ -146,7 +146,7 @@
     },
     {
       "id": "rotting_reliquary_guard",
-      "name": "Rotting Reliquary Guard",
+      "name": "腐化圣匣卫士",
       "level": 12,
       "tags": ["undead", "plague", "physical"],
       "baseStats": {"hp": 320, "attack": 48, "armor": 14},
@@ -157,7 +157,7 @@
     },
     {
       "id": "fallen_sanctifier",
-      "name": "Fallen Sanctifier",
+      "name": "腐化圣裁者",
       "level": 13,
       "tags": ["holy", "corrupted", "shield"],
       "baseStats": {"hp": 300, "attack": 54, "armor": 16},
@@ -168,7 +168,7 @@
     },
     {
       "id": "plague_bell_keeper",
-      "name": "Plague Bell Keeper",
+      "name": "瘟疫钟守卫",
       "level": 14,
       "tags": ["plague", "boss", "abyss"],
       "baseStats": {"hp": 430, "attack": 62, "armor": 18},

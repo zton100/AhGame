@@ -29,7 +29,7 @@
     },
     {
       "id": "ember_bolt",
-      "name": "余烬弹",
+      "name": "灰烬箭",
       "classId": "ember_mage",
       "skillType": "active",
       "tags": ["fire", "burn"],
@@ -42,7 +42,7 @@
     },
     {
       "id": "frost_mark",
-      "name": "冰痕标记",
+      "name": "寒霜标记",
       "classId": "frost_ranger",
       "skillType": "active",
       "tags": ["frost", "crit", "control"],
@@ -55,7 +55,7 @@
     },
     {
       "id": "judgement_strike",
-      "name": "裁决打击",
+      "name": "审判打击",
       "classId": "sanctifier",
       "skillType": "active",
       "tags": ["holy", "judgement"],

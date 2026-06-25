@@ -31,7 +31,7 @@ class _MainShellState extends State<MainShell> {
         actions: [
           if (kDebugMode)
             IconButton(
-              tooltip: 'Open debug panel',
+              tooltip: '打开调试面板',
               icon: const Icon(Icons.bug_report_outlined),
               onPressed: () {
                 Navigator.of(context).push(

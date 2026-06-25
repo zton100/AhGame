@@ -1,5 +1,60 @@
 # CHANGELOG_DEV
 
+## UI Chinese Localization Polish - 2026-06-25
+
+### Added files
+
+- `web/` Flutter web runner files generated for local browser runs.
+
+### Modified files
+
+- `.metadata`
+- `assets/data/chapters.json`
+- `assets/data/monsters.json`
+- `assets/data/quality_config.json`
+- `assets/data/skills.json`
+- `lib/core/routing/app_route.dart`
+- `lib/features/battle/battle_controller.dart`
+- `lib/features/battle/battle_page.dart`
+- `lib/features/character/character_page.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `lib/features/equipment/equipment_page_view_model.dart`
+- `lib/features/shell/main_shell.dart`
+- `lib/systems/battle/battle_simulator.dart`
+- `lib/systems/stats/character_final_stats_service.dart`
+- `test/auto_battle_service_test.dart`
+- `test/battle_page_widget_test.dart`
+- `test/character_page_widget_test.dart`
+- `test/equipment_page_widget_test.dart`
+- `test/equipment_card_view_model_test.dart`
+- `test/equipment_generation_service_test.dart`
+- `test/equipment_loot_materialization_service_test.dart`
+- `test/battle_settlement_service_test.dart`
+
+### Completed
+
+- Localized player-facing BattlePage, EquipmentPage, CharacterPage, route labels, warnings, buttons, summaries, and battle settlement labels to Chinese.
+- Localized chapter, stage, monster, and skill display names in seed JSON while preserving stable ids and references.
+- Localized equipment quality display names from `Normal/Magic/Rare/...` to `普通/魔法/稀有/...`.
+- Localized battle logs for skill casts, damage, monster HP, player defeat, and victory.
+- Localized material display names for gold, salvage dust, and chapter reward materials.
+- Updated widget tests and battle log assertions to match Chinese UI text.
+
+### Tests
+
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+- Passed: `I:\dev\flutter\bin\flutter.bat test`
+
+### Save impact
+
+- No SaveData schema change.
+- Display names changed only in config/UI; stable ids remain unchanged.
+
+### Remaining
+
+- Some internal developer-facing exceptions and test fixture names remain English where they are not shown to players.
+- Debug-only tooling and developer-facing exception text may still contain English.
+
 ## S31-S33 Equipment Recommendation, Skill Upgrade, Chapter 2 Content - 2026-06-25
 
 ### Added files

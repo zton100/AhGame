@@ -74,13 +74,12 @@ void main() {
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Equipped equipment instance not found'),
-        findsOneWidget);
+    expect(find.textContaining('已穿戴装备实例不存在'), findsOneWidget);
     await tester.scrollUntilVisible(
-      find.textContaining('missing_eq (missing)'),
+      find.textContaining('missing_eq（缺失）'),
       200,
     );
-    expect(find.textContaining('missing_eq (missing)'), findsOneWidget);
+    expect(find.textContaining('missing_eq（缺失）'), findsOneWidget);
   });
 
   testWidgets('CharacterPage upgrades active skill and saves level',
@@ -96,18 +95,18 @@ void main() {
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(find.text('Skills'), 200);
-    expect(find.text('Skills'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('技能'), 200);
+    expect(find.text('技能'), findsOneWidget);
     await tester.drag(find.byType(ListView), const Offset(0, -260));
     await tester.pumpAndSettle();
-    expect(find.text('Upgrade Skill'), findsOneWidget);
+    expect(find.text('升级技能'), findsOneWidget);
 
-    await tester.tap(find.text('Upgrade Skill'));
+    await tester.tap(find.text('升级技能'));
     await tester.pumpAndSettle();
 
     final save = await saveService.loadOrCreate();
     expect(save.playerProgress.skillLevels['toxic_slash'], 2);
-    expect(find.textContaining('Skill upgraded to Lv.2'), findsOneWidget);
+    expect(find.textContaining('技能已升级到 Lv.2'), findsOneWidget);
   });
 }
 
@@ -186,7 +185,7 @@ GameDatabase _database() {
       'skills': [
         {
           'id': 'toxic_slash',
-          'name': 'Toxic Slash',
+          'name': '毒刃',
           'classId': 'exile',
           'skillType': 'active',
           'tags': ['poison', 'shadow'],

@@ -41,7 +41,7 @@ class CharacterFinalStatsService {
           code: CharacterFinalStatsWarningCode.missingEquipmentInstance,
           equipmentInstanceId: instanceId,
           slotId: entry.key,
-          message: 'Equipped equipment instance not found: $instanceId.',
+          message: '已穿戴装备实例不存在：$instanceId。',
         ));
         continue;
       }

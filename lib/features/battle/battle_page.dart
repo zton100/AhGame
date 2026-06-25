@@ -39,15 +39,15 @@ class _BattlePageState extends ConsumerState<BattlePage> {
 
     if (saveLoad.isLoading && !saveLoad.hasValue) {
       return const _BattleMessage(
-        title: 'Loading save',
-        message: 'Creating or loading the current character save.',
+        title: '正在读取存档',
+        message: '正在创建或读取当前角色存档。',
         icon: Icons.hourglass_empty,
       );
     }
 
     if (saveLoad.hasError && !saveLoad.hasValue) {
       return _BattleMessage(
-        title: 'Save load failed',
+        title: '存档读取失败',
         message: saveLoad.error.toString(),
         icon: Icons.error_outline,
       );
@@ -56,8 +56,8 @@ class _BattlePageState extends ConsumerState<BattlePage> {
     final saveData = saveLoad.valueOrNull;
     if (saveData == null) {
       return const _BattleMessage(
-        title: 'Preparing save',
-        message: 'Battle will be available after the save is ready.',
+        title: '正在准备存档',
+        message: '存档准备完成后即可开始战斗。',
         icon: Icons.hourglass_empty,
       );
     }
@@ -92,15 +92,15 @@ class _BattlePageState extends ConsumerState<BattlePage> {
       },
       error: (error, _) {
         return _BattleMessage(
-          title: 'Battle data load failed',
+          title: '战斗数据加载失败',
           message: error.toString(),
           icon: Icons.error_outline,
         );
       },
       loading: () {
         return const _BattleMessage(
-          title: 'Loading battle data',
-          message: 'Skills, monsters, and loot tables are loading.',
+          title: '正在加载战斗数据',
+          message: '技能、怪物和掉落表加载中。',
           icon: Icons.hourglass_empty,
         );
       },
@@ -222,10 +222,10 @@ class _BattlePageContent extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('Battle', style: Theme.of(context).textTheme.titleLarge),
+        Text('战斗', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         _Section(
-          title: 'Auto Battle',
+          title: '连续战斗',
           children: [
             Wrap(
               spacing: 8,
@@ -233,15 +233,15 @@ class _BattlePageContent extends StatelessWidget {
               children: [
                 FilledButton(
                   onPressed: onRunOneBattle,
-                  child: const Text('Run 1 Battle'),
+                  child: const Text('运行 1 场'),
                 ),
                 FilledButton(
                   onPressed: onRunTenBattles,
-                  child: const Text('Run 10 Battles'),
+                  child: const Text('运行 10 场'),
                 ),
                 OutlinedButton(
                   onPressed: onStopAutoBattle,
-                  child: const Text('Stop Auto Battle'),
+                  child: const Text('停止连续战斗'),
                 ),
               ],
             ),
@@ -251,33 +251,33 @@ class _BattlePageContent extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         _Section(
-          title: 'Encounter',
+          title: '遭遇',
           children: [
             _InfoRow(
-                label: 'Character',
+                label: '角色',
                 value: saveData.playerProgress.currentClassId),
-            _InfoRow(label: 'Chapter', value: progress.chapterName),
+            _InfoRow(label: '章节', value: progress.chapterName),
             _InfoRow(
-              label: 'Stage',
+              label: '关卡',
               value: '${progress.stageId} ${progress.stageName}',
             ),
             _InfoRow(
-                label: 'Boss stage', value: progress.isBossStage.toString()),
-            _InfoRow(label: 'Monster', value: monsterName),
+                label: 'Boss 关', value: _yesNo(progress.isBossStage)),
+            _InfoRow(label: '怪物', value: monsterName),
             _InfoRow(
-                label: 'Status', value: battle?.result.name ?? 'not_started'),
+                label: '状态', value: _battleResultLabel(battle?.result)),
             _InfoRow(
-                label: 'Elapsed',
+                label: '耗时',
                 value: _formatNumber(battle?.elapsedSeconds ?? 0)),
             if (battle != null)
               _InfoRow(
-                label: 'HP',
+                label: '怪物生命',
                 value:
                     '${_formatNumber(battle.monster.currentHp)} / ${_formatNumber(battle.monster.maxHp)}',
               ),
             if (battle != null)
               _InfoRow(
-                label: 'Player HP',
+                label: '玩家生命',
                 value:
                     '${_formatNumber(battle.playerCurrentHp)} / ${_formatNumber(battle.playerMaxHp)}',
               ),
@@ -290,22 +290,22 @@ class _BattlePageContent extends StatelessWidget {
           children: [
             FilledButton(
               onPressed: onStart,
-              child: const Text('Start Battle'),
+              child: const Text('开始战斗'),
             ),
             FilledButton.tonal(
               onPressed: battle == null || battle.isFinished ? null : onTick,
-              child: const Text('Tick 1s'),
+              child: const Text('推进 1 秒'),
             ),
             FilledButton.tonal(
               onPressed:
                   battle == null || battle.isFinished ? null : onAutoFinish,
-              child: const Text('Auto Finish'),
+              child: const Text('自动打完'),
             ),
             if (battle?.result == BattleResult.victory)
               OutlinedButton(
                 onPressed:
                     controller.hasSettled || isSettling ? null : onSettle,
-                child: Text(isSettling ? 'Settling...' : 'Settle Victory'),
+                child: Text(isSettling ? '结算中...' : '结算胜利'),
               ),
           ],
         ),
@@ -317,19 +317,19 @@ class _BattlePageContent extends StatelessWidget {
           const SizedBox(height: 12),
           const _WarningBanner(
             message:
-                'Battle failed. Enhance gear, adjust equipment, or repeat cleared stages to grow stronger.',
+                '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
           ),
         ],
         if (controller.advancedAfterSettlement) ...[
           const SizedBox(height: 12),
-          const _SuccessBanner(message: 'Advanced to next stage.'),
+          const _SuccessBanner(message: '已推进到下一关。'),
         ],
         const SizedBox(height: 16),
         _Section(
-          title: 'Recent Logs',
+          title: '最近日志',
           children: [
             if (battle == null)
-              const Text('No battle started yet.')
+              const Text('尚未开始战斗。')
             else
               for (final log in battle.logs
                   .skip(battle.logs.length > 20 ? battle.logs.length - 20 : 0))
@@ -357,113 +357,113 @@ class _AutoBattleSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = runState;
     if (state == null) {
-      return const Text('No auto battle run yet.');
+      return const Text('尚未运行连续战斗。');
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _InfoRow(
-          label: 'Completed Battles',
+          label: '完成场次',
           value: state.battlesCompleted.toString(),
         ),
-        _InfoRow(label: 'Progress Mode', value: _progressMode(state)),
-        _InfoRow(label: 'Total EXP', value: state.totalExperience.toString()),
-        _InfoRow(label: 'Total Gold', value: state.totalGold.toString()),
+        _InfoRow(label: '推进模式', value: _progressModeLabel(state)),
+        _InfoRow(label: '总经验', value: state.totalExperience.toString()),
+        _InfoRow(label: '总金币', value: state.totalGold.toString()),
         _InfoRow(
-          label: 'Materials gained',
+          label: '获得材料',
           value: state.totalMaterials.values
               .fold<int>(0, (total, quantity) => total + quantity)
               .toString(),
         ),
         _InfoRow(
-          label: 'Dropped Equipment',
+          label: '掉落装备',
           value: state.generatedEquipmentCount.toString(),
         ),
         _InfoRow(
-          label: 'Rejected Equipment',
+          label: '拒收装备',
           value: state.rejectedEquipmentCount.toString(),
         ),
         _InfoRow(
-          label: 'Auto Salvaged Equipment',
+          label: '自动分解装备',
           value: state.autoSalvagedEquipmentCount.toString(),
         ),
         _InfoRow(
-          label: 'Auto Salvage Materials',
+          label: '自动分解材料',
           value: state.autoSalvageMaterials.values
               .fold<int>(0, (total, quantity) => total + quantity)
               .toString(),
         ),
-        _InfoRow(label: 'Stop Reason', value: state.stopReason.name),
+        _InfoRow(label: '停止原因', value: _stopReasonLabel(state.stopReason)),
         if (state.lastSettlementReport != null) ...[
           _InfoRow(
-            label: 'Last EXP',
+            label: '上场经验',
             value: state.lastSettlementReport!.gainedExperience.toString(),
           ),
           _InfoRow(
-            label: 'Last Drops',
+            label: '上场掉落',
             value: state.lastSettlementReport!.generatedEquipment.length
                 .toString(),
           ),
           _InfoRow(
-            label: 'Last Rejected',
+            label: '上场拒收',
             value:
                 state.lastSettlementReport!.rejectedEquipment.length.toString(),
           ),
         ],
         _InfoRow(
-          label: 'Progression Stage',
+          label: '推进关卡',
           value: state.progressionStageId ?? '-',
         ),
         _InfoRow(
-          label: 'Farming Stage',
+          label: '刷取关卡',
           value: state.farmingStageId ?? '-',
         ),
         _InfoRow(
-          label: 'Farming Because Level Too Low',
-          value: state.farmingBecauseLevelTooLow.toString(),
+          label: '因等级不足回刷',
+          value: _yesNo(state.farmingBecauseLevelTooLow),
         ),
         _InfoRow(
-          label: 'Farming Because Battle Failed',
-          value: state.farmingBecauseBattleFailed.toString(),
+          label: '因战斗失败回刷',
+          value: _yesNo(state.farmingBecauseBattleFailed),
         ),
         _InfoRow(
-          label: 'Farming Because Unsafe',
-          value: state.farmingBecauseUnsafe.toString(),
+          label: '因危险评估回刷',
+          value: _yesNo(state.farmingBecauseUnsafe),
         ),
         if (state.farmingBecauseLevelTooLow)
           const _WarningBanner(
             message:
-                'Current stage level is too high. Auto battle is farming the highest cleared stage you can enter.',
+                '当前关卡等级要求过高，正在自动刷最高可进入的已通关关卡。',
           ),
         if (state.farmingBecauseBattleFailed)
           const _WarningBanner(
             message:
-                'Current progression stage failed. Auto battle is farming the highest cleared stage you can survive.',
+                '当前推进关卡战斗失败，正在自动刷最高可承受的已通关关卡。',
           ),
         if (state.farmingBecauseUnsafe)
           const _WarningBanner(
             message:
-                'Current progression stage looks unsafe. Auto battle is farming the highest cleared stage first.',
+                '当前推进关卡风险较高，正在优先刷最高已通关关卡。',
           ),
         if (state.stopReason == AutoBattleStopReason.levelTooLow)
           const _WarningBanner(
             message:
-                'Current stage level is too low. Please level up or wait for repeat farming.',
+                '当前关卡等级不足，请提升等级或等待重复刷关功能处理。',
           ),
         if (state.stopReason == AutoBattleStopReason.chapterComplete)
-          const _SuccessBanner(message: 'Current chapter is complete.'),
+          const _SuccessBanner(message: '当前章节已完成。'),
         if (state.stopReason == AutoBattleStopReason.battleFailed)
           const _WarningBanner(
             message:
-                'Battle failed. Enhance gear, adjust equipment, or repeat cleared stages to grow stronger.',
+                '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
           ),
         const SizedBox(height: 8),
-        Text('Last Auto Battle Logs',
+        Text('最近连续战斗日志',
             style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 4),
         if (state.lastBattleLogs.isEmpty)
-          const Text('No auto battle logs yet.')
+          const Text('暂无连续战斗日志。')
         else
           for (final log in state.lastBattleLogs.skip(
             state.lastBattleLogs.length > 20
@@ -487,14 +487,14 @@ class _SettlementReportView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Section(
-      title: 'Settlement',
+      title: '结算报告',
       children: [
-        _InfoRow(label: 'Accepted', value: report.accepted.toString()),
+        _InfoRow(label: '已结算', value: _yesNo(report.accepted)),
         _InfoRow(
-            label: 'Experience', value: report.gainedExperience.toString()),
-        _InfoRow(label: 'Gold', value: report.gainedGold.toString()),
+            label: '经验', value: report.gainedExperience.toString()),
+        _InfoRow(label: '金币', value: report.gainedGold.toString()),
         _InfoRow(
-          label: 'Materials',
+          label: '材料',
           value: report.gainedMaterials
               .fold<int>(
                 0,
@@ -503,15 +503,15 @@ class _SettlementReportView extends StatelessWidget {
               .toString(),
         ),
         _InfoRow(
-          label: 'Dropped equipment',
+          label: '掉落装备',
           value: report.generatedEquipment.length.toString(),
         ),
         _InfoRow(
-          label: 'Rejected equipment',
+          label: '拒收装备',
           value: report.rejectedEquipment.length.toString(),
         ),
-        _InfoRow(label: 'Leveled up', value: report.leveledUp.toString()),
-        _InfoRow(label: 'New level', value: report.newLevel.toString()),
+        _InfoRow(label: '是否升级', value: _yesNo(report.leveledUp)),
+        _InfoRow(label: '当前等级', value: report.newLevel.toString()),
       ],
     );
   }
@@ -657,19 +657,57 @@ String _formatNumber(double value) {
   return value.toStringAsFixed(1);
 }
 
-String _progressMode(AutoBattleRunState state) {
+String _progressModeLabel(AutoBattleRunState state) {
   if (state.farmingBecauseLevelTooLow) {
-    return 'farming_level_too_low';
+    return '等级不足回刷';
   }
   if (state.farmingBecauseUnsafe) {
-    return 'farming_unsafe';
+    return '危险评估回刷';
   }
   if (state.farmingBecauseBattleFailed) {
-    return 'farming_after_failure';
+    return '失败后回刷';
   }
   if (state.battlesCompleted > 0) {
-    return 'progression';
+    return '主线推进';
   }
 
-  return 'idle';
+  return '空闲';
+}
+
+String _yesNo(bool value) {
+  return value ? '是' : '否';
+}
+
+String _battleResultLabel(BattleResult? result) {
+  switch (result) {
+    case BattleResult.running:
+      return '进行中';
+    case BattleResult.victory:
+      return '胜利';
+    case BattleResult.defeat:
+      return '失败';
+    case null:
+      return '未开始';
+  }
+}
+
+String _stopReasonLabel(AutoBattleStopReason reason) {
+  switch (reason) {
+    case AutoBattleStopReason.none:
+      return '无';
+    case AutoBattleStopReason.manualStop:
+      return '手动停止';
+    case AutoBattleStopReason.levelTooLow:
+      return '等级不足';
+    case AutoBattleStopReason.chapterComplete:
+      return '章节完成';
+    case AutoBattleStopReason.battleNotFinished:
+      return '战斗未结束';
+    case AutoBattleStopReason.battleFailed:
+      return '战斗失败';
+    case AutoBattleStopReason.inventoryFull:
+      return '背包已满';
+    case AutoBattleStopReason.maxBattlesReached:
+      return '达到场次上限';
+  }
 }

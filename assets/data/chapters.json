@@ -4,74 +4,74 @@
     {
       "id": "chapter_1",
       "chapterId": "chapter_1",
-      "name": "Chapter 1 - Grave Outskirts",
+      "name": "第一章：墓园边境",
       "stages": [
         {
           "stageId": "1-1",
-          "stageName": "Grave Road",
+          "stageName": "墓园小路",
           "monsterIds": ["skeleton_grunt"],
           "requiredLevel": 1,
           "isBossStage": false
         },
         {
           "stageId": "1-2",
-          "stageName": "Rat Cellar",
+          "stageName": "鼠群地窖",
           "monsterIds": ["plague_rat"],
           "requiredLevel": 1,
           "isBossStage": false
         },
         {
           "stageId": "1-3",
-          "stageName": "Blood Chapel",
+          "stageName": "血月礼拜堂",
           "monsterIds": ["blood_cultist"],
           "requiredLevel": 2,
           "isBossStage": false
         },
         {
           "stageId": "1-4",
-          "stageName": "Imp Rift",
+          "stageName": "深渊裂隙",
           "monsterIds": ["abyss_imp"],
           "requiredLevel": 3,
           "isBossStage": false
         },
         {
           "stageId": "1-5",
-          "stageName": "Bone Gate",
+          "stageName": "亡骨之门",
           "monsterIds": ["grave_guardian"],
           "requiredLevel": 4,
           "isBossStage": true
         },
         {
           "stageId": "1-6",
-          "stageName": "Plague Ossuary",
+          "stageName": "瘟疫藏骨堂",
           "monsterIds": ["plague_carrier"],
           "requiredLevel": 5,
           "isBossStage": false
         },
         {
           "stageId": "1-7",
-          "stageName": "Blood Moon Steps",
+          "stageName": "血月阶梯",
           "monsterIds": ["blood_acolyte"],
           "requiredLevel": 6,
           "isBossStage": false
         },
         {
           "stageId": "1-8",
-          "stageName": "Ashen Crypt",
+          "stageName": "灰烬墓室",
           "monsterIds": ["ash_wraith"],
           "requiredLevel": 7,
           "isBossStage": false
         },
         {
           "stageId": "1-9",
-          "stageName": "Frost-Bit Chapel",
+          "stageName": "霜蚀礼拜堂",
           "monsterIds": ["frost_bone_archer"],
           "requiredLevel": 8,
           "isBossStage": false
         },
         {
           "stageId": "1-10",
-          "stageName": "Relic Throne Gate",
+          "stageName": "遗装王座之门",
           "monsterIds": ["relic_gatekeeper"],
           "requiredLevel": 9,
           "isBossStage": true
@@ -81,39 +81,39 @@
     {
       "id": "chapter_2",
       "chapterId": "chapter_2",
-      "name": "Chapter 2 - Plague Chapel",
+      "name": "第二章：瘟疫教堂",
       "stages": [
         {
           "stageId": "2-1",
-          "stageName": "Molded Nave",
+          "stageName": "霉蚀中殿",
           "monsterIds": ["plague_acolyte"],
           "requiredLevel": 10,
           "isBossStage": false
         },
         {
           "stageId": "2-2",
-          "stageName": "Blood Incense Hall",
+          "stageName": "血香大厅",
           "monsterIds": ["blood_incense_priest"],
           "requiredLevel": 11,
           "isBossStage": false
         },
         {
           "stageId": "2-3",
-          "stageName": "Rotting Reliquary",
+          "stageName": "腐化圣匣室",
           "monsterIds": ["rotting_reliquary_guard"],
           "requiredLevel": 12,
           "isBossStage": false
         },
         {
           "stageId": "2-4",
-          "stageName": "Corrupted Choir",
+          "stageName": "腐化唱诗席",
           "monsterIds": ["fallen_sanctifier"],
           "requiredLevel": 13,
           "isBossStage": false
         },
         {
           "stageId": "2-5",
-          "stageName": "Plague Bell Altar",
+          "stageName": "瘟疫钟祭坛",
           "monsterIds": ["plague_bell_keeper"],
           "requiredLevel": 14,
           "isBossStage": true

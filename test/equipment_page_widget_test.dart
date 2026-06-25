@@ -30,10 +30,10 @@ void main() {
 
     expect(find.text('背包暂无装备'), findsOneWidget);
     expect(find.text('击败敌人后获得的装备会出现在这里。'), findsOneWidget);
-    expect(find.text('Enable Auto Salvage'), findsOneWidget);
-    expect(find.text('Keep Rare+'), findsOneWidget);
-    expect(find.text('Enhance recommended equipped'), findsOneWidget);
-    expect(find.text('Equip recommended upgrade'), findsOneWidget);
+    expect(find.text('启用自动分解'), findsOneWidget);
+    expect(find.text('保留稀有+'), findsOneWidget);
+    expect(find.text('强化推荐穿戴装备'), findsOneWidget);
+    expect(find.text('穿戴推荐升级装备'), findsOneWidget);
   });
 
   testWidgets('EquipmentPage generates test equipment through SaveData',
@@ -47,7 +47,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Rusted Blade'), findsOneWidget);
-    expect(find.textContaining('Rare'), findsWidgets);
+    expect(find.textContaining('稀有'), findsWidgets);
     expect(find.textContaining('BD'), findsWidgets);
     expect(find.textContaining('推荐 poison'), findsOneWidget);
   });
@@ -85,7 +85,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Poison Blade'), findsOneWidget);
-    expect(find.textContaining('Rare'), findsWidgets);
+    expect(find.textContaining('稀有'), findsWidgets);
     expect(find.textContaining('BD'), findsWidgets);
     expect(find.textContaining('推荐 poison'), findsOneWidget);
 
@@ -99,7 +99,7 @@ void main() {
     expect(find.text('穿戴'), findsOneWidget);
     expect(find.text('锁定'), findsOneWidget);
     expect(find.text('分解'), findsOneWidget);
-    expect(find.textContaining('matchedTags'), findsOneWidget);
+    expect(find.textContaining('匹配标签'), findsOneWidget);
   });
 
   testWidgets('EquipmentPage equips equipment and saves loadout',
@@ -247,16 +247,16 @@ void main() {
     await tester.tap(find.text('Poison Blade'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Enhance Level: +0'), findsOneWidget);
-    expect(find.text('Enhance'), findsOneWidget);
+    expect(find.text('强化等级：+0'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, '强化'), findsOneWidget);
 
-    await tester.tap(find.text('Enhance'));
+    await tester.tap(find.widgetWithText(TextButton, '强化'));
     await tester.pumpAndSettle();
 
     final save = await saveService.loadOrCreate();
     expect(
         save.inventory.equipmentInstances['eq_poison_blade']!.enhanceLevel, 1);
-    expect(find.textContaining('Enhanced to +1'), findsOneWidget);
+    expect(find.textContaining('已强化到 +1'), findsOneWidget);
     expect(find.text('Poison Blade +1'), findsOneWidget);
   });
 
@@ -278,9 +278,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Plain Blade'), findsOneWidget);
-    expect(find.text('Salvage filtered low-value'), findsOneWidget);
+    expect(find.text('分解当前筛选低价值装备'), findsOneWidget);
 
-    await tester.tap(find.text('Salvage filtered low-value'));
+    await tester.tap(find.text('分解当前筛选低价值装备'));
     await tester.pumpAndSettle();
 
     final save = await saveService.loadOrCreate();
@@ -288,7 +288,7 @@ void main() {
     expect(save.inventory.equipmentInstances, isEmpty);
     expect(save.inventory.materials.single.materialId, 'salvage_dust');
     expect(save.inventory.materials.single.quantity, 1);
-    expect(find.textContaining('Auto salvaged 1'), findsOneWidget);
+    expect(find.textContaining('已自动分解 1'), findsOneWidget);
   });
 
   test('PlayerSaveController fails when equipping missing equipment', () async {
@@ -521,7 +521,7 @@ GameDatabase _database() {
       'qualities': [
         {
           'id': 'normal',
-          'name': 'Normal',
+          'name': '普通',
           'affixMin': 0,
           'affixMax': 0,
           'statMultiplier': 1,
@@ -529,7 +529,7 @@ GameDatabase _database() {
         },
         {
           'id': 'magic',
-          'name': 'Magic',
+          'name': '魔法',
           'affixMin': 1,
           'affixMax': 2,
           'statMultiplier': 1.08,
@@ -537,7 +537,7 @@ GameDatabase _database() {
         },
         {
           'id': 'rare',
-          'name': 'Rare',
+          'name': '稀有',
           'affixMin': 1,
           'affixMax': 1,
           'statMultiplier': 1.18,

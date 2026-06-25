@@ -3,7 +3,7 @@
   "qualities": [
     {
       "id": "normal",
-      "name": "Normal",
+      "name": "普通",
       "affixMin": 0,
       "affixMax": 0,
       "statMultiplier": 1.0,
@@ -11,7 +11,7 @@
     },
     {
       "id": "magic",
-      "name": "Magic",
+      "name": "魔法",
       "affixMin": 1,
       "affixMax": 2,
       "statMultiplier": 1.08,
@@ -19,7 +19,7 @@
     },
     {
       "id": "rare",
-      "name": "Rare",
+      "name": "稀有",
       "affixMin": 3,
       "affixMax": 4,
       "statMultiplier": 1.18,
@@ -27,7 +27,7 @@
     },
     {
       "id": "epic",
-      "name": "Epic",
+      "name": "史诗",
       "affixMin": 4,
       "affixMax": 5,
       "statMultiplier": 1.32,
@@ -35,7 +35,7 @@
     },
     {
       "id": "legendary",
-      "name": "Legendary",
+      "name": "传奇",
       "affixMin": 5,
       "affixMax": 6,
       "statMultiplier": 1.5,
@@ -43,7 +43,7 @@
     },
     {
       "id": "ancient",
-      "name": "Ancient",
+      "name": "远古",
       "affixMin": 6,
       "affixMax": 7,
       "statMultiplier": 1.75,
@@ -51,7 +51,7 @@
     },
     {
       "id": "mythic",
-      "name": "Mythic",
+      "name": "神话",
       "affixMin": 7,
       "affixMax": 8,
       "statMultiplier": 2.05,
@@ -59,7 +59,7 @@
     },
     {
       "id": "abyss",
-      "name": "Abyss",
+      "name": "深渊",
       "affixMin": 8,
       "affixMax": 8,
       "statMultiplier": 2.4,

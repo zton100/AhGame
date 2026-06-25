@@ -297,8 +297,7 @@ void main() {
     expect(result.farmingStageId, '1-1');
     expect(result.farmingBecauseUnsafe, isTrue);
     expect(result.farmingBecauseBattleFailed, isFalse);
-    expect(result.lastBattleLogs.map((log) => log.message),
-        contains('Battle victory.'));
+    expect(result.lastBattleLogs.map((log) => log.message), contains('战斗胜利。'));
   });
 
   test('unsafe current stage farms highest cleared stage before attempting',
@@ -541,7 +540,7 @@ GameDatabase _database({
       'qualities': [
         {
           'id': 'normal',
-          'name': 'Normal',
+          'name': '普通',
           'affixMin': 0,
           'affixMax': 0,
           'statMultiplier': 1.0,
@@ -549,7 +548,7 @@ GameDatabase _database({
         },
         {
           'id': 'rare',
-          'name': 'Rare',
+          'name': '稀有',
           'affixMin': 0,
           'affixMax': 0,
           'statMultiplier': 1.18,

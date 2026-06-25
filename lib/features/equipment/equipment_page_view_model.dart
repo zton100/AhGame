@@ -185,12 +185,12 @@ class EquipmentPageItemViewModel {
 }
 
 enum EquipmentPageFilter {
-  all('All'),
-  equipped('Equipped'),
-  locked('Locked'),
-  rarePlus('Rare+'),
-  legendaryPlus('Legendary+'),
-  currentClassUsable('Current Class Usable');
+  all('全部'),
+  equipped('已穿戴'),
+  locked('已锁定'),
+  rarePlus('稀有+'),
+  legendaryPlus('传奇+'),
+  currentClassUsable('当前职业可用');
 
   const EquipmentPageFilter(this.label);
 
@@ -198,9 +198,9 @@ enum EquipmentPageFilter {
 }
 
 enum EquipmentPageSort {
-  newestFirst('Newest first'),
-  qualityHighToLow('Quality high to low'),
-  buildMatchScoreHighToLow('Build match score high to low');
+  newestFirst('最新优先'),
+  qualityHighToLow('品质从高到低'),
+  buildMatchScoreHighToLow('BD 匹配分从高到低');
 
   const EquipmentPageSort(this.label);
 

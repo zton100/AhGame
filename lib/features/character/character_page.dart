@@ -150,7 +150,7 @@ class _CharacterPageContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _Section(
-          title: '属性 Breakdown',
+          title: '属性明细',
           children: [
             for (final stat in StatKey.values)
               _BreakdownLine(
@@ -174,7 +174,7 @@ class _CharacterPageContent extends StatelessWidget {
   String _equipmentName(String instanceId, GameDatabase database) {
     final equipment = inventory.equipmentInstances[instanceId];
     if (equipment == null) {
-      return '$instanceId (missing)';
+      return '$instanceId（缺失）';
     }
 
     final template = database.findRecord(
@@ -204,10 +204,10 @@ class _SkillSection extends ConsumerWidget {
     final skillIds = saveData.playerProgress.skillLoadout.activeSkillIds;
 
     return _Section(
-      title: 'Skills',
+      title: '技能',
       children: [
         if (skillIds.isEmpty)
-          const Text('No active skills equipped')
+          const Text('暂无主动技能')
         else
           for (final skillId in skillIds)
             _SkillUpgradeRow(
@@ -253,7 +253,7 @@ class _SkillSection extends ConsumerWidget {
       SnackBar(
         content: Text(
           result.accepted
-              ? 'Skill upgraded to Lv.${result.newLevel}'
+              ? '技能已升级到 Lv.${result.newLevel}'
               : _skillUpgradeFailureMessage(result.reason),
         ),
       ),
@@ -288,11 +288,11 @@ class _SkillUpgradeRow extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text('$skillName Lv.$level'),
-          Text('Preview ${_formatNumber(previewDamage)}'),
-          Text('Next $nextGoldCost gold'),
+          Text('预览伤害 ${_formatNumber(previewDamage)}'),
+          Text('下级消耗 $nextGoldCost 金币'),
           FilledButton.tonal(
             onPressed: onUpgrade,
-            child: const Text('Upgrade Skill'),
+            child: const Text('升级技能'),
           ),
         ],
       ),
@@ -367,7 +367,7 @@ class _BreakdownLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '${stat.id}: base ${_formatNumber(breakdown.base)}, flat ${_formatNumber(breakdown.flat)}, percent ${_formatNumber(breakdown.percent)}, final ${_formatNumber(breakdown.finalValue)}',
+      '${stat.id}: 基础 ${_formatNumber(breakdown.base)}，固定 ${_formatNumber(breakdown.flat)}，百分比 ${_formatNumber(breakdown.percent)}，最终 ${_formatNumber(breakdown.finalValue)}',
       style: Theme.of(context).textTheme.bodySmall,
     );
   }
@@ -440,12 +440,12 @@ String _formatNumber(double value) {
 String _skillUpgradeFailureMessage(SkillUpgradeReason reason) {
   switch (reason) {
     case SkillUpgradeReason.insufficientGold:
-      return 'Not enough gold to upgrade skill.';
+      return '金币不足，无法升级技能。';
     case SkillUpgradeReason.maxLevelReached:
-      return 'Skill is already at max level.';
+      return '技能已达到最高等级。';
     case SkillUpgradeReason.skillNotAllowed:
-      return 'Skill is not allowed for this class.';
+      return '当前职业不能使用该技能。';
     case SkillUpgradeReason.upgraded:
-      return 'Skill upgraded.';
+      return '技能已升级。';
   }
 }

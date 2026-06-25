@@ -20,13 +20,13 @@ void main() {
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
 
-    expect(find.text('Battle'), findsOneWidget);
-    expect(find.text('Start Battle'), findsOneWidget);
-    expect(find.text('Run 1 Battle'), findsOneWidget);
-    expect(find.text('Run 10 Battles'), findsOneWidget);
-    expect(find.text('not_started'), findsOneWidget);
-    expect(find.text('Chapter 1'), findsOneWidget);
-    expect(find.text('1-1 Grave Road'), findsOneWidget);
+    expect(find.text('战斗'), findsOneWidget);
+    expect(find.text('开始战斗'), findsOneWidget);
+    expect(find.text('运行 1 场'), findsOneWidget);
+    expect(find.text('运行 10 场'), findsOneWidget);
+    expect(find.text('未开始'), findsOneWidget);
+    expect(find.text('第一章：墓园边境'), findsOneWidget);
+    expect(find.text('1-1 墓园小路'), findsOneWidget);
   });
 
   testWidgets('starting battle creates battle state on the page',
@@ -35,13 +35,13 @@ void main() {
 
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Battle'));
+    await tester.tap(find.text('开始战斗'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Skeleton Grunt'), findsOneWidget);
-    expect(find.text('running'), findsOneWidget);
+    expect(find.text('亡骨杂兵'), findsOneWidget);
+    expect(find.text('进行中'), findsOneWidget);
     expect(find.text('85 / 85'), findsOneWidget);
-    expect(find.text('Player HP'), findsOneWidget);
+    expect(find.text('玩家生命'), findsOneWidget);
     expect(find.text('100 / 100'), findsOneWidget);
   });
 
@@ -50,13 +50,13 @@ void main() {
 
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Battle'));
+    await tester.tap(find.text('开始战斗'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Tick 1s'));
+    await tester.tap(find.text('推进 1 秒'));
     await tester.pumpAndSettle();
 
     expect(find.text('85 / 85'), findsNothing);
-    expect(find.textContaining('toxic_slash cast.'), findsOneWidget);
+    expect(find.textContaining('释放技能：毒刃。'), findsOneWidget);
   });
 
   testWidgets('victory settlement saves experience and dropped equipment',
@@ -65,15 +65,15 @@ void main() {
 
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Battle'));
+    await tester.tap(find.text('开始战斗'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Auto Finish'));
+    await tester.tap(find.text('自动打完'));
     await tester.pumpAndSettle();
 
-    expect(find.text('victory'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Settlement'), 200);
-    expect(find.text('Settlement'), findsOneWidget);
-    expect(find.text('Dropped equipment'), findsOneWidget);
+    expect(find.text('胜利'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('结算报告'), 200);
+    expect(find.text('结算报告'), findsOneWidget);
+    expect(find.text('掉落装备'), findsOneWidget);
 
     final save = await saveService.loadOrCreate();
     expect(save.playerProgress.experience, 12);
@@ -91,15 +91,15 @@ void main() {
 
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Battle'));
+    await tester.tap(find.text('开始战斗'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Auto Finish'));
+    await tester.tap(find.text('自动打完'));
     await tester.pumpAndSettle();
 
     final firstSave = await saveService.loadOrCreate();
-    await tester.tap(find.text('Auto Finish'), warnIfMissed: false);
+    await tester.tap(find.text('自动打完'), warnIfMissed: false);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Settle Victory'), warnIfMissed: false);
+    await tester.tap(find.text('结算胜利'), warnIfMissed: false);
     await tester.pumpAndSettle();
 
     final secondSave = await saveService.loadOrCreate();
@@ -117,13 +117,13 @@ void main() {
 
     await tester.pumpWidget(_app(saveService: saveService));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Run 10 Battles'));
+    await tester.tap(find.text('运行 10 场'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Completed Battles'), findsOneWidget);
-    expect(find.text('Total EXP'), findsOneWidget);
+    expect(find.text('完成场次'), findsOneWidget);
+    expect(find.text('总经验'), findsOneWidget);
     expect(find.text('21'), findsOneWidget);
-    expect(find.text('chapterComplete'), findsOneWidget);
+    expect(find.text('章节完成'), findsOneWidget);
 
     final save = await saveService.loadOrCreate();
     expect(save.playerProgress.experience, 21);
@@ -147,16 +147,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Run 1 Battle'));
+    await tester.tap(find.text('运行 1 场'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Progression Stage'), findsOneWidget);
-    expect(find.text('Farming Stage'), findsOneWidget);
-    expect(find.text('Farming Because Level Too Low'), findsOneWidget);
-    expect(find.text('true'), findsOneWidget);
+    expect(find.text('推进关卡'), findsOneWidget);
+    expect(find.text('刷取关卡'), findsOneWidget);
+    expect(find.text('因等级不足回刷'), findsOneWidget);
+    expect(find.text('是'), findsWidgets);
     expect(
       find.text(
-        'Current stage level is too high. Auto battle is farming the highest cleared stage you can enter.',
+        '当前关卡等级要求过高，正在自动刷最高可进入的已通关关卡。',
       ),
       findsOneWidget,
     );
@@ -181,16 +181,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Battle'));
+    await tester.tap(find.text('开始战斗'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Auto Finish'));
+    await tester.tap(find.text('自动打完'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Player HP'), findsOneWidget);
-    expect(find.text('defeat'), findsOneWidget);
+    expect(find.text('玩家生命'), findsOneWidget);
+    expect(find.text('失败'), findsOneWidget);
     expect(
       find.text(
-        'Battle failed. Enhance gear, adjust equipment, or repeat cleared stages to grow stronger.',
+        '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
       ),
       findsOneWidget,
     );
@@ -216,12 +216,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Run 1 Battle'));
+    await tester.tap(find.text('运行 1 场'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Stop Reason'), findsOneWidget);
-    expect(find.text('battleFailed'), findsOneWidget);
-    expect(find.textContaining('Battle lost.'), findsOneWidget);
+    expect(find.text('停止原因'), findsOneWidget);
+    expect(find.text('战斗失败'), findsOneWidget);
+    expect(find.textContaining('战斗失败。'), findsWidgets);
   });
 
   testWidgets('BattlePage displays unsafe farming fallback', (tester) async {
@@ -246,16 +246,20 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Run 1 Battle'));
+    await tester.tap(find.text('运行 1 场'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Progress Mode'), findsOneWidget);
-    expect(find.text('farming_unsafe'), findsOneWidget);
-    expect(find.text('Farming Because Unsafe'), findsOneWidget);
-    expect(find.text('true'), findsOneWidget);
+    expect(find.text('推进模式'), findsOneWidget);
+    expect(find.text('危险评估回刷'), findsOneWidget);
+    expect(find.text('因危险评估回刷'), findsOneWidget);
+    expect(find.text('是'), findsWidgets);
+    await tester.scrollUntilVisible(
+      find.text('当前推进关卡风险较高，正在优先刷最高已通关关卡。'),
+      200,
+    );
     expect(
       find.text(
-        'Current progression stage looks unsafe. Auto battle is farming the highest cleared stage first.',
+        '当前推进关卡风险较高，正在优先刷最高已通关关卡。',
       ),
       findsOneWidget,
     );
@@ -299,7 +303,7 @@ GameDatabase _database({
       'classes': [
         {
           'id': 'exile',
-          'name': 'Exile',
+          'name': '流放者',
           'tags': ['poison'],
           'baseStats': {
             'hp': classHp,
@@ -315,7 +319,7 @@ GameDatabase _database({
       'skills': [
         {
           'id': 'toxic_slash',
-          'name': 'Toxic Slash',
+          'name': '毒刃',
           'classId': 'exile',
           'skillType': 'active',
           'tags': ['poison'],
@@ -335,7 +339,7 @@ GameDatabase _database({
       'monsters': [
         {
           'id': 'skeleton_grunt',
-          'name': 'Skeleton Grunt',
+          'name': '亡骨杂兵',
           'level': 1,
           'tags': ['undead'],
           'baseStats': {
@@ -352,7 +356,7 @@ GameDatabase _database({
         },
         {
           'id': 'plague_rat',
-          'name': 'Plague Rat',
+          'name': '瘟疫鼠',
           'level': 1,
           'tags': ['beast', 'poison'],
           'baseStats': {
@@ -375,18 +379,18 @@ GameDatabase _database({
         {
           'id': 'chapter_1',
           'chapterId': 'chapter_1',
-          'name': 'Chapter 1',
+          'name': '第一章：墓园边境',
           'stages': [
             {
               'stageId': '1-1',
-              'stageName': 'Grave Road',
+              'stageName': '墓园小路',
               'monsterIds': ['skeleton_grunt'],
               'requiredLevel': 1,
               'isBossStage': false,
             },
             {
               'stageId': '1-2',
-              'stageName': 'Rat Cellar',
+              'stageName': '鼠群地窖',
               'monsterIds': ['plague_rat'],
               'requiredLevel': secondStageRequiredLevel,
               'isBossStage': false,
@@ -452,7 +456,7 @@ GameDatabase _database({
       'qualities': [
         {
           'id': 'rare',
-          'name': 'Rare',
+          'name': '稀有',
           'affixMin': 0,
           'affixMax': 0,
           'statMultiplier': 1.18,

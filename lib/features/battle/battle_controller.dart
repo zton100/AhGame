@@ -66,7 +66,7 @@ class BattleController {
       _clearBattleProgress(
         chapter: chapter,
         stage: stage,
-        message: 'Required level ${stage.requiredLevel} for ${stage.stageId}.',
+        message: '${stage.stageId} 需要等级 ${stage.requiredLevel}。',
       );
       return;
     }
@@ -74,7 +74,7 @@ class BattleController {
       _clearBattleProgress(
         chapter: chapter,
         stage: stage,
-        message: 'Stage has no monsters: ${stage.stageId}',
+        message: '关卡没有配置怪物：${stage.stageId}',
       );
       return;
     }
@@ -101,7 +101,7 @@ class BattleController {
   void tick({double seconds = 1}) {
     final current = battle;
     if (current == null) {
-      errorMessage = 'Start a battle before ticking.';
+      errorMessage = '请先开始战斗，再推进时间。';
       return;
     }
     errorMessage = null;
@@ -111,7 +111,7 @@ class BattleController {
   void autoAdvance({int maxTicks = 100, double secondsPerTick = 1}) {
     final current = battle;
     if (current == null) {
-      errorMessage = 'Start a battle before auto advancing.';
+      errorMessage = '请先开始战斗，再自动推进。';
       return;
     }
 
@@ -136,11 +136,11 @@ class BattleController {
     final current = battle;
     final config = monsterConfig;
     if (current == null || config == null) {
-      errorMessage = 'Start a battle before settlement.';
+      errorMessage = '请先开始战斗，再进行结算。';
       return null;
     }
     if (current.result != BattleResult.victory) {
-      errorMessage = 'Only victory battles can be settled.';
+      errorMessage = '只有胜利的战斗可以结算。';
       return null;
     }
 

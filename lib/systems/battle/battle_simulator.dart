@@ -60,7 +60,7 @@ class BattleSimulator {
           time: 0,
           type: BattleLogType.battleStarted,
           message:
-              'Battle started: ${character.classConfig.id} vs ${monster.monsterId}.',
+              '战斗开始：${character.classConfig.name} 对阵 ${_monsterLabel(monster.monsterId)}。',
           metadata: {
             'characterClassId': character.classConfig.id,
             'monsterId': monster.monsterId,
@@ -111,7 +111,7 @@ class BattleSimulator {
       logs.add(BattleLogEntry(
         time: nextTime,
         type: BattleLogType.skillCast,
-        message: '${skill.id} cast.',
+        message: '释放技能：${skill.name}。',
         metadata: {'skillId': skill.id},
       ));
       final result = _applyDamage(
@@ -120,7 +120,7 @@ class BattleSimulator {
         finalDamage: damage,
         time: nextTime,
         logs: logs,
-        source: skill.id,
+        source: skill.name,
       );
       monster = result.monster;
       skillRuntimes = [
@@ -136,7 +136,7 @@ class BattleSimulator {
       logs.add(BattleLogEntry(
         time: nextTime,
         type: BattleLogType.basicAttack,
-        message: 'Basic attack.',
+        message: '普通攻击。',
         metadata: {'multiplier': 1.0},
       ));
       final result = _applyDamage(
@@ -145,7 +145,7 @@ class BattleSimulator {
         finalDamage: damage,
         time: nextTime,
         logs: logs,
-        source: 'basic_attack',
+        source: '普通攻击',
       );
       monster = result.monster;
     }
@@ -154,13 +154,13 @@ class BattleSimulator {
       logs.add(BattleLogEntry(
         time: nextTime,
         type: BattleLogType.monsterDeath,
-        message: '${monster.monsterId} died.',
+        message: '${_monsterLabel(monster.monsterId)} 已死亡。',
         metadata: {'monsterId': monster.monsterId},
       ));
       logs.add(BattleLogEntry(
         time: nextTime,
         type: BattleLogType.victory,
-        message: 'Battle victory.',
+        message: '战斗胜利。',
         metadata: {'battleId': state.battleId},
       ));
       return state.copyWith(
@@ -188,13 +188,13 @@ class BattleSimulator {
         logs.add(BattleLogEntry(
           time: nextTime,
           type: BattleLogType.playerDeath,
-          message: 'Player was defeated.',
+          message: '玩家被击败。',
           metadata: {'battleId': state.battleId},
         ));
         logs.add(BattleLogEntry(
           time: nextTime,
           type: BattleLogType.defeat,
-          message: 'Battle lost.',
+          message: '战斗失败。',
           metadata: {'battleId': state.battleId},
         ));
         return state.copyWith(
@@ -243,7 +243,7 @@ class BattleSimulator {
     logs.add(BattleLogEntry(
       time: time,
       type: BattleLogType.damage,
-      message: '$source dealt ${finalDamage.toStringAsFixed(1)} damage.',
+      message: '$source 造成 ${finalDamage.toStringAsFixed(1)} 点伤害。',
       metadata: {
         'source': source,
         'rawDamage': rawDamage,
@@ -254,7 +254,7 @@ class BattleSimulator {
       time: time,
       type: BattleLogType.monsterHp,
       message:
-          '${damagedMonster.monsterId} hp ${damagedMonster.currentHp.toStringAsFixed(1)}/${damagedMonster.maxHp.toStringAsFixed(1)}.',
+          '${_monsterLabel(damagedMonster.monsterId)} 生命 ${damagedMonster.currentHp.toStringAsFixed(1)}/${damagedMonster.maxHp.toStringAsFixed(1)}。',
       metadata: {
         'monsterId': damagedMonster.monsterId,
         'currentHp': damagedMonster.currentHp,
@@ -276,7 +276,7 @@ class BattleSimulator {
       logs.add(BattleLogEntry(
         time: time,
         type: BattleLogType.monsterAttack,
-        message: '${monster.monsterId} attacks but deals no damage.',
+        message: '${_monsterLabel(monster.monsterId)} 发起攻击，但没有造成伤害。',
         metadata: {'monsterAttack': monster.attack, 'finalDamage': 0},
       ));
       return _MonsterAttackApplication(playerCurrentHp: playerCurrentHp);
@@ -291,7 +291,7 @@ class BattleSimulator {
       time: time,
       type: BattleLogType.monsterAttack,
       message:
-          '${monster.monsterId} attacks for ${damage.toStringAsFixed(1)} damage.',
+          '${_monsterLabel(monster.monsterId)} 攻击玩家，造成 ${damage.toStringAsFixed(1)} 点伤害。',
       metadata: {
         'monsterId': monster.monsterId,
         'rawDamage': monster.attack,
@@ -302,7 +302,7 @@ class BattleSimulator {
       time: time,
       type: BattleLogType.playerHp,
       message:
-          'Player HP: ${nextHp.toStringAsFixed(1)} / ${playerMaxHp.toStringAsFixed(1)}.',
+          '玩家生命：${nextHp.toStringAsFixed(1)} / ${playerMaxHp.toStringAsFixed(1)}。',
       metadata: {
         'currentHp': nextHp,
         'maxHp': playerMaxHp,
@@ -319,6 +319,44 @@ class BattleSimulator {
 
     return value;
   }
+}
+
+String _monsterLabel(String monsterId) {
+  switch (monsterId) {
+    case 'skeleton_grunt':
+      return '亡骨杂兵';
+    case 'plague_rat':
+      return '瘟疫鼠';
+    case 'blood_cultist':
+      return '血月信徒';
+    case 'abyss_imp':
+      return '深渊小鬼';
+    case 'training_dummy':
+      return '训练假人';
+    case 'grave_guardian':
+      return '亡骨守门人';
+    case 'plague_carrier':
+      return '瘟疫携带者';
+    case 'blood_acolyte':
+      return '血月侍僧';
+    case 'ash_wraith':
+      return '灰烬残魂';
+    case 'frost_bone_archer':
+      return '霜骨弓手';
+    case 'relic_gatekeeper':
+      return '遗装守门人';
+    case 'plague_acolyte':
+      return '瘟疫侍僧';
+    case 'blood_incense_priest':
+      return '血香祭司';
+    case 'rotting_reliquary_guard':
+      return '腐化圣匣卫士';
+    case 'fallen_sanctifier':
+      return '腐化圣裁者';
+    case 'plague_bell_keeper':
+      return '瘟疫钟守卫';
+  }
+  return monsterId;
 }
 
 class _DamageApplication {
