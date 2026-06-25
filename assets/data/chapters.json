@@ -77,6 +77,48 @@
           "isBossStage": true
         }
       ]
+    },
+    {
+      "id": "chapter_2",
+      "chapterId": "chapter_2",
+      "name": "Chapter 2 - Plague Chapel",
+      "stages": [
+        {
+          "stageId": "2-1",
+          "stageName": "Molded Nave",
+          "monsterIds": ["plague_acolyte"],
+          "requiredLevel": 10,
+          "isBossStage": false
+        },
+        {
+          "stageId": "2-2",
+          "stageName": "Blood Incense Hall",
+          "monsterIds": ["blood_incense_priest"],
+          "requiredLevel": 11,
+          "isBossStage": false
+        },
+        {
+          "stageId": "2-3",
+          "stageName": "Rotting Reliquary",
+          "monsterIds": ["rotting_reliquary_guard"],
+          "requiredLevel": 12,
+          "isBossStage": false
+        },
+        {
+          "stageId": "2-4",
+          "stageName": "Corrupted Choir",
+          "monsterIds": ["fallen_sanctifier"],
+          "requiredLevel": 13,
+          "isBossStage": false
+        },
+        {
+          "stageId": "2-5",
+          "stageName": "Plague Bell Altar",
+          "monsterIds": ["plague_bell_keeper"],
+          "requiredLevel": 14,
+          "isBossStage": true
+        }
+      ]
     }
   ]
 }

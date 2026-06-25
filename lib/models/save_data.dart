@@ -28,6 +28,7 @@ class SaveData {
         level: 1,
         experience: 0,
         skillLoadout: SkillLoadout.defaultForClass('exile'),
+        skillLevels: const {},
         currentChapterId: PlayerProgress.defaultChapterId,
         currentStageId: PlayerProgress.defaultStageId,
       ),
@@ -55,7 +56,7 @@ class SaveData {
     );
   }
 
-  static const int currentVersion = 5;
+  static const int currentVersion = 6;
 
   final int saveVersion;
   final DateTime createdAt;
@@ -112,6 +113,7 @@ class PlayerProgress {
     required this.level,
     required this.experience,
     this.skillLoadout = const SkillLoadout.empty(),
+    this.skillLevels = const {},
     this.currentChapterId = defaultChapterId,
     this.currentStageId = defaultStageId,
     this.highestClearedStageId,
@@ -128,6 +130,10 @@ class PlayerProgress {
               Map<String, Object?>.from(json['skillLoadout'] as Map),
             )
           : SkillLoadout.defaultForClass(currentClassId),
+      skillLevels: {
+        for (final entry in (json['skillLevels'] as Map? ?? const {}).entries)
+          entry.key as String: entry.value as int,
+      },
       currentChapterId: json['currentChapterId'] as String? ?? defaultChapterId,
       currentStageId: json['currentStageId'] as String? ?? defaultStageId,
       highestClearedStageId: json['highestClearedStageId'] as String?,
@@ -141,6 +147,7 @@ class PlayerProgress {
   final int level;
   final int experience;
   final SkillLoadout skillLoadout;
+  final Map<String, int> skillLevels;
   final String currentChapterId;
   final String currentStageId;
   final String? highestClearedStageId;
@@ -150,6 +157,7 @@ class PlayerProgress {
     int? level,
     int? experience,
     SkillLoadout? skillLoadout,
+    Map<String, int>? skillLevels,
     String? currentChapterId,
     String? currentStageId,
     String? highestClearedStageId,
@@ -159,6 +167,7 @@ class PlayerProgress {
       level: level ?? this.level,
       experience: experience ?? this.experience,
       skillLoadout: skillLoadout ?? this.skillLoadout,
+      skillLevels: skillLevels ?? this.skillLevels,
       currentChapterId: currentChapterId ?? this.currentChapterId,
       currentStageId: currentStageId ?? this.currentStageId,
       highestClearedStageId:
@@ -172,6 +181,7 @@ class PlayerProgress {
       'level': level,
       'experience': experience,
       'skillLoadout': skillLoadout.toJson(),
+      'skillLevels': skillLevels,
       'currentChapterId': currentChapterId,
       'currentStageId': currentStageId,
       'highestClearedStageId': highestClearedStageId,

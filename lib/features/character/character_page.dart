@@ -5,11 +5,15 @@ import '../../core/save/player_save_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/character_state.dart';
 import '../../models/inventory_state.dart';
+import '../../models/save_data.dart';
 import '../../models/stat_block.dart';
 import '../../systems/character/character_service.dart';
 import '../../systems/character/class_service.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
+import '../../systems/skills/skill_effect_preview_service.dart';
+import '../../systems/skills/skill_service.dart';
+import '../../systems/skills/skill_upgrade_service.dart';
 import '../../systems/stats/character_final_stats_service.dart';
 import '../../systems/stats/stat_aggregation_service.dart';
 
@@ -61,6 +65,7 @@ class CharacterPage extends ConsumerWidget {
         );
 
         return _CharacterPageContent(
+          saveData: saveData,
           character: character,
           inventory: inventory,
           database: database,
@@ -87,12 +92,14 @@ class CharacterPage extends ConsumerWidget {
 
 class _CharacterPageContent extends StatelessWidget {
   const _CharacterPageContent({
+    required this.saveData,
     required this.character,
     required this.inventory,
     required this.database,
     required this.finalStats,
   });
 
+  final SaveData saveData;
   final CharacterState character;
   final InventoryState inventory;
   final GameDatabase database;
@@ -122,6 +129,12 @@ class _CharacterPageContent extends StatelessWidget {
         _Section(
           title: '最终属性',
           children: _statRows(finalStats.computedStats.finalStats),
+        ),
+        const SizedBox(height: 16),
+        _SkillSection(
+          saveData: saveData,
+          database: database,
+          finalStats: finalStats.computedStats,
         ),
         const SizedBox(height: 16),
         _Section(
@@ -169,6 +182,121 @@ class _CharacterPageContent extends StatelessWidget {
       equipment.templateId,
     );
     return template?['name'] as String? ?? equipment.templateId;
+  }
+}
+
+class _SkillSection extends ConsumerWidget {
+  const _SkillSection({
+    required this.saveData,
+    required this.database,
+    required this.finalStats,
+  });
+
+  final SaveData saveData;
+  final GameDatabase database;
+  final ComputedStats finalStats;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final skillService = SkillService(database);
+    final upgradeService = const SkillUpgradeService();
+    final previewService = const SkillEffectPreviewService();
+    final skillIds = saveData.playerProgress.skillLoadout.activeSkillIds;
+
+    return _Section(
+      title: 'Skills',
+      children: [
+        if (skillIds.isEmpty)
+          const Text('No active skills equipped')
+        else
+          for (final skillId in skillIds)
+            _SkillUpgradeRow(
+              skillId: skillId,
+              skillName: skillService.requireSkill(skillId).name,
+              level: upgradeService.levelFor(
+                progress: saveData.playerProgress,
+                skillId: skillId,
+              ),
+              nextGoldCost: upgradeService.goldCostForNextLevel(
+                progress: saveData.playerProgress,
+                skillId: skillId,
+              ),
+              previewDamage: previewService
+                  .previewDamage(
+                    skill: skillService.requireSkill(skillId),
+                    stats: finalStats,
+                    skillLevel: upgradeService.levelFor(
+                      progress: saveData.playerProgress,
+                      skillId: skillId,
+                    ),
+                  )
+                  .damage,
+              onUpgrade: () => _upgradeSkill(context, ref, skillId),
+            ),
+      ],
+    );
+  }
+
+  Future<void> _upgradeSkill(
+    BuildContext context,
+    WidgetRef ref,
+    String skillId,
+  ) async {
+    final result = await ref.read(playerSaveProvider.notifier).upgradeSkill(
+          database: database,
+          skillId: skillId,
+        );
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.accepted
+              ? 'Skill upgraded to Lv.${result.newLevel}'
+              : _skillUpgradeFailureMessage(result.reason),
+        ),
+      ),
+    );
+  }
+}
+
+class _SkillUpgradeRow extends StatelessWidget {
+  const _SkillUpgradeRow({
+    required this.skillId,
+    required this.skillName,
+    required this.level,
+    required this.nextGoldCost,
+    required this.previewDamage,
+    required this.onUpgrade,
+  });
+
+  final String skillId;
+  final String skillName;
+  final int level;
+  final int nextGoldCost;
+  final double previewDamage;
+  final VoidCallback onUpgrade;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text('$skillName Lv.$level'),
+          Text('Preview ${_formatNumber(previewDamage)}'),
+          Text('Next $nextGoldCost gold'),
+          FilledButton.tonal(
+            onPressed: onUpgrade,
+            child: const Text('Upgrade Skill'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -307,4 +435,17 @@ String _formatNumber(double value) {
   }
 
   return value.toStringAsFixed(2);
+}
+
+String _skillUpgradeFailureMessage(SkillUpgradeReason reason) {
+  switch (reason) {
+    case SkillUpgradeReason.insufficientGold:
+      return 'Not enough gold to upgrade skill.';
+    case SkillUpgradeReason.maxLevelReached:
+      return 'Skill is already at max level.';
+    case SkillUpgradeReason.skillNotAllowed:
+      return 'Skill is not allowed for this class.';
+    case SkillUpgradeReason.upgraded:
+      return 'Skill upgraded.';
+  }
 }

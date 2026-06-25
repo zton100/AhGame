@@ -92,6 +92,7 @@ class BattleController {
       character: character,
       computedStats: computedStats.computedStats,
       skillLoadout: saveData.playerProgress.skillLoadout,
+      skillLevels: saveData.playerProgress.skillLevels,
       monster: monster,
       skillService: skillService,
     );

@@ -177,6 +177,7 @@ void main() {
       'Migrated saveVersion 2 to 3.',
       'Migrated saveVersion 3 to 4.',
       'Migrated saveVersion 4 to 5.',
+      'Migrated saveVersion 5 to 6.',
     ]);
   });
 
@@ -210,6 +211,7 @@ void main() {
       'Migrated saveVersion 2 to 3.',
       'Migrated saveVersion 3 to 4.',
       'Migrated saveVersion 4 to 5.',
+      'Migrated saveVersion 5 to 6.',
     ]);
   });
 

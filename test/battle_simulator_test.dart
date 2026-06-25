@@ -37,6 +37,7 @@ void main() {
     final battle = _createBattle(attack: 50).copyWith(
       playerCurrentHp: 42,
       monsterAttackCooldownRemaining: 1,
+      skillLevels: const {'toxic_slash': 3},
     );
 
     final restored = BattleState.fromJson(battle.toJson());
@@ -47,7 +48,28 @@ void main() {
     expect(restored.playerArmor, 6);
     expect(restored.monsterAttackCooldownRemaining, 1);
     expect(restored.monsterAttackInterval, 2);
+    expect(restored.skillLevels['toxic_slash'], 3);
     expect(restored.skillRuntimes.single.skillId, 'toxic_slash');
+  });
+
+  test('skill levels increase skill damage in battle', () {
+    final levelOne = _simulator().tick(_createBattle(attack: 10), 1);
+    final levelThree = _simulator().tick(
+      _simulator().createBattle(
+        character: _character(),
+        computedStats: _stats(attack: 10),
+        skillLoadout: SkillLoadout(activeSkillIds: ['toxic_slash']),
+        monster: _trainingDummy(),
+        skillService: _skillService(),
+        skillLevels: const {'toxic_slash': 3},
+      ),
+      1,
+    );
+
+    expect(
+      levelThree.monster.currentHp,
+      lessThan(levelOne.monster.currentHp),
+    );
   });
 
   test('tick casts an active skill, damages monster, and enters cooldown', () {

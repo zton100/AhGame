@@ -82,6 +82,33 @@ void main() {
     );
     expect(find.textContaining('missing_eq (missing)'), findsOneWidget);
   });
+
+  testWidgets('CharacterPage upgrades active skill and saves level',
+      (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    await saveService.save(SaveData.newGame().copyWith(
+      inventory: const InventorySave(
+        equipmentInstanceIds: [],
+        materials: [MaterialStack(materialId: 'gold', quantity: 50)],
+      ),
+    ));
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Skills'), 200);
+    expect(find.text('Skills'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, -260));
+    await tester.pumpAndSettle();
+    expect(find.text('Upgrade Skill'), findsOneWidget);
+
+    await tester.tap(find.text('Upgrade Skill'));
+    await tester.pumpAndSettle();
+
+    final save = await saveService.loadOrCreate();
+    expect(save.playerProgress.skillLevels['toxic_slash'], 2);
+    expect(find.textContaining('Skill upgraded to Lv.2'), findsOneWidget);
+  });
 }
 
 Widget _app({required SaveService saveService}) {
@@ -153,6 +180,26 @@ GameDatabase _database() {
     _file('assets/data/affixes.json', {
       'schemaVersion': 1,
       'affixes': [],
+    }),
+    _file('assets/data/skills.json', {
+      'schemaVersion': 1,
+      'skills': [
+        {
+          'id': 'toxic_slash',
+          'name': 'Toxic Slash',
+          'classId': 'exile',
+          'skillType': 'active',
+          'tags': ['poison', 'shadow'],
+          'cooldown': 3.0,
+          'resourceCost': 10,
+          'effects': [
+            {
+              'effectId': 'deal_damage',
+              'params': {'multiplier': 1.2, 'damageType': 'poison'},
+            },
+          ],
+        },
+      ],
     }),
   ]);
 }

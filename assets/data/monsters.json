@@ -121,6 +121,61 @@
       "dropPoolId": "drop_chapter_1",
       "skills": [],
       "resistances": {"shadow": 0.2, "holy": -0.15}
+    },
+    {
+      "id": "plague_acolyte",
+      "name": "Plague Acolyte",
+      "level": 10,
+      "tags": ["plague", "cultist", "poison"],
+      "baseStats": {"hp": 245, "attack": 42, "armor": 8},
+      "rewards": {"experience": 104, "gold": 38, "materials": {"plague_ichor": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": ["toxic_slash"],
+      "resistances": {"poison": 0.35, "fire": -0.1}
+    },
+    {
+      "id": "blood_incense_priest",
+      "name": "Blood Incense Priest",
+      "level": 11,
+      "tags": ["blood", "cultist", "shadow"],
+      "baseStats": {"hp": 270, "attack": 46, "armor": 9},
+      "rewards": {"experience": 118, "gold": 42, "materials": {"blood_tallow": 2}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"shadow": 0.18, "holy": -0.1}
+    },
+    {
+      "id": "rotting_reliquary_guard",
+      "name": "Rotting Reliquary Guard",
+      "level": 12,
+      "tags": ["undead", "plague", "physical"],
+      "baseStats": {"hp": 320, "attack": 48, "armor": 14},
+      "rewards": {"experience": 134, "gold": 46, "materials": {"bone_shard": 2}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": [],
+      "resistances": {"poison": 0.2, "holy": -0.12}
+    },
+    {
+      "id": "fallen_sanctifier",
+      "name": "Fallen Sanctifier",
+      "level": 13,
+      "tags": ["holy", "corrupted", "shield"],
+      "baseStats": {"hp": 300, "attack": 54, "armor": 16},
+      "rewards": {"experience": 150, "gold": 52, "materials": {"relic_fragment": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": ["judgement_strike"],
+      "resistances": {"holy": 0.25, "shadow": -0.1}
+    },
+    {
+      "id": "plague_bell_keeper",
+      "name": "Plague Bell Keeper",
+      "level": 14,
+      "tags": ["plague", "boss", "abyss"],
+      "baseStats": {"hp": 430, "attack": 62, "armor": 18},
+      "rewards": {"experience": 190, "gold": 70, "materials": {"plague_ichor": 2, "relic_fragment": 1}},
+      "dropPoolId": "drop_chapter_1",
+      "skills": ["toxic_slash"],
+      "resistances": {"poison": 0.35, "fire": -0.12, "holy": -0.08}
     }
   ]
 }

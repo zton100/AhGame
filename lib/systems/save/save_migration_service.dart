@@ -69,6 +69,17 @@ class SaveMigrationService {
       warnings.add('Migrated saveVersion 4 to 5.');
     }
 
+    if (version == 5) {
+      final playerProgress = Map<String, Object?>.from(
+        migrated['playerProgress'] as Map? ?? const {},
+      );
+      playerProgress['skillLevels'] = playerProgress['skillLevels'] ?? {};
+      migrated['playerProgress'] = playerProgress;
+      version = 6;
+      migrated['saveVersion'] = version;
+      warnings.add('Migrated saveVersion 5 to 6.');
+    }
+
     if (version == SaveData.currentVersion) {
       return MigrationResult(
         success: true,

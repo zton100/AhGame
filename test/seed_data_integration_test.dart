@@ -403,6 +403,24 @@ void main() {
     );
   });
 
+  test('seed chapter 2 content resolves boss monster', () async {
+    final result = await const GameDatabaseService(
+      dataLoader: DataLoader(),
+    ).loadDataDirectory();
+
+    final chapter = ChapterService(result.database).requireChapter('chapter_2');
+    final bossStage = chapter.stages.last;
+
+    expect(chapter.stages, hasLength(5));
+    expect(bossStage.stageId, '2-5');
+    expect(bossStage.isBossStage, isTrue);
+    expect(bossStage.monsterIds, ['plague_bell_keeper']);
+    expect(
+      result.database.findRecord('monsters', bossStage.monsterIds.first),
+      isNotNull,
+    );
+  });
+
   test('seed equipment drop can materialize and enter inventory', () async {
     final result = await const GameDatabaseService(
       dataLoader: DataLoader(),

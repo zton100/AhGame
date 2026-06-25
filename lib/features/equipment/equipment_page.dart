@@ -356,6 +356,10 @@ class _EquipmentControls extends ConsumerWidget {
               onPressed: () => _enhanceRecommended(context, ref),
               child: const Text('Enhance recommended equipped'),
             ),
+            FilledButton.tonal(
+              onPressed: () => _equipRecommended(context, ref),
+              child: const Text('Equip recommended upgrade'),
+            ),
           ],
         ),
       ],
@@ -403,6 +407,25 @@ class _EquipmentControls extends ConsumerWidget {
           result.accepted
               ? 'Enhanced recommended equipment to +${result.newLevel}'
               : _enhancementFailureMessage(result.reason),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _equipRecommended(BuildContext context, WidgetRef ref) async {
+    final result =
+        await ref.read(playerSaveProvider.notifier).equipRecommendedUpgrade(
+              database: database,
+            );
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.accepted
+              ? 'Equipped recommended ${result.candidate?.template.name ?? 'upgrade'}'
+              : 'No recommended equipment upgrade found.',
         ),
       ),
     );

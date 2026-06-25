@@ -33,6 +33,7 @@ void main() {
     expect(find.text('Enable Auto Salvage'), findsOneWidget);
     expect(find.text('Keep Rare+'), findsOneWidget);
     expect(find.text('Enhance recommended equipped'), findsOneWidget);
+    expect(find.text('Equip recommended upgrade'), findsOneWidget);
   });
 
   testWidgets('EquipmentPage generates test equipment through SaveData',

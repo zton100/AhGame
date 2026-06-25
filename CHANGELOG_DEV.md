@@ -1,5 +1,70 @@
 # CHANGELOG_DEV
 
+## S31-S33 Equipment Recommendation, Skill Upgrade, Chapter 2 Content - 2026-06-25
+
+### Added files
+
+- `lib/systems/equipment/equipment_recommendation_service.dart`
+- `lib/systems/skills/skill_upgrade_service.dart`
+- `test/equipment_recommendation_service_test.dart`
+- `test/skill_upgrade_service_test.dart`
+
+### Modified files
+
+- `assets/data/chapters.json`
+- `assets/data/monsters.json`
+- `lib/core/save/player_save_provider.dart`
+- `lib/features/battle/battle_controller.dart`
+- `lib/features/character/character_page.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `lib/models/battle_state.dart`
+- `lib/models/save_data.dart`
+- `lib/systems/auto_battle/auto_battle_service.dart`
+- `lib/systems/battle/battle_simulator.dart`
+- `lib/systems/save/save_migration_service.dart`
+- `lib/systems/skills/skill_effect_preview_service.dart`
+- `test/battle_simulator_test.dart`
+- `test/character_page_widget_test.dart`
+- `test/equipment_page_widget_test.dart`
+- `test/save_service_test.dart`
+- `test/seed_data_integration_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- S31: Added equipment recommendation service for current-class, same-slot upgrades.
+- S31: Equipment recommendations consider BD match delta and attack upgrades, while ignoring unusable class or level candidates.
+- S31: Added PlayerSaveController action and EquipmentPage button for one-click recommended upgrade equip.
+- S32: Added persistent `PlayerProgress.skillLevels`.
+- S32: Added SkillUpgradeService with gold cost, max level, class validation, and SaveData update result.
+- S32: SkillEffectPreviewService and BattleSimulator now apply skill level damage scaling.
+- S32: CharacterPage displays active skills, level, preview damage, next gold cost, and an Upgrade Skill action.
+- S33: Added `chapter_2` Plague Chapel content with five stages.
+- S33: Added chapter 2 monster configs: `plague_acolyte`, `blood_incense_priest`, `rotting_reliquary_guard`, `fallen_sanctifier`, and `plague_bell_keeper`.
+
+### Tests
+
+- Added equipment recommendation service tests for valid upgrades and unusable candidates.
+- Added skill upgrade service tests for v5 migration, gold consumption, max level, insufficient gold, and preview scaling.
+- Added BattleSimulator coverage for skill-level damage and BattleState JSON skill-level round trip.
+- Added CharacterPage widget coverage for upgrading an active skill and persisting level.
+- Added EquipmentPage smoke coverage for recommended equip action.
+- Added seed data coverage for chapter 2 boss stage and monster reference.
+- Passed: `I:\dev\flutter\bin\flutter.bat analyze`
+- Passed: `I:\dev\flutter\bin\flutter.bat test`
+
+### Save impact
+
+- `SaveData.saveVersion` is now `6`.
+- v5 saves migrate by adding `playerProgress.skillLevels = {}`.
+- New saves start with empty skill levels; missing skill levels still read as level 1.
+
+### Remaining
+
+- Recommended equip is manual one-click only; no automatic equip after drops yet.
+- Skill upgrade cost is code-defined gold-only first slice; no skill tree, respec, unlock levels, or skill configuration page was added.
+- Chapter 2 content is available in seed data, but cross-chapter automatic progression remains a later system.
+
 ## S26-S30 Auto Battle Progression Polish - 2026-06-24
 
 ### Added files

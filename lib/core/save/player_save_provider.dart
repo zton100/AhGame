@@ -12,6 +12,7 @@ import '../../systems/equipment/affix_roll_service.dart';
 import '../../systems/equipment/equipment_generation_service.dart';
 import '../../systems/equipment/equipment_enhancement_service.dart';
 import '../../systems/equipment/auto_enhancement_service.dart';
+import '../../systems/equipment/equipment_recommendation_service.dart';
 import '../../systems/equipment/equipment_service.dart';
 import '../../systems/equipment/equipment_template_service.dart';
 import '../../systems/equipment/quality_service.dart';
@@ -20,6 +21,8 @@ import '../../systems/inventory/equipment_loot_commit_service.dart';
 import '../../systems/inventory/auto_salvage_service.dart';
 import '../../systems/save/in_memory_save_store.dart';
 import '../../systems/save/save_service.dart';
+import '../../systems/skills/skill_service.dart';
+import '../../systems/skills/skill_upgrade_service.dart';
 
 final _fallbackSaveStore = InMemorySaveStore();
 
@@ -230,6 +233,49 @@ class PlayerSaveController extends AsyncNotifier<SaveData> {
         autoSalvageConfig: currentSave.inventory.autoSalvageConfig,
       ),
     ));
+    return result;
+  }
+
+  Future<EquipmentRecommendationResult> equipRecommendedUpgrade({
+    required GameDatabase database,
+  }) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    final inventory = inventoryStateFromSave(currentSave.inventory);
+    final result = const EquipmentRecommendationService().recommendBestUpgrade(
+      inventory: inventory,
+      database: database,
+      classId: currentSave.playerProgress.currentClassId,
+      level: currentSave.playerProgress.level,
+    );
+    if (!result.accepted) {
+      return result;
+    }
+
+    await save(currentSave.copyWith(
+      inventory: currentSave.inventory.copyWith(
+        equipmentLoadout: result.loadout,
+      ),
+    ));
+    return result;
+  }
+
+  Future<SkillUpgradeResult> upgradeSkill({
+    required GameDatabase database,
+    required String skillId,
+  }) async {
+    final currentSave =
+        state.valueOrNull ?? await ref.read(saveServiceProvider).loadOrCreate();
+    final result = const SkillUpgradeService().upgrade(
+      saveData: currentSave,
+      skillService: SkillService(database),
+      skillId: skillId,
+    );
+    if (!result.accepted) {
+      return result;
+    }
+
+    await save(result.saveData);
     return result;
   }
 

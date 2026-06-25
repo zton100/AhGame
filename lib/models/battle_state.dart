@@ -11,6 +11,7 @@ class BattleState {
     required this.characterStats,
     required this.skillRuntimes,
     required this.skillConfigs,
+    this.skillLevels = const {},
     required this.monster,
     required this.elapsedSeconds,
     required this.logs,
@@ -44,6 +45,10 @@ class BattleState {
             Map<String, Object?>.from(entry.value as Map),
           ),
       },
+      skillLevels: {
+        for (final entry in (json['skillLevels'] as Map? ?? const {}).entries)
+          entry.key as String: entry.value as int,
+      },
       monster: MonsterRuntime.fromJson(
         Map<String, Object?>.from(json['monster'] as Map),
       ),
@@ -76,6 +81,7 @@ class BattleState {
   final ComputedStats characterStats;
   final List<SkillRuntime> skillRuntimes;
   final Map<String, SkillConfig> skillConfigs;
+  final Map<String, int> skillLevels;
   final MonsterRuntime monster;
   final double elapsedSeconds;
   final List<BattleLogEntry> logs;
@@ -91,6 +97,7 @@ class BattleState {
   BattleState copyWith({
     List<SkillRuntime>? skillRuntimes,
     Map<String, SkillConfig>? skillConfigs,
+    Map<String, int>? skillLevels,
     MonsterRuntime? monster,
     double? elapsedSeconds,
     List<BattleLogEntry>? logs,
@@ -107,6 +114,7 @@ class BattleState {
       characterStats: characterStats,
       skillRuntimes: skillRuntimes ?? this.skillRuntimes,
       skillConfigs: skillConfigs ?? this.skillConfigs,
+      skillLevels: skillLevels ?? this.skillLevels,
       monster: monster ?? this.monster,
       elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
       logs: logs ?? this.logs,
@@ -131,6 +139,7 @@ class BattleState {
         for (final entry in skillConfigs.entries)
           entry.key: entry.value.toJson(),
       },
+      'skillLevels': skillLevels,
       'monster': monster.toJson(),
       'elapsedSeconds': elapsedSeconds,
       'logs': [for (final log in logs) log.toJson()],

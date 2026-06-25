@@ -23,6 +23,7 @@ class BattleSimulator {
     required SkillLoadout skillLoadout,
     required MonsterRuntime monster,
     required SkillService skillService,
+    Map<String, int> skillLevels = const {},
     String? battleId,
   }) {
     final skillRuntimes = [
@@ -45,6 +46,7 @@ class BattleSimulator {
       characterStats: computedStats,
       skillRuntimes: skillRuntimes,
       skillConfigs: skillConfigs,
+      skillLevels: skillLevels,
       monster: monster,
       elapsedSeconds: 0,
       playerMaxHp: _safePositive(computedStats.finalStats.hp, fallback: 100),
@@ -96,7 +98,11 @@ class BattleSimulator {
         throw StateError('Skill config not found: ${runtime.skillId}');
       }
       final rawDamage = _previewService
-          .previewDamage(skill: skill, stats: state.characterStats)
+          .previewDamage(
+            skill: skill,
+            stats: state.characterStats,
+            skillLevel: state.skillLevels[runtime.skillId] ?? 1,
+          )
           .damage;
       final damage = _damageAfterArmor(
         rawDamage: rawDamage,
