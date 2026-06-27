@@ -16,6 +16,7 @@ import '../../systems/skills/skill_service.dart';
 import '../../systems/skills/skill_upgrade_service.dart';
 import '../../systems/stats/character_final_stats_service.dart';
 import '../../systems/stats/stat_aggregation_service.dart';
+import '../common/game_text_labels.dart';
 
 class CharacterPage extends ConsumerWidget {
   const CharacterPage({super.key});
@@ -145,7 +146,9 @@ class _CharacterPageContent extends StatelessWidget {
             else
               for (final entry
                   in inventory.equipmentLoadout.equippedBySlot.entries)
-                Text('${entry.key}: ${_equipmentName(entry.value, database)}'),
+                Text(
+                  '${slotLabel(entry.key)}: ${_equipmentName(entry.value, database)}',
+                ),
           ],
         ),
         const SizedBox(height: 16),
@@ -167,7 +170,9 @@ class _CharacterPageContent extends StatelessWidget {
     return [
       for (final stat in StatKey.values)
         _InfoRow(
-            label: stat.id, value: _formatNumber(stats.valueForId(stat.id))),
+          label: statLabel(stat.id),
+          value: _formatNumber(stats.valueForId(stat.id)),
+        ),
     ];
   }
 
@@ -253,7 +258,7 @@ class _SkillSection extends ConsumerWidget {
       SnackBar(
         content: Text(
           result.accepted
-              ? '技能已升级到 Lv.${result.newLevel}'
+              ? '技能已升级到 ${result.newLevel} 级'
               : _skillUpgradeFailureMessage(result.reason),
         ),
       ),
@@ -287,7 +292,7 @@ class _SkillUpgradeRow extends StatelessWidget {
         runSpacing: 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Text('$skillName Lv.$level'),
+          Text('$skillName $level 级'),
           Text('预览伤害 ${_formatNumber(previewDamage)}'),
           Text('下级消耗 $nextGoldCost 金币'),
           FilledButton.tonal(
@@ -367,7 +372,7 @@ class _BreakdownLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      '${stat.id}: 基础 ${_formatNumber(breakdown.base)}，固定 ${_formatNumber(breakdown.flat)}，百分比 ${_formatNumber(breakdown.percent)}，最终 ${_formatNumber(breakdown.finalValue)}',
+      '${statLabel(stat.id)}: 基础 ${_formatNumber(breakdown.base)}，固定 ${_formatNumber(breakdown.flat)}，百分比 ${_formatNumber(breakdown.percent)}，最终 ${_formatNumber(breakdown.finalValue)}',
       style: Theme.of(context).textTheme.bodySmall,
     );
   }

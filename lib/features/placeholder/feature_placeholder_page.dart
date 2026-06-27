@@ -28,7 +28,7 @@ class FeaturePlaceholderPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  routeId,
+                  '功能模块：$title',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.primary,
                         letterSpacing: 0.4,
@@ -37,9 +37,9 @@ class FeaturePlaceholderPage extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(summary),
                 const SizedBox(height: 16),
-                const _StatusRow(label: '数据来源', value: 'assets/data/*.json'),
-                const _StatusRow(label: '逻辑层', value: 'lib/systems'),
-                const _StatusRow(label: '页面状态', value: 'ViewModel only'),
+                const _StatusRow(label: '数据来源', value: '配置数据文件'),
+                const _StatusRow(label: '逻辑层', value: '系统服务'),
+                const _StatusRow(label: '页面状态', value: '等待接入'),
               ],
             ),
           ),

@@ -106,7 +106,7 @@ void main() {
 
     final save = await saveService.loadOrCreate();
     expect(save.playerProgress.skillLevels['toxic_slash'], 2);
-    expect(find.textContaining('技能已升级到 Lv.2'), findsOneWidget);
+    expect(find.textContaining('技能已升级到 2 级'), findsOneWidget);
   });
 }
 

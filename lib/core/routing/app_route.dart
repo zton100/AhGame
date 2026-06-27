@@ -1,7 +1,7 @@
 enum AppRoute {
   battle('battle', '战斗'),
   equipment('equipment', '装备'),
-  build('build', 'BD'),
+  build('build', '构筑'),
   abyss('abyss', '深渊'),
   character('character', '角色'),
   debug('debug', '调试');

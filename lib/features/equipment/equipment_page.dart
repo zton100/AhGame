@@ -11,6 +11,7 @@ import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
 import '../../systems/equipment/equipment_enhancement_service.dart';
 import '../../systems/inventory/equipment_inventory_action_service.dart';
+import '../common/game_text_labels.dart';
 import 'equipment_card_view_model.dart';
 import 'equipment_page_view_model.dart';
 
@@ -260,7 +261,7 @@ class _EquipmentControls extends ConsumerWidget {
           ),
         ),
         Text(
-          '开启后会自动处理背包中符合规则的全部低价值装备，不只处理新掉落装备。锁定、已穿戴、高品质和高 BD 匹配装备会默认保留。',
+          '开启后会自动处理背包中符合规则的全部低价值装备，不只处理新掉落装备。锁定、已穿戴、高品质和高构筑匹配装备会默认保留。',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
@@ -298,7 +299,7 @@ class _EquipmentControls extends ConsumerWidget {
                 initialValue:
                     config.minBuildMatchScoreToKeep.toStringAsFixed(0),
                 decoration: const InputDecoration(
-                  labelText: 'Min BD score',
+                  labelText: '最低构筑匹配分',
                   isDense: true,
                 ),
                 keyboardType: TextInputType.number,
@@ -583,7 +584,7 @@ class _EquipmentDetailDialog extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             _DetailSection(
-              title: 'BD 匹配',
+              title: '构筑匹配',
               children: [
                 Text('匹配分: ${card.matchScore.toStringAsFixed(1)}'),
                 Text('匹配变化: ${_signed(card.matchScoreDelta)}'),
@@ -867,11 +868,11 @@ class _TagRow extends StatelessWidget {
       runSpacing: 8,
       children: [
         if (matchedTags.isEmpty && rejectedTags.isEmpty)
-          const _Chip(label: '暂无 BD 标签', color: AppTheme.surfaceRaised),
+          const _Chip(label: '暂无构筑标签', color: AppTheme.surfaceRaised),
         for (final tag in matchedTags.take(4))
-          _Chip(label: '推荐 $tag', color: AppTheme.primary),
+          _Chip(label: '推荐 ${tagLabel(tag)}', color: AppTheme.primary),
         for (final tag in rejectedTags.take(3))
-          _Chip(label: '警告 $tag', color: AppTheme.danger),
+          _Chip(label: '警告 ${tagLabel(tag)}', color: AppTheme.danger),
       ],
     );
   }
@@ -885,7 +886,7 @@ class _ScorePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Chip(
-      label: 'BD ${score.toStringAsFixed(1)}',
+      label: '构筑 ${score.toStringAsFixed(1)}',
       color: AppTheme.primary,
     );
   }
@@ -1085,5 +1086,5 @@ String _signed(double value) {
 }
 
 String _tags(List<String> tags) {
-  return tags.isEmpty ? '无' : tags.join(', ');
+  return tags.isEmpty ? '无' : tags.map(tagLabel).join(', ');
 }

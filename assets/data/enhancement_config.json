@@ -3,7 +3,7 @@
   "enhancement_config": [
     {
       "id": "default",
-      "name": "Default Enhancement",
+      "name": "默认强化配置",
       "maxLevel": 10,
       "dustCostByLevel": [1, 2, 3, 5, 8, 12, 18, 25, 35, 50],
       "goldCostByLevel": [10, 20, 35, 55, 80, 120, 180, 260, 360, 500],

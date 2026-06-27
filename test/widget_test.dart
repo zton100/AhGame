@@ -10,7 +10,7 @@ void main() {
     expect(find.text('深渊遗装'), findsOneWidget);
     expect(find.text('战斗'), findsWidgets);
     expect(find.text('装备'), findsWidgets);
-    expect(find.text('BD'), findsWidgets);
+    expect(find.text('构筑'), findsWidgets);
     expect(find.text('深渊'), findsWidgets);
     expect(find.text('角色'), findsWidgets);
   });
@@ -19,7 +19,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: AbyssRelicApp()));
 
-    for (final label in ['装备', 'BD', '深渊', '角色', '战斗']) {
+    for (final label in ['装备', '构筑', '深渊', '角色', '战斗']) {
       await tester.tap(find.text(label).last);
       await tester.pumpAndSettle();
       expect(find.text(label), findsWidgets);

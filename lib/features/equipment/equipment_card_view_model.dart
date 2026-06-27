@@ -4,6 +4,7 @@ import '../../models/equipment_instance.dart';
 import '../../systems/build/build_service.dart';
 import '../../systems/build/equipment_compare_service.dart';
 import '../../systems/config/game_database.dart';
+import '../common/game_text_labels.dart';
 
 class EquipmentCardViewModelFactory {
   const EquipmentCardViewModelFactory({
@@ -43,7 +44,7 @@ class EquipmentCardViewModelFactory {
       baseStats: [
         for (final stat in equipment.rolledBaseStats)
           EquipmentStatViewModel(
-            label: stat.stat,
+            label: statLabel(stat.stat),
             value: stat.value,
           ),
       ],
@@ -65,7 +66,12 @@ class EquipmentCardViewModelFactory {
       affixId: affix.affixId,
       name: record?['name'] as String? ?? affix.affixId,
       rollValue: affix.rollValue,
-      tags: List<String>.from(record?['tags'] as List? ?? const []),
+      tags: [
+        for (final tag in List<String>.from(
+          record?['tags'] as List? ?? const [],
+        ))
+          tagLabel(tag),
+      ],
       isMechanic: record?['effect'] is Map,
     );
   }
@@ -95,11 +101,11 @@ class EquipmentCardViewModelFactory {
   String _recommendationLabel(EquipmentRecommendation recommendation) {
     switch (recommendation) {
       case EquipmentRecommendation.upgrade:
-        return 'Upgrade';
+        return '推荐替换';
       case EquipmentRecommendation.sidegrade:
-        return 'Sidegrade';
+        return '可选替换';
       case EquipmentRecommendation.downgrade:
-        return 'Downgrade';
+        return '不推荐';
     }
   }
 }

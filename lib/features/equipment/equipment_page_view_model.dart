@@ -5,6 +5,7 @@ import '../../systems/build/build_service.dart';
 import '../../systems/build/equipment_compare_service.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/equipment/quality_rank.dart';
+import '../common/game_text_labels.dart';
 import 'equipment_card_view_model.dart';
 
 class EquipmentPageViewModelFactory {
@@ -70,7 +71,7 @@ class EquipmentPageViewModelFactory {
       'equipment_templates',
       equipment.templateId,
     );
-    return template?['slot'] as String? ?? 'unknown';
+    return slotLabel(template?['slot'] as String? ?? 'unknown');
   }
 
   EquipmentInstance? _equippedForSlot(
@@ -200,7 +201,7 @@ enum EquipmentPageFilter {
 enum EquipmentPageSort {
   newestFirst('最新优先'),
   qualityHighToLow('品质从高到低'),
-  buildMatchScoreHighToLow('BD 匹配分从高到低');
+  buildMatchScoreHighToLow('构筑匹配分从高到低');
 
   const EquipmentPageSort(this.label);
 

@@ -1,5 +1,48 @@
 # CHANGELOG_DEV
 
+## UI Chinese Text Completion - 2026-06-27
+
+### Added files
+
+- `lib/features/common/game_text_labels.dart`
+
+### Modified files
+
+- `assets/data/enhancement_config.json`
+- `assets/data/formula_config.json`
+- `assets/data/level_curves.json`
+- `lib/core/routing/app_route.dart`
+- `lib/features/character/character_page.dart`
+- `lib/features/equipment/equipment_card_view_model.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `lib/features/equipment/equipment_page_view_model.dart`
+- `lib/features/placeholder/feature_placeholder_page.dart`
+- `test/character_page_widget_test.dart`
+- `test/equipment_card_view_model_test.dart`
+- `test/equipment_page_widget_test.dart`
+- `test/widget_test.dart`
+
+### Completed
+
+- Localized remaining player-facing route labels, placeholder text, config display names, equipment recommendations, stat labels, slot labels, and tag labels.
+- Replaced visible `BD` usage with `构筑` and `Lv.` usage with Chinese level text.
+- Kept technical IDs and save/config keys in English to preserve data compatibility.
+
+### Tests
+
+- Updated widget and view model expectations for Chinese labels.
+- Ran formatter, analyzer, and Flutter tests.
+
+### Save impact
+
+- No SaveData schema change.
+- Existing saveVersion remains unchanged.
+
+### Remaining
+
+- Code identifiers, enum values, JSON keys, material IDs, and stable resource IDs remain English because they are internal contracts.
+- Some test fixture names and developer-only test descriptions remain English.
+
 ## S31 Auto Battle Explanation and Guidance - 2026-06-27
 
 ### Added files

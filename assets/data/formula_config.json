@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "default",
-  "name": "Default Formula Config",
-  "displayName": "Default Formula Config",
+  "name": "默认公式配置",
+  "displayName": "默认公式配置",
   "critical": {
     "chanceHardCap": 0.85,
     "defaultMultiplier": 1.5

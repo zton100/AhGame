@@ -3,7 +3,7 @@
   "level_curves": [
     {
       "id": "default",
-      "name": "Default Level Curve",
+      "name": "默认等级曲线",
       "maxLevel": 20,
       "experienceToNext": [
         100,

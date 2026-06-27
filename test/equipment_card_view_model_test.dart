@@ -29,7 +29,7 @@ void main() {
     expect(viewModel.qualityId, 'rare');
     expect(viewModel.qualityLabel, '稀有');
     expect(viewModel.qualityColorValue, 0xFFD6B84A);
-    expect(viewModel.baseStats.single.label, 'attack');
+    expect(viewModel.baseStats.single.label, '攻击');
     expect(viewModel.affixes.map((affix) => affix.name), [
       'Poison Damage',
       'Poison Can Crit',
@@ -61,7 +61,7 @@ void main() {
       assessment: _poisonAssessment,
     );
 
-    expect(viewModel.recommendationLabel, 'Upgrade');
+    expect(viewModel.recommendationLabel, '推荐替换');
     expect(viewModel.matchScoreDelta, greaterThan(0));
     expect(viewModel.attackDelta, lessThan(0));
   });

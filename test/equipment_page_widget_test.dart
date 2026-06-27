@@ -48,8 +48,8 @@ void main() {
 
     expect(find.text('Rusted Blade'), findsOneWidget);
     expect(find.textContaining('稀有'), findsWidgets);
-    expect(find.textContaining('BD'), findsWidgets);
-    expect(find.textContaining('推荐 poison'), findsOneWidget);
+    expect(find.textContaining('构筑'), findsWidgets);
+    expect(find.textContaining('推荐 毒素'), findsOneWidget);
   });
 
   testWidgets('EquipmentPage reloads saved equipment after SaveService reload',
@@ -86,15 +86,15 @@ void main() {
 
     expect(find.text('Poison Blade'), findsOneWidget);
     expect(find.textContaining('稀有'), findsWidgets);
-    expect(find.textContaining('BD'), findsWidgets);
-    expect(find.textContaining('推荐 poison'), findsOneWidget);
+    expect(find.textContaining('构筑'), findsWidgets);
+    expect(find.textContaining('推荐 毒素'), findsOneWidget);
 
     await tester.tap(find.text('Poison Blade'));
     await tester.pumpAndSettle();
 
     expect(find.text('基础属性'), findsOneWidget);
     expect(find.text('词缀'), findsOneWidget);
-    expect(find.text('BD 匹配'), findsOneWidget);
+    expect(find.text('构筑匹配'), findsOneWidget);
     expect(find.textContaining('Poison Damage'), findsWidgets);
     expect(find.text('穿戴'), findsOneWidget);
     expect(find.text('锁定'), findsOneWidget);
