@@ -45,6 +45,16 @@ void main() {
     expect(find.text('100 / 100'), findsOneWidget);
   });
 
+  testWidgets('BattlePage shows new player guidance', (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    expect(find.text('新手目标'), findsOneWidget);
+    expect(find.text('优先操作：运行 10 场战斗'), findsOneWidget);
+  });
+
   testWidgets('ticking battle damages the monster', (tester) async {
     final saveService = SaveService(store: InMemorySaveStore());
 

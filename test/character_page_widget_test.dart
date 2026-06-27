@@ -62,6 +62,16 @@ void main() {
     expect(find.textContaining('Rusted Blade'), findsOneWidget);
   });
 
+  testWidgets('CharacterPage shows growth guidance', (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    expect(find.text('成长建议'), findsOneWidget);
+    expect(find.text('下一步：运行 10 场战斗'), findsOneWidget);
+  });
+
   testWidgets('CharacterPage warns when loadout instance is missing',
       (tester) async {
     final saveService = SaveService(store: InMemorySaveStore());

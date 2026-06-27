@@ -53,6 +53,16 @@ void main() {
     expect(find.textContaining('推荐理由'), findsWidgets);
   });
 
+  testWidgets('EquipmentPage shows onboarding guidance', (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+
+    await tester.pumpWidget(_app(saveService: saveService));
+    await tester.pumpAndSettle();
+
+    expect(find.text('装备引导'), findsOneWidget);
+    expect(find.text('优先操作：去战斗页刷第一批装备'), findsOneWidget);
+  });
+
   testWidgets('EquipmentPage reloads saved equipment after SaveService reload',
       (tester) async {
     final store = InMemorySaveStore();

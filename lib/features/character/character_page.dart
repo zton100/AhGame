@@ -17,6 +17,7 @@ import '../../systems/skills/skill_upgrade_service.dart';
 import '../../systems/stats/character_final_stats_service.dart';
 import '../../systems/stats/stat_aggregation_service.dart';
 import '../common/game_text_labels.dart';
+import '../onboarding/onboarding_guidance.dart';
 
 class CharacterPage extends ConsumerWidget {
   const CharacterPage({super.key});
@@ -108,6 +109,12 @@ class _CharacterPageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onboardingGuidance = const OnboardingGuidanceFactory().create(
+      saveData: saveData,
+      inventory: inventory,
+      page: OnboardingGuidancePage.character,
+    );
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -116,6 +123,8 @@ class _CharacterPageContent extends StatelessWidget {
         _InfoRow(label: '当前职业', value: character.classConfig.name),
         _InfoRow(label: '等级', value: character.level.toString()),
         _InfoRow(label: '经验', value: character.experience.toString()),
+        const SizedBox(height: 16),
+        OnboardingGuidancePanel(guidance: onboardingGuidance),
         const SizedBox(height: 16),
         _GrowthOverview(
           finalStats: finalStats,

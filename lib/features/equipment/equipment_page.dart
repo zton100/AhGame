@@ -13,6 +13,7 @@ import '../../systems/config/game_database_service.dart';
 import '../../systems/equipment/equipment_enhancement_service.dart';
 import '../../systems/inventory/equipment_inventory_action_service.dart';
 import '../common/game_text_labels.dart';
+import '../onboarding/onboarding_guidance.dart';
 import 'equipment_card_view_model.dart';
 import 'equipment_page_view_model.dart';
 
@@ -144,6 +145,13 @@ class _EquipmentPageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final visibleItems = viewModel.visibleItems(filter: filter, sort: sort);
+    final inventory = inventoryStateFromSave(saveData.inventory);
+    final onboardingGuidance = const OnboardingGuidanceFactory().create(
+      saveData: saveData,
+      inventory: inventory,
+      page: OnboardingGuidancePage.equipment,
+    );
+
     if (viewModel.isEmpty) {
       return ListView(
         padding: const EdgeInsets.all(16),
@@ -157,6 +165,8 @@ class _EquipmentPageContent extends StatelessWidget {
               debugAction,
             ],
           ),
+          const SizedBox(height: 12),
+          OnboardingGuidancePanel(guidance: onboardingGuidance),
           const SizedBox(height: 12),
           _EquipmentControls(
             config: saveData.inventory.autoSalvageConfig,
@@ -205,6 +215,8 @@ class _EquipmentPageContent extends StatelessWidget {
             message: '有 ${viewModel.missingInstanceIds.length} 件装备缺少完整实例数据。',
           ),
         ],
+        const SizedBox(height: 12),
+        OnboardingGuidancePanel(guidance: onboardingGuidance),
         const SizedBox(height: 12),
         _EquipmentControls(
           config: saveData.inventory.autoSalvageConfig,

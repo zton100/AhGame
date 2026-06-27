@@ -1,5 +1,42 @@
 # CHANGELOG_DEV
 
+## S35 New Player Guidance First Slice - 2026-06-27
+
+### Added files
+
+- `lib/features/onboarding/onboarding_guidance.dart`
+- `test/onboarding_guidance_test.dart`
+
+### Modified files
+
+- `lib/features/battle/battle_page.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `lib/features/character/character_page.dart`
+- `test/battle_page_widget_test.dart`
+- `test/equipment_page_widget_test.dart`
+- `test/character_page_widget_test.dart`
+
+### Completed
+
+- Added a lightweight first-loop guidance model for battle, equipment, and character pages.
+- Added checklist goals for first battle, first equipment, first equip, first enhancement, and first stage progress.
+- Added page-facing guidance panels that explain whether the player should run battles, equip gear, enhance gear, or keep farming.
+
+### Tests
+
+- Added direct guidance factory coverage.
+- Added widget smoke coverage for guidance on BattlePage, EquipmentPage, and CharacterPage.
+
+### Save impact
+
+- No SaveData schema change.
+- Guidance is derived from existing SaveData and InventoryState at runtime.
+
+### Remaining
+
+- Guidance is still a lightweight heuristic, not a formal quest, reward, or tutorial system.
+- Existing older UI copy still needs a dedicated full Chinese cleanup pass.
+
 ## S34 Character Growth Overview - 2026-06-27
 
 ### Added files

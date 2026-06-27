@@ -10,6 +10,7 @@ import '../../models/save_data.dart';
 import '../../systems/auto_battle/auto_battle_service.dart';
 import '../../systems/config/game_database.dart';
 import '../../systems/config/game_database_service.dart';
+import '../onboarding/onboarding_guidance.dart';
 import 'battle_controller.dart';
 
 class BattlePage extends ConsumerStatefulWidget {
@@ -218,9 +219,16 @@ class _BattlePageContent extends StatelessWidget {
     final battle = controller.battle;
     final report = controller.settlementReport;
     final monsterName = controller.monsterConfig?.name ?? progress.monsterId;
+    final inventory = inventoryStateFromSave(saveData.inventory);
+    final onboardingGuidance = const OnboardingGuidanceFactory().create(
+      saveData: saveData,
+      inventory: inventory,
+      page: OnboardingGuidancePage.battle,
+    );
 
     return ListView(
       padding: const EdgeInsets.all(16),
+      cacheExtent: 5000,
       children: [
         Text('战斗', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
@@ -249,6 +257,23 @@ class _BattlePageContent extends StatelessWidget {
               ),
           ],
         ),
+        const SizedBox(height: 12),
+        if (battle != null) ...[
+          _InfoRow(label: '怪物', value: monsterName),
+          _InfoRow(label: '状态', value: _battleResultLabel(battle.result)),
+          _InfoRow(
+            label: '怪物生命',
+            value:
+                '${_formatNumber(battle.monster.currentHp)} / ${_formatNumber(battle.monster.maxHp)}',
+          ),
+          _InfoRow(
+            label: '玩家生命',
+            value:
+                '${_formatNumber(battle.playerCurrentHp)} / ${_formatNumber(battle.playerMaxHp)}',
+          ),
+          const SizedBox(height: 12),
+        ],
+        OnboardingGuidancePanel(guidance: onboardingGuidance),
         const SizedBox(height: 12),
         _BattleGoalPanel(
           progress: progress,
