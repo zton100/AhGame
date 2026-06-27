@@ -1,5 +1,91 @@
 # CHANGELOG_DEV
 
+## S34 Character Growth Overview - 2026-06-27
+
+### Added files
+
+- None.
+
+### Modified files
+
+- `lib/features/character/character_page.dart`
+- `test/character_page_widget_test.dart`
+
+### Completed
+
+- Added a top-level growth overview for output, survivability, equipped item count, and next-step advice.
+- Kept the detailed base/final stats and breakdown sections for deeper inspection.
+
+### Tests
+
+- Added CharacterPage widget coverage for growth overview and next-step advice.
+
+### Save impact
+
+- No SaveData schema change.
+
+### Remaining
+
+- Growth advice is still a lightweight UI heuristic, not a full deterministic progression planner.
+
+## S33 Equipment Page Readability Polish - 2026-06-27
+
+### Added files
+
+- None.
+
+### Modified files
+
+- `lib/features/equipment/equipment_page.dart`
+- `test/equipment_page_widget_test.dart`
+
+### Completed
+
+- Added player-facing recommendation reasons to equipment cards and detail dialogs.
+- Added enhancement preview showing the next-level primary base stat change.
+- Kept equipment scoring and enhancement logic in existing services.
+
+### Tests
+
+- Added EquipmentPage widget coverage for recommendation reasons and enhancement preview.
+
+### Save impact
+
+- No SaveData schema change.
+
+### Remaining
+
+- Recommendation copy is still rule-based and can later be connected to deeper build guidance.
+
+## S32 Battle First-Screen Experience Polish - 2026-06-27
+
+### Added files
+
+- None.
+
+### Modified files
+
+- `lib/features/battle/battle_page.dart`
+- `test/battle_page_widget_test.dart`
+
+### Completed
+
+- Added a top current-goal panel for progression stage, actual stage, monster, status, next-step advice, and recent battle feedback.
+- Moved manual battle controls higher so core actions are visible immediately.
+- Kept auto battle simulation, settlement, and fallback logic unchanged.
+
+### Tests
+
+- Updated BattlePage widget coverage for the new first-screen layout.
+
+### Save impact
+
+- No SaveData schema change.
+
+### Remaining
+
+- This is still functional polish, not a full visual redesign or animation pass.
+
 ## UI Chinese Text Completion - 2026-06-27
 
 ### Added files

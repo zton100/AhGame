@@ -50,6 +50,7 @@ void main() {
     expect(find.textContaining('稀有'), findsWidgets);
     expect(find.textContaining('构筑'), findsWidgets);
     expect(find.textContaining('推荐 毒素'), findsOneWidget);
+    expect(find.textContaining('推荐理由'), findsWidgets);
   });
 
   testWidgets('EquipmentPage reloads saved equipment after SaveService reload',
@@ -95,6 +96,7 @@ void main() {
     expect(find.text('基础属性'), findsOneWidget);
     expect(find.text('词缀'), findsOneWidget);
     expect(find.text('构筑匹配'), findsOneWidget);
+    expect(find.textContaining('推荐理由'), findsWidgets);
     expect(find.textContaining('Poison Damage'), findsWidgets);
     expect(find.text('穿戴'), findsOneWidget);
     expect(find.text('锁定'), findsOneWidget);
@@ -248,6 +250,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('强化等级：+0'), findsOneWidget);
+    expect(find.textContaining('强化预览'), findsOneWidget);
     expect(find.widgetWithText(TextButton, '强化'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(TextButton, '强化'));

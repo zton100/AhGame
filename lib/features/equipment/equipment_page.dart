@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/save/player_save_provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/auto_salvage_config.dart';
+import '../../models/enhancement_config.dart';
 import '../../models/inventory_state.dart';
 import '../../models/save_data.dart';
 import '../../systems/config/game_database.dart';
@@ -481,6 +482,11 @@ class _EquipmentCard extends StatelessWidget {
                           '${card.qualityLabel} / ${item.slotLabel}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _equipmentReason(item),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ],
                     ),
                   ),
@@ -564,6 +570,8 @@ class _EquipmentDetailDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('${card.qualityLabel} / ${item.slotLabel}'),
+            const SizedBox(height: 8),
+            Text(_equipmentReason(item)),
             const SizedBox(height: 12),
             _DetailSection(
               title: '基础属性',
@@ -758,10 +766,12 @@ class _EnhancementSection extends StatelessWidget {
           Text('强化等级：+$level'),
           if (cost == null)
             const Text('已达最高强化等级')
-          else
+          else ...[
             Text(
-              '下一级消耗：金币 x${cost.gold}，分解尘 x${cost.dust}',
+              '下一等级消耗：金币 x${cost.gold}，分解尘 x${cost.dust}',
             ),
+            Text(_enhancementPreview(item, config, level)),
+          ],
         ],
       );
     } on Object catch (error) {
@@ -1070,6 +1080,37 @@ String _affixLine(EquipmentAffixViewModel affix) {
       affix.rollValue == null ? '' : ' (${_formatNumber(affix.rollValue!)})';
   final mechanic = affix.isMechanic ? ' / 机制' : '';
   return '${affix.name}$roll$mechanic';
+}
+
+String _equipmentReason(EquipmentPageItemViewModel item) {
+  final card = item.card;
+  if (item.isEquipped) {
+    return '推荐理由：已穿戴，强化会直接提升当前角色。';
+  }
+  if (card.recommendationLabel == '推荐替换') {
+    return '推荐理由：构筑匹配提升 ${_signed(card.matchScoreDelta)}，可优先试穿。';
+  }
+  if (card.matchScore >= 60) {
+    return '推荐理由：构筑匹配较高，建议保留观察。';
+  }
+  if (item.isLocked) {
+    return '推荐理由：已锁定，系统会避免自动分解。';
+  }
+  return '推荐理由：当前提升有限，可作为分解或过渡候选。';
+}
+
+String _enhancementPreview(
+  EquipmentPageItemViewModel item,
+  EnhancementConfig config,
+  int level,
+) {
+  if (item.equipment.rolledBaseStats.isEmpty) {
+    return '强化预览：没有基础属性可提升。';
+  }
+  final stat = item.equipment.rolledBaseStats.first;
+  final current = stat.value * config.multiplierForLevel(level);
+  final next = stat.value * config.multiplierForLevel(level + 1);
+  return '强化预览：${statLabel(stat.stat)} ${_formatNumber(current)} -> ${_formatNumber(next)}';
 }
 
 String _formatNumber(double value) {

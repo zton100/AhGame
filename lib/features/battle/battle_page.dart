@@ -224,6 +224,39 @@ class _BattlePageContent extends StatelessWidget {
       children: [
         Text('战斗', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            FilledButton(
+              onPressed: onStart,
+              child: const Text('开始战斗'),
+            ),
+            FilledButton.tonal(
+              onPressed: battle == null || battle.isFinished ? null : onTick,
+              child: const Text('推进 1 秒'),
+            ),
+            FilledButton.tonal(
+              onPressed:
+                  battle == null || battle.isFinished ? null : onAutoFinish,
+              child: const Text('自动打完'),
+            ),
+            if (battle?.result == BattleResult.victory)
+              OutlinedButton(
+                onPressed:
+                    controller.hasSettled || isSettling ? null : onSettle,
+                child: Text(isSettling ? '结算中...' : '结算胜利'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _BattleGoalPanel(
+          progress: progress,
+          monsterName: monsterName,
+          battle: battle,
+          runState: autoRunState,
+        ),
+        const SizedBox(height: 12),
         _Section(
           title: '连续战斗',
           children: [
@@ -279,32 +312,6 @@ class _BattlePageContent extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            FilledButton(
-              onPressed: onStart,
-              child: const Text('开始战斗'),
-            ),
-            FilledButton.tonal(
-              onPressed: battle == null || battle.isFinished ? null : onTick,
-              child: const Text('推进 1 秒'),
-            ),
-            FilledButton.tonal(
-              onPressed:
-                  battle == null || battle.isFinished ? null : onAutoFinish,
-              child: const Text('自动打完'),
-            ),
-            if (battle?.result == BattleResult.victory)
-              OutlinedButton(
-                onPressed:
-                    controller.hasSettled || isSettling ? null : onSettle,
-                child: Text(isSettling ? '结算中...' : '结算胜利'),
-              ),
-          ],
-        ),
         if (controller.errorMessage != null) ...[
           const SizedBox(height: 12),
           _WarningBanner(message: controller.errorMessage!),
@@ -337,6 +344,71 @@ class _BattlePageContent extends StatelessWidget {
         if (report != null) ...[
           const SizedBox(height: 16),
           _SettlementReportView(report: report),
+        ],
+      ],
+    );
+  }
+}
+
+class _BattleGoalPanel extends StatelessWidget {
+  const _BattleGoalPanel({
+    required this.progress,
+    required this.monsterName,
+    required this.battle,
+    required this.runState,
+  });
+
+  final ChapterBattleProgress progress;
+  final String monsterName;
+  final BattleState? battle;
+  final AutoBattleRunState? runState;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = runState;
+    final title = _goalTitle(state, battle);
+    final advice = state == null
+        ? '建议先运行 10 场，观察是否推进、回刷或失败。'
+        : '下一步：${_recommendedActionDescription(state.recommendedNextAction)}';
+
+    return _Section(
+      title: '当前目标',
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _Chip(label: '推进 ${progress.stageId} ${progress.stageName}'),
+            _Chip(label: '怪物 $monsterName'),
+            if (state != null)
+              _Chip(
+                  label: '实际 ${_stageLabel(
+                state.lastActualStageId,
+                state.lastActualStageName,
+              )}'),
+            if (battle != null)
+              _Chip(label: '状态 ${_battleResultLabel(battle!.result)}'),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(advice, style: Theme.of(context).textTheme.bodySmall),
+        if (battle?.result == BattleResult.defeat) ...[
+          const SizedBox(height: 8),
+          const _WarningBanner(
+            message: '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
+          ),
+        ],
+        if (battle != null && battle!.logs.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          for (final log in battle!.logs.skip(
+            battle!.logs.length > 4 ? battle!.logs.length - 4 : 0,
+          ))
+            Text(
+              log.message,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
         ],
       ],
     );
@@ -568,6 +640,27 @@ class _SettlementReportView extends StatelessWidget {
   }
 }
 
+class _Chip extends StatelessWidget {
+  const _Chip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceRaised.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppTheme.surfaceRaised),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+      ),
+    );
+  }
+}
+
 class _Section extends StatelessWidget {
   const _Section({
     required this.title,
@@ -723,6 +816,31 @@ String _progressModeLabel(AutoBattleRunState state) {
   }
 
   return '空闲';
+}
+
+String _goalTitle(AutoBattleRunState? state, BattleState? battle) {
+  if (battle?.result == BattleResult.defeat) {
+    return '战斗失败，先补强再挑战';
+  }
+  if (battle?.result == BattleResult.victory) {
+    return '已经胜利，可以结算并继续推进';
+  }
+  if (state == null || state.battlesCompleted == 0) {
+    return '准备推进当前关卡';
+  }
+  if (state.farmingBecauseLevelTooLow) {
+    return '等级不足，正在回刷可进入关卡';
+  }
+  if (state.farmingBecauseBattleFailed) {
+    return '挑战失败，正在回刷积累资源';
+  }
+  if (state.farmingBecauseUnsafe) {
+    return '预估风险偏高，正在安全回刷';
+  }
+  if (state.stopReason == AutoBattleStopReason.chapterComplete) {
+    return '当前章节已完成';
+  }
+  return '正在推进主线关卡';
 }
 
 String _stageLabel(String? stageId, String? stageName) {

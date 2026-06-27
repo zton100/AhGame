@@ -28,6 +28,8 @@ void main() {
     expect(find.text('Exile'), findsOneWidget);
     expect(find.text('等级'), findsOneWidget);
     expect(find.text('1'), findsWidgets);
+    expect(find.text('成长总览'), findsOneWidget);
+    expect(find.textContaining('下一步建议'), findsOneWidget);
   });
 
   testWidgets('CharacterPage final attack increases with equipped weapon',
@@ -48,9 +50,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('基础属性'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('最终属性'), 200);
     expect(find.text('最终属性'), findsOneWidget);
     expect(find.text('18'), findsWidgets);
-    expect(find.text('30'), findsOneWidget);
+    expect(find.text('30'), findsWidgets);
+    expect(find.textContaining('已穿戴装备'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.textContaining('Rusted Blade'),
       200,

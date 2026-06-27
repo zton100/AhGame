@@ -116,6 +116,11 @@ class _CharacterPageContent extends StatelessWidget {
         _InfoRow(label: '当前职业', value: character.classConfig.name),
         _InfoRow(label: '等级', value: character.level.toString()),
         _InfoRow(label: '经验', value: character.experience.toString()),
+        const SizedBox(height: 16),
+        _GrowthOverview(
+          finalStats: finalStats,
+          equippedCount: inventory.equipmentLoadout.equippedBySlot.length,
+        ),
         if (finalStats.warnings.isNotEmpty) ...[
           const SizedBox(height: 12),
           for (final warning in finalStats.warnings)
@@ -262,6 +267,42 @@ class _SkillSection extends ConsumerWidget {
               : _skillUpgradeFailureMessage(result.reason),
         ),
       ),
+    );
+  }
+}
+
+class _GrowthOverview extends StatelessWidget {
+  const _GrowthOverview({
+    required this.finalStats,
+    required this.equippedCount,
+  });
+
+  final CharacterFinalStatsResult finalStats;
+  final int equippedCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = finalStats.computedStats.finalStats;
+    final attack = stats.valueForId('attack');
+    final hp = stats.valueForId('hp');
+    final armor = stats.valueForId('armor');
+    final survivability = hp + armor * 5;
+
+    return _Section(
+      title: '成长总览',
+      children: [
+        _InfoRow(label: '输出能力', value: _formatNumber(attack)),
+        _InfoRow(label: '生存能力', value: _formatNumber(survivability)),
+        _InfoRow(label: '已穿戴装备', value: '$equippedCount 件'),
+        Text(
+          _growthAdvice(
+            attack: attack,
+            survivability: survivability,
+            equippedCount: equippedCount,
+          ),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
     );
   }
 }
@@ -440,6 +481,23 @@ String _formatNumber(double value) {
   }
 
   return value.toStringAsFixed(2);
+}
+
+String _growthAdvice({
+  required double attack,
+  required double survivability,
+  required int equippedCount,
+}) {
+  if (equippedCount == 0) {
+    return '下一步建议：先穿戴背包中的高匹配装备，再考虑强化。';
+  }
+  if (attack < 25) {
+    return '下一步建议：输出偏低，优先强化武器或更换高攻击装备。';
+  }
+  if (survivability < 140) {
+    return '下一步建议：生存偏低，优先强化生命或护甲装备。';
+  }
+  return '下一步建议：当前成长稳定，可以继续推进更高关卡。';
 }
 
 String _skillUpgradeFailureMessage(SkillUpgradeReason reason) {
