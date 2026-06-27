@@ -122,6 +122,10 @@ void main() {
 
     expect(find.text('完成场次'), findsOneWidget);
     expect(find.text('总经验'), findsOneWidget);
+    expect(find.text('自动战斗说明'), findsOneWidget);
+    expect(find.text('下一步建议'), findsOneWidget);
+    expect(find.text('继续推进'), findsOneWidget);
+    expect(find.text('当前战斗预估安全，可以继续推进。'), findsOneWidget);
     expect(find.text('21'), findsOneWidget);
     expect(find.text('章节完成'), findsOneWidget);
 
@@ -150,9 +154,11 @@ void main() {
     await tester.tap(find.text('运行 1 场'));
     await tester.pumpAndSettle();
 
-    expect(find.text('推进关卡'), findsOneWidget);
+    expect(find.text('推进关卡'), findsWidgets);
     expect(find.text('刷取关卡'), findsOneWidget);
-    expect(find.text('因等级不足回刷'), findsOneWidget);
+    expect(find.text('实际关卡'), findsOneWidget);
+    expect(find.text('因等级不足回刷'), findsWidgets);
+    expect(find.text('刷旧关积累材料'), findsOneWidget);
     expect(find.text('是'), findsWidgets);
     expect(
       find.text(
@@ -249,9 +255,16 @@ void main() {
     await tester.tap(find.text('运行 1 场'));
     await tester.pumpAndSettle();
 
-    expect(find.text('推进模式'), findsOneWidget);
+    expect(find.text('推进模式'), findsWidgets);
     expect(find.text('危险评估回刷'), findsOneWidget);
     expect(find.text('因危险评估回刷'), findsOneWidget);
+    expect(find.text('自动战斗说明'), findsOneWidget);
+    expect(find.text('生存不足'), findsOneWidget);
+    expect(find.text('强化护甲或生命装备'), findsOneWidget);
+    expect(
+      find.text('生存不足，建议强化护甲/生命装备，或更换更高生存属性装备。'),
+      findsOneWidget,
+    );
     expect(find.text('是'), findsWidgets);
     await tester.scrollUntilVisible(
       find.text('当前推进关卡风险较高，正在优先刷最高已通关关卡。'),
@@ -263,6 +276,43 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('BattlePage explains low damage fallback', (tester) async {
+    final saveService = SaveService(store: InMemorySaveStore());
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+    await saveService.save(save);
+
+    await tester.pumpWidget(
+      _app(
+        saveService: saveService,
+        database: _database(
+          monsterHp: 20,
+          monsterAttack: 0,
+          secondMonsterHp: 10000,
+          secondMonsterAttack: 0,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('运行 1 场'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('自动战斗说明'), findsOneWidget);
+    expect(find.text('因伤害不足回刷'), findsOneWidget);
+    expect(find.text('伤害不足'), findsOneWidget);
+    expect(find.text('强化武器'), findsOneWidget);
+    expect(
+      find.text('伤害不足，建议优先强化主武器或更换高攻击装备。'),
+      findsOneWidget,
+    );
+    expect(find.text('推进关卡'), findsWidgets);
+    expect(find.text('实际关卡'), findsOneWidget);
   });
 }
 

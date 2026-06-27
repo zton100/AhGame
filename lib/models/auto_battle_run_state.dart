@@ -24,6 +24,20 @@ class AutoBattleRunState {
     this.progressionStageId,
     this.autoSalvagedEquipmentCount = 0,
     this.autoSalvageMaterials = const {},
+    this.lastProgressionStageId,
+    this.lastProgressionStageName,
+    this.lastActualStageId,
+    this.lastActualStageName,
+    this.lastFallbackReason = AutoBattleFallbackReason.none,
+    this.lastReadinessReason = AutoBattleReadinessReason.none,
+    this.lastEstimatedSecondsToKill,
+    this.lastEstimatedIncomingDamage,
+    this.lastPlayerEffectiveHp,
+    this.lastPlayerDamagePerSecond,
+    this.lastMonsterDamagePerHit,
+    this.recommendedNextAction = AutoBattleRecommendedAction.none,
+    this.lastFailedProgressionStageId,
+    this.lastUnsafeProgressionStageId,
   });
 
   factory AutoBattleRunState.initial(SaveData saveData) {
@@ -49,6 +63,20 @@ class AutoBattleRunState {
   final String? progressionStageId;
   final int autoSalvagedEquipmentCount;
   final Map<String, int> autoSalvageMaterials;
+  final String? lastProgressionStageId;
+  final String? lastProgressionStageName;
+  final String? lastActualStageId;
+  final String? lastActualStageName;
+  final AutoBattleFallbackReason lastFallbackReason;
+  final AutoBattleReadinessReason lastReadinessReason;
+  final double? lastEstimatedSecondsToKill;
+  final double? lastEstimatedIncomingDamage;
+  final double? lastPlayerEffectiveHp;
+  final double? lastPlayerDamagePerSecond;
+  final double? lastMonsterDamagePerHit;
+  final AutoBattleRecommendedAction recommendedNextAction;
+  final String? lastFailedProgressionStageId;
+  final String? lastUnsafeProgressionStageId;
 
   AutoBattleRunState copyWith({
     SaveData? saveData,
@@ -72,6 +100,31 @@ class AutoBattleRunState {
     bool clearProgressionStageId = false,
     int? autoSalvagedEquipmentCount,
     Map<String, int>? autoSalvageMaterials,
+    String? lastProgressionStageId,
+    bool clearLastProgressionStageId = false,
+    String? lastProgressionStageName,
+    bool clearLastProgressionStageName = false,
+    String? lastActualStageId,
+    bool clearLastActualStageId = false,
+    String? lastActualStageName,
+    bool clearLastActualStageName = false,
+    AutoBattleFallbackReason? lastFallbackReason,
+    AutoBattleReadinessReason? lastReadinessReason,
+    double? lastEstimatedSecondsToKill,
+    bool clearLastEstimatedSecondsToKill = false,
+    double? lastEstimatedIncomingDamage,
+    bool clearLastEstimatedIncomingDamage = false,
+    double? lastPlayerEffectiveHp,
+    bool clearLastPlayerEffectiveHp = false,
+    double? lastPlayerDamagePerSecond,
+    bool clearLastPlayerDamagePerSecond = false,
+    double? lastMonsterDamagePerHit,
+    bool clearLastMonsterDamagePerHit = false,
+    AutoBattleRecommendedAction? recommendedNextAction,
+    String? lastFailedProgressionStageId,
+    bool clearLastFailedProgressionStageId = false,
+    String? lastUnsafeProgressionStageId,
+    bool clearLastUnsafeProgressionStageId = false,
   }) {
     return AutoBattleRunState(
       saveData: saveData ?? this.saveData,
@@ -101,6 +154,43 @@ class AutoBattleRunState {
       autoSalvagedEquipmentCount:
           autoSalvagedEquipmentCount ?? this.autoSalvagedEquipmentCount,
       autoSalvageMaterials: autoSalvageMaterials ?? this.autoSalvageMaterials,
+      lastProgressionStageId: clearLastProgressionStageId
+          ? null
+          : lastProgressionStageId ?? this.lastProgressionStageId,
+      lastProgressionStageName: clearLastProgressionStageName
+          ? null
+          : lastProgressionStageName ?? this.lastProgressionStageName,
+      lastActualStageId: clearLastActualStageId
+          ? null
+          : lastActualStageId ?? this.lastActualStageId,
+      lastActualStageName: clearLastActualStageName
+          ? null
+          : lastActualStageName ?? this.lastActualStageName,
+      lastFallbackReason: lastFallbackReason ?? this.lastFallbackReason,
+      lastReadinessReason: lastReadinessReason ?? this.lastReadinessReason,
+      lastEstimatedSecondsToKill: clearLastEstimatedSecondsToKill
+          ? null
+          : lastEstimatedSecondsToKill ?? this.lastEstimatedSecondsToKill,
+      lastEstimatedIncomingDamage: clearLastEstimatedIncomingDamage
+          ? null
+          : lastEstimatedIncomingDamage ?? this.lastEstimatedIncomingDamage,
+      lastPlayerEffectiveHp: clearLastPlayerEffectiveHp
+          ? null
+          : lastPlayerEffectiveHp ?? this.lastPlayerEffectiveHp,
+      lastPlayerDamagePerSecond: clearLastPlayerDamagePerSecond
+          ? null
+          : lastPlayerDamagePerSecond ?? this.lastPlayerDamagePerSecond,
+      lastMonsterDamagePerHit: clearLastMonsterDamagePerHit
+          ? null
+          : lastMonsterDamagePerHit ?? this.lastMonsterDamagePerHit,
+      recommendedNextAction:
+          recommendedNextAction ?? this.recommendedNextAction,
+      lastFailedProgressionStageId: clearLastFailedProgressionStageId
+          ? null
+          : lastFailedProgressionStageId ?? this.lastFailedProgressionStageId,
+      lastUnsafeProgressionStageId: clearLastUnsafeProgressionStageId
+          ? null
+          : lastUnsafeProgressionStageId ?? this.lastUnsafeProgressionStageId,
     );
   }
 
@@ -113,6 +203,20 @@ class AutoBattleRunState {
     bool farmingBecauseBattleFailed = false,
     bool farmingBecauseUnsafe = false,
     required String progressionStageId,
+    String? progressionStageName,
+    required String actualStageId,
+    String? actualStageName,
+    AutoBattleFallbackReason fallbackReason = AutoBattleFallbackReason.none,
+    AutoBattleReadinessReason readinessReason = AutoBattleReadinessReason.none,
+    double? estimatedSecondsToKill,
+    double? estimatedIncomingDamage,
+    double? playerEffectiveHp,
+    double? playerDamagePerSecond,
+    double? monsterDamagePerHit,
+    AutoBattleRecommendedAction recommendedNextAction =
+        AutoBattleRecommendedAction.none,
+    String? failedProgressionStageId,
+    String? unsafeProgressionStageId,
     int autoSalvagedCount = 0,
     List<MaterialStack> autoSalvageGainedMaterials = const [],
   }) {
@@ -153,6 +257,29 @@ class AutoBattleRunState {
       farmingBecauseBattleFailed: farmingBecauseBattleFailed,
       farmingBecauseUnsafe: farmingBecauseUnsafe,
       progressionStageId: progressionStageId,
+      lastProgressionStageId: progressionStageId,
+      lastProgressionStageName: progressionStageName,
+      clearLastProgressionStageName: progressionStageName == null,
+      lastActualStageId: actualStageId,
+      lastActualStageName: actualStageName,
+      clearLastActualStageName: actualStageName == null,
+      lastFallbackReason: fallbackReason,
+      lastReadinessReason: readinessReason,
+      lastEstimatedSecondsToKill: estimatedSecondsToKill,
+      clearLastEstimatedSecondsToKill: estimatedSecondsToKill == null,
+      lastEstimatedIncomingDamage: estimatedIncomingDamage,
+      clearLastEstimatedIncomingDamage: estimatedIncomingDamage == null,
+      lastPlayerEffectiveHp: playerEffectiveHp,
+      clearLastPlayerEffectiveHp: playerEffectiveHp == null,
+      lastPlayerDamagePerSecond: playerDamagePerSecond,
+      clearLastPlayerDamagePerSecond: playerDamagePerSecond == null,
+      lastMonsterDamagePerHit: monsterDamagePerHit,
+      clearLastMonsterDamagePerHit: monsterDamagePerHit == null,
+      recommendedNextAction: recommendedNextAction,
+      lastFailedProgressionStageId: failedProgressionStageId,
+      clearLastFailedProgressionStageId: failedProgressionStageId == null,
+      lastUnsafeProgressionStageId: unsafeProgressionStageId,
+      clearLastUnsafeProgressionStageId: unsafeProgressionStageId == null,
       autoSalvagedEquipmentCount:
           autoSalvagedEquipmentCount + autoSalvagedCount,
       autoSalvageMaterials: Map.unmodifiable(autoSalvageMaterials),
@@ -169,4 +296,28 @@ enum AutoBattleStopReason {
   battleFailed,
   inventoryFull,
   maxBattlesReached,
+}
+
+enum AutoBattleFallbackReason {
+  none,
+  levelTooLow,
+  battleFailed,
+  unsafeLowDamage,
+  unsafeLowSurvivability,
+}
+
+enum AutoBattleReadinessReason {
+  none,
+  safe,
+  lowDamage,
+  lowSurvivability,
+}
+
+enum AutoBattleRecommendedAction {
+  none,
+  enhanceWeapon,
+  enhanceArmorOrHp,
+  farmForMaterials,
+  equipBetterGear,
+  continueProgression,
 }

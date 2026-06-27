@@ -356,6 +356,10 @@ class _EquipmentControls extends ConsumerWidget {
               onPressed: () => _enhanceRecommended(context, ref),
               child: const Text('强化推荐穿戴装备'),
             ),
+            Text(
+              '自动推荐会优先强化已穿戴装备，通常优先主武器。',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             FilledButton.tonal(
               onPressed: () => _equipRecommended(context, ref),
               child: const Text('穿戴推荐升级装备'),

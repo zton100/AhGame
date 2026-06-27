@@ -126,14 +126,27 @@ class AutoBattleService {
     final shouldFarmForLevel = chapterService.shouldFarmPreviousStage(progress);
     var farmingBecauseBattleFailed = false;
     var farmingBecauseUnsafe = false;
+    var fallbackReason = AutoBattleFallbackReason.none;
+    var recommendedNextAction = AutoBattleRecommendedAction.continueProgression;
+    BattleReadinessReport? readiness;
+    String? failedProgressionStageId;
+    String? unsafeProgressionStageId;
     var stage = shouldFarmForLevel
         ? chapterService.highestFarmableStage(progress)
         : progressionStage;
+    if (shouldFarmForLevel && stage != null) {
+      fallbackReason = AutoBattleFallbackReason.levelTooLow;
+      recommendedNextAction = AutoBattleRecommendedAction.farmForMaterials;
+    }
     if (stage == null) {
       return state.copyWith(
         isRunning: false,
         stopReason: AutoBattleStopReason.levelTooLow,
         progressionStageId: progressionStage.stageId,
+        lastProgressionStageId: progressionStage.stageId,
+        lastProgressionStageName: progressionStage.stageName,
+        lastFallbackReason: AutoBattleFallbackReason.levelTooLow,
+        recommendedNextAction: AutoBattleRecommendedAction.farmForMaterials,
         clearFarmingStageId: true,
         farmingBecauseLevelTooLow: false,
       );
@@ -143,6 +156,12 @@ class AutoBattleService {
         isRunning: false,
         stopReason: AutoBattleStopReason.levelTooLow,
         progressionStageId: progressionStage.stageId,
+        lastProgressionStageId: progressionStage.stageId,
+        lastProgressionStageName: progressionStage.stageName,
+        lastActualStageId: stage.stageId,
+        lastActualStageName: stage.stageName,
+        lastFallbackReason: AutoBattleFallbackReason.levelTooLow,
+        recommendedNextAction: AutoBattleRecommendedAction.farmForMaterials,
         clearFarmingStageId: true,
         farmingBecauseLevelTooLow: false,
       );
@@ -152,6 +171,11 @@ class AutoBattleService {
         isRunning: false,
         stopReason: AutoBattleStopReason.battleFailed,
         progressionStageId: progressionStage.stageId,
+        lastProgressionStageId: progressionStage.stageId,
+        lastProgressionStageName: progressionStage.stageName,
+        lastActualStageId: stage.stageId,
+        lastActualStageName: stage.stageName,
+        recommendedNextAction: AutoBattleRecommendedAction.equipBetterGear,
         clearFarmingStageId: true,
         farmingBecauseLevelTooLow: false,
       );
@@ -160,17 +184,23 @@ class AutoBattleService {
     final monsterService = MonsterService(database);
     var monsterConfig = monsterService.requireMonster(stage.monsterIds.first);
     if (!shouldFarmForLevel && stage.stageId == progressionStage.stageId) {
-      final readiness = _evaluateReadiness(
+      readiness = _evaluateReadiness(
         saveData: state.saveData,
         database: database,
         monsterId: monsterConfig.id,
       );
+      recommendedNextAction =
+          _readinessService.recommendedActionFor(readiness.reason);
       final fallbackStage = chapterService.highestFarmableStage(progress);
       if (!readiness.safeToAttempt &&
           fallbackStage != null &&
           fallbackStage.stageId != stage.stageId) {
         stage = fallbackStage;
         farmingBecauseUnsafe = true;
+        unsafeProgressionStageId = progressionStage.stageId;
+        fallbackReason = readiness.reason == BattleReadinessReason.lowDamage
+            ? AutoBattleFallbackReason.unsafeLowDamage
+            : AutoBattleFallbackReason.unsafeLowSurvivability;
         monsterConfig = monsterService.requireMonster(stage.monsterIds.first);
       }
     }
@@ -198,11 +228,32 @@ class AutoBattleService {
           isRunning: false,
           lastBattleLogs: battle.logs,
           stopReason: AutoBattleStopReason.battleFailed,
+          lastProgressionStageId: progressionStage.stageId,
+          lastProgressionStageName: progressionStage.stageName,
+          lastActualStageId: stage.stageId,
+          lastActualStageName: stage.stageName,
+          lastFallbackReason: fallbackReason,
+          lastReadinessReason: _readinessReason(readiness),
+          lastEstimatedSecondsToKill: readiness?.estimatedSecondsToKill,
+          clearLastEstimatedSecondsToKill: readiness == null,
+          lastEstimatedIncomingDamage: readiness?.estimatedIncomingDamage,
+          clearLastEstimatedIncomingDamage: readiness == null,
+          lastPlayerEffectiveHp: readiness?.playerEffectiveHp,
+          clearLastPlayerEffectiveHp: readiness == null,
+          lastPlayerDamagePerSecond: readiness?.playerDamagePerSecond,
+          clearLastPlayerDamagePerSecond: readiness == null,
+          lastMonsterDamagePerHit: readiness?.monsterDamagePerHit,
+          clearLastMonsterDamagePerHit: readiness == null,
+          recommendedNextAction: recommendedNextAction,
+          lastUnsafeProgressionStageId: unsafeProgressionStageId,
         );
       }
 
       stage = fallbackStage;
       farmingBecauseBattleFailed = true;
+      fallbackReason = AutoBattleFallbackReason.battleFailed;
+      recommendedNextAction = AutoBattleRecommendedAction.farmForMaterials;
+      failedProgressionStageId = progressionStage.stageId;
       monsterConfig = monsterService.requireMonster(stage.monsterIds.first);
       battle = _finishBattle(
         _createBattle(
@@ -224,6 +275,15 @@ class AutoBattleService {
           isRunning: false,
           lastBattleLogs: battle.logs,
           stopReason: AutoBattleStopReason.battleFailed,
+          lastProgressionStageId: progressionStage.stageId,
+          lastProgressionStageName: progressionStage.stageName,
+          lastActualStageId: stage.stageId,
+          lastActualStageName: stage.stageName,
+          lastFallbackReason: fallbackReason,
+          lastReadinessReason: _readinessReason(readiness),
+          recommendedNextAction: recommendedNextAction,
+          lastFailedProgressionStageId: failedProgressionStageId,
+          lastUnsafeProgressionStageId: unsafeProgressionStageId,
         );
       }
     }
@@ -241,6 +301,15 @@ class AutoBattleService {
         lastBattleLogs: battle.logs,
         lastSettlementReport: settlement,
         stopReason: AutoBattleStopReason.battleFailed,
+        lastProgressionStageId: progressionStage.stageId,
+        lastProgressionStageName: progressionStage.stageName,
+        lastActualStageId: stage.stageId,
+        lastActualStageName: stage.stageName,
+        lastFallbackReason: fallbackReason,
+        lastReadinessReason: _readinessReason(readiness),
+        recommendedNextAction: recommendedNextAction,
+        lastFailedProgressionStageId: failedProgressionStageId,
+        lastUnsafeProgressionStageId: unsafeProgressionStageId,
       );
     }
 
@@ -281,6 +350,19 @@ class AutoBattleService {
           farmingBecauseBattleFailed: farmingBecauseBattleFailed,
           farmingBecauseUnsafe: farmingBecauseUnsafe,
           progressionStageId: progressionStage.stageId,
+          progressionStageName: progressionStage.stageName,
+          actualStageId: stage.stageId,
+          actualStageName: stage.stageName,
+          fallbackReason: fallbackReason,
+          readinessReason: _readinessReason(readiness),
+          estimatedSecondsToKill: readiness?.estimatedSecondsToKill,
+          estimatedIncomingDamage: readiness?.estimatedIncomingDamage,
+          playerEffectiveHp: readiness?.playerEffectiveHp,
+          playerDamagePerSecond: readiness?.playerDamagePerSecond,
+          monsterDamagePerHit: readiness?.monsterDamagePerHit,
+          recommendedNextAction: recommendedNextAction,
+          failedProgressionStageId: failedProgressionStageId,
+          unsafeProgressionStageId: unsafeProgressionStageId,
           autoSalvagedCount: autoSalvageReport?.salvagedCount ?? 0,
           autoSalvageGainedMaterials:
               autoSalvageReport?.gainedMaterials ?? const [],
@@ -352,6 +434,21 @@ class AutoBattleService {
       monster: monster,
       skillService: SkillService(database),
     );
+  }
+
+  AutoBattleReadinessReason _readinessReason(BattleReadinessReport? report) {
+    if (report == null) {
+      return AutoBattleReadinessReason.none;
+    }
+
+    switch (report.reason) {
+      case BattleReadinessReason.safe:
+        return AutoBattleReadinessReason.safe;
+      case BattleReadinessReason.lowDamage:
+        return AutoBattleReadinessReason.lowDamage;
+      case BattleReadinessReason.lowSurvivability:
+        return AutoBattleReadinessReason.lowSurvivability;
+    }
   }
 
   BattleSettlementReport _copyReportWithSaveData(

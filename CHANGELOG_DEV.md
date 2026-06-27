@@ -1,5 +1,50 @@
 # CHANGELOG_DEV
 
+## S31 Auto Battle Explanation and Guidance - 2026-06-27
+
+### Added files
+
+- None.
+
+### Modified files
+
+- `lib/models/auto_battle_run_state.dart`
+- `lib/systems/battle/battle_readiness_service.dart`
+- `lib/systems/auto_battle/auto_battle_service.dart`
+- `lib/features/battle/battle_page.dart`
+- `lib/features/equipment/equipment_page.dart`
+- `test/auto_battle_service_test.dart`
+- `test/battle_readiness_service_test.dart`
+- `test/battle_page_widget_test.dart`
+- `CHANGELOG_DEV.md`
+
+### Completed
+
+- Added runtime-only auto battle explanation fields for progression stage, actual stage, fallback reason, readiness reason, combat estimates, and recommended next action.
+- Added fallback reason tracking for level too low, battle failed, low damage, and low survivability.
+- Added readiness-to-guidance mapping: safe continues progression, low damage recommends weapon upgrades, and low survivability recommends armor or HP upgrades.
+- AutoBattleService now records whether the run progressed normally or farmed a fallback stage, without changing battle simulation or settlement rules.
+- BattlePage now shows an Auto Battle Explanation section with stage choice, estimates, readable reason labels, and next-step guidance.
+- EquipmentPage now explains that recommended enhancement prioritizes equipped gear, usually the main weapon.
+
+### Tests
+
+- Added AutoBattleRunState explanation field coverage through copyWith and settlement paths.
+- Added BattleReadinessService recommended action mapping tests.
+- Added AutoBattleService coverage for normal progression, level fallback, low damage fallback, low survivability fallback, battle-failed fallback, and non-progression during fallback farming.
+- Added BattlePage widget coverage for explanation UI, recommended next action, low damage advice, low survivability advice, progression stage, and actual stage.
+
+### Save impact
+
+- No SaveData schema change.
+- Runtime explanation fields live only in `AutoBattleRunState`.
+- Current `SaveData.saveVersion` is unchanged; no migration required.
+
+### Remaining
+
+- Readiness remains an estimate rather than a full deterministic forecast.
+- No offline rewards, abyss, new content, art, animation, auto equip, or BattleSimulator/BattleSettlementService refactor was added.
+
 ## UI Chinese Localization Polish - 2026-06-25
 
 ### Added files

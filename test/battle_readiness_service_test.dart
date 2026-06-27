@@ -1,4 +1,5 @@
 import 'package:abyss_relic/models/monster_runtime.dart';
+import 'package:abyss_relic/models/auto_battle_run_state.dart';
 import 'package:abyss_relic/models/stat_block.dart';
 import 'package:abyss_relic/systems/battle/battle_readiness_service.dart';
 import 'package:abyss_relic/systems/stats/stat_aggregation_service.dart';
@@ -47,6 +48,23 @@ void main() {
 
     expect(safer.estimatedIncomingDamage,
         lessThan(unsafe.estimatedIncomingDamage));
+  });
+
+  test('readiness reason maps to recommended next action', () {
+    const service = BattleReadinessService();
+
+    expect(
+      service.recommendedActionFor(BattleReadinessReason.safe),
+      AutoBattleRecommendedAction.continueProgression,
+    );
+    expect(
+      service.recommendedActionFor(BattleReadinessReason.lowDamage),
+      AutoBattleRecommendedAction.enhanceWeapon,
+    );
+    expect(
+      service.recommendedActionFor(BattleReadinessReason.lowSurvivability),
+      AutoBattleRecommendedAction.enhanceArmorOrHp,
+    );
   });
 }
 

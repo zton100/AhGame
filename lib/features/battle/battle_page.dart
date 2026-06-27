@@ -254,21 +254,17 @@ class _BattlePageContent extends StatelessWidget {
           title: '遭遇',
           children: [
             _InfoRow(
-                label: '角色',
-                value: saveData.playerProgress.currentClassId),
+                label: '角色', value: saveData.playerProgress.currentClassId),
             _InfoRow(label: '章节', value: progress.chapterName),
             _InfoRow(
               label: '关卡',
               value: '${progress.stageId} ${progress.stageName}',
             ),
-            _InfoRow(
-                label: 'Boss 关', value: _yesNo(progress.isBossStage)),
+            _InfoRow(label: 'Boss 关', value: _yesNo(progress.isBossStage)),
             _InfoRow(label: '怪物', value: monsterName),
+            _InfoRow(label: '状态', value: _battleResultLabel(battle?.result)),
             _InfoRow(
-                label: '状态', value: _battleResultLabel(battle?.result)),
-            _InfoRow(
-                label: '耗时',
-                value: _formatNumber(battle?.elapsedSeconds ?? 0)),
+                label: '耗时', value: _formatNumber(battle?.elapsedSeconds ?? 0)),
             if (battle != null)
               _InfoRow(
                 label: '怪物生命',
@@ -316,8 +312,7 @@ class _BattlePageContent extends StatelessWidget {
         if (battle?.result == BattleResult.defeat) ...[
           const SizedBox(height: 12),
           const _WarningBanner(
-            message:
-                '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
+            message: '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
           ),
         ],
         if (controller.advancedAfterSettlement) ...[
@@ -363,6 +358,8 @@ class _AutoBattleSummary extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _AutoBattleExplanation(state: state),
+        const SizedBox(height: 12),
         _InfoRow(
           label: '完成场次',
           value: state.battlesCompleted.toString(),
@@ -433,34 +430,28 @@ class _AutoBattleSummary extends StatelessWidget {
         ),
         if (state.farmingBecauseLevelTooLow)
           const _WarningBanner(
-            message:
-                '当前关卡等级要求过高，正在自动刷最高可进入的已通关关卡。',
+            message: '当前关卡等级要求过高，正在自动刷最高可进入的已通关关卡。',
           ),
         if (state.farmingBecauseBattleFailed)
           const _WarningBanner(
-            message:
-                '当前推进关卡战斗失败，正在自动刷最高可承受的已通关关卡。',
+            message: '当前推进关卡战斗失败，正在自动刷最高可承受的已通关关卡。',
           ),
         if (state.farmingBecauseUnsafe)
           const _WarningBanner(
-            message:
-                '当前推进关卡风险较高，正在优先刷最高已通关关卡。',
+            message: '当前推进关卡风险较高，正在优先刷最高已通关关卡。',
           ),
         if (state.stopReason == AutoBattleStopReason.levelTooLow)
           const _WarningBanner(
-            message:
-                '当前关卡等级不足，请提升等级或等待重复刷关功能处理。',
+            message: '当前关卡等级不足，请提升等级或等待重复刷关功能处理。',
           ),
         if (state.stopReason == AutoBattleStopReason.chapterComplete)
           const _SuccessBanner(message: '当前章节已完成。'),
         if (state.stopReason == AutoBattleStopReason.battleFailed)
           const _WarningBanner(
-            message:
-                '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
+            message: '战斗失败。请强化装备、调整装备，或重复刷已通关关卡提升实力。',
           ),
         const SizedBox(height: 8),
-        Text('最近连续战斗日志',
-            style: Theme.of(context).textTheme.titleMedium),
+        Text('最近连续战斗日志', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 4),
         if (state.lastBattleLogs.isEmpty)
           const Text('暂无连续战斗日志。')
@@ -479,6 +470,67 @@ class _AutoBattleSummary extends StatelessWidget {
   }
 }
 
+class _AutoBattleExplanation extends StatelessWidget {
+  const _AutoBattleExplanation({required this.state});
+
+  final AutoBattleRunState state;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Section(
+      title: '自动战斗说明',
+      children: [
+        _InfoRow(
+          label: '推进关卡',
+          value: _stageLabel(
+            state.lastProgressionStageId,
+            state.lastProgressionStageName,
+          ),
+        ),
+        _InfoRow(
+          label: '实际关卡',
+          value:
+              _stageLabel(state.lastActualStageId, state.lastActualStageName),
+        ),
+        _InfoRow(label: '推进模式', value: _fallbackReasonLabel(state)),
+        _InfoRow(
+          label: '可行性原因',
+          value: _readinessReasonLabel(state.lastReadinessReason),
+        ),
+        _InfoRow(
+          label: '预计击杀时间',
+          value:
+              _optionalNumber(state.lastEstimatedSecondsToKill, suffix: ' 秒'),
+        ),
+        _InfoRow(
+          label: '预计承伤',
+          value: _optionalNumber(state.lastEstimatedIncomingDamage),
+        ),
+        _InfoRow(
+          label: '玩家有效生命',
+          value: _optionalNumber(state.lastPlayerEffectiveHp),
+        ),
+        _InfoRow(
+          label: '玩家秒伤',
+          value: _optionalNumber(state.lastPlayerDamagePerSecond),
+        ),
+        _InfoRow(
+          label: '怪物单次伤害',
+          value: _optionalNumber(state.lastMonsterDamagePerHit),
+        ),
+        _InfoRow(
+          label: '下一步建议',
+          value: _recommendedActionLabel(state.recommendedNextAction),
+        ),
+        Text(
+          _recommendedActionDescription(state.recommendedNextAction),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
 class _SettlementReportView extends StatelessWidget {
   const _SettlementReportView({required this.report});
 
@@ -490,8 +542,7 @@ class _SettlementReportView extends StatelessWidget {
       title: '结算报告',
       children: [
         _InfoRow(label: '已结算', value: _yesNo(report.accepted)),
-        _InfoRow(
-            label: '经验', value: report.gainedExperience.toString()),
+        _InfoRow(label: '经验', value: report.gainedExperience.toString()),
         _InfoRow(label: '金币', value: report.gainedGold.toString()),
         _InfoRow(
           label: '材料',
@@ -672,6 +723,85 @@ String _progressModeLabel(AutoBattleRunState state) {
   }
 
   return '空闲';
+}
+
+String _stageLabel(String? stageId, String? stageName) {
+  if (stageId == null) {
+    return '-';
+  }
+  if (stageName == null || stageName.isEmpty) {
+    return stageId;
+  }
+  return '$stageId $stageName';
+}
+
+String _optionalNumber(double? value, {String suffix = ''}) {
+  if (value == null) {
+    return '-';
+  }
+  return '${_formatNumber(value)}$suffix';
+}
+
+String _fallbackReasonLabel(AutoBattleRunState state) {
+  switch (state.lastFallbackReason) {
+    case AutoBattleFallbackReason.none:
+      return state.battlesCompleted > 0 ? '正常推进' : '空闲';
+    case AutoBattleFallbackReason.levelTooLow:
+      return '因等级不足回刷';
+    case AutoBattleFallbackReason.battleFailed:
+      return '因战斗失败回刷';
+    case AutoBattleFallbackReason.unsafeLowDamage:
+      return '因伤害不足回刷';
+    case AutoBattleFallbackReason.unsafeLowSurvivability:
+      return '因生存不足回刷';
+  }
+}
+
+String _readinessReasonLabel(AutoBattleReadinessReason reason) {
+  switch (reason) {
+    case AutoBattleReadinessReason.none:
+      return '无';
+    case AutoBattleReadinessReason.safe:
+      return '安全';
+    case AutoBattleReadinessReason.lowDamage:
+      return '伤害不足';
+    case AutoBattleReadinessReason.lowSurvivability:
+      return '生存不足';
+  }
+}
+
+String _recommendedActionLabel(AutoBattleRecommendedAction action) {
+  switch (action) {
+    case AutoBattleRecommendedAction.none:
+      return '无需额外操作';
+    case AutoBattleRecommendedAction.enhanceWeapon:
+      return '强化武器';
+    case AutoBattleRecommendedAction.enhanceArmorOrHp:
+      return '强化护甲或生命装备';
+    case AutoBattleRecommendedAction.farmForMaterials:
+      return '刷旧关积累材料';
+    case AutoBattleRecommendedAction.equipBetterGear:
+      return '检查更合适装备';
+    case AutoBattleRecommendedAction.continueProgression:
+      return '继续推进';
+  }
+}
+
+String _recommendedActionDescription(AutoBattleRecommendedAction action) {
+  switch (action) {
+    case AutoBattleRecommendedAction.none:
+      return '不需要额外操作。';
+    case AutoBattleRecommendedAction.enhanceWeapon:
+      return '伤害不足，建议优先强化主武器或更换高攻击装备。';
+    case AutoBattleRecommendedAction.enhanceArmorOrHp:
+      return '生存不足，建议强化护甲/生命装备，或更换更高生存属性装备。';
+    case AutoBattleRecommendedAction.farmForMaterials:
+      return '当前推进受阻，正在刷旧关积累材料和装备。';
+    case AutoBattleRecommendedAction.equipBetterGear:
+      return '建议检查背包中是否有更适合当前职业的装备。';
+    case AutoBattleRecommendedAction.continueProgression:
+      return '当前战斗预估安全，可以继续推进。';
+  }
 }
 
 String _yesNo(bool value) {

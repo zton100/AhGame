@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../../models/auto_battle_run_state.dart';
 import '../../models/monster_runtime.dart';
 import '../stats/stat_aggregation_service.dart';
 
@@ -43,6 +44,19 @@ class BattleReadinessService {
       playerDamagePerSecond: playerDamagePerSecond,
       monsterDamagePerHit: monsterDamagePerHit.toDouble(),
     );
+  }
+
+  AutoBattleRecommendedAction recommendedActionFor(
+    BattleReadinessReason reason,
+  ) {
+    switch (reason) {
+      case BattleReadinessReason.safe:
+        return AutoBattleRecommendedAction.continueProgression;
+      case BattleReadinessReason.lowDamage:
+        return AutoBattleRecommendedAction.enhanceWeapon;
+      case BattleReadinessReason.lowSurvivability:
+        return AutoBattleRecommendedAction.enhanceArmorOrHp;
+    }
   }
 
   double _damageAfterArmor({

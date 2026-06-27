@@ -12,6 +12,31 @@ import 'package:abyss_relic/systems/stats/stat_aggregation_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('AutoBattleRunState copyWith and addSettlement keep explanation fields',
+      () async {
+    final base = AutoBattleRunState.initial(SaveData.newGame()).copyWith(
+      lastFallbackReason: AutoBattleFallbackReason.levelTooLow,
+      recommendedNextAction: AutoBattleRecommendedAction.farmForMaterials,
+    );
+
+    expect(base.lastFallbackReason, AutoBattleFallbackReason.levelTooLow);
+    expect(base.recommendedNextAction,
+        AutoBattleRecommendedAction.farmForMaterials);
+
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runOneBattle(
+      saveData: SaveData.newGame(now: DateTime.utc(2026, 6, 24)),
+      database: _database(),
+      save: (_) async {},
+    );
+
+    expect(result.lastProgressionStageId, '1-1');
+    expect(result.lastProgressionStageName, 'Grave Road');
+    expect(result.lastActualStageId, '1-1');
+    expect(result.lastActualStageName, 'Grave Road');
+  });
+
   test('runOneBattle grants experience', () async {
     SaveData? saved;
 
@@ -29,6 +54,11 @@ void main() {
     expect(result.totalExperience, 12);
     expect(result.saveData.playerProgress.experience, 12);
     expect(saved?.playerProgress.experience, 12);
+    expect(result.lastFallbackReason, AutoBattleFallbackReason.none);
+    expect(result.recommendedNextAction,
+        AutoBattleRecommendedAction.continueProgression);
+    expect(result.lastProgressionStageId, '1-1');
+    expect(result.lastActualStageId, '1-1');
   });
 
   test('runOneBattle stores generated equipment in the save', () async {
@@ -106,6 +136,11 @@ void main() {
     expect(result.progressionStageId, '1-2');
     expect(result.farmingStageId, '1-1');
     expect(result.farmingBecauseLevelTooLow, isTrue);
+    expect(result.lastFallbackReason, AutoBattleFallbackReason.levelTooLow);
+    expect(result.recommendedNextAction,
+        AutoBattleRecommendedAction.farmForMaterials);
+    expect(result.lastProgressionStageId, '1-2');
+    expect(result.lastActualStageId, '1-1');
     expect(result.stopReason, AutoBattleStopReason.maxBattlesReached);
   });
 
@@ -297,7 +332,79 @@ void main() {
     expect(result.farmingStageId, '1-1');
     expect(result.farmingBecauseUnsafe, isTrue);
     expect(result.farmingBecauseBattleFailed, isFalse);
+    expect(
+      result.lastFallbackReason,
+      AutoBattleFallbackReason.unsafeLowSurvivability,
+    );
+    expect(
+      result.lastReadinessReason,
+      AutoBattleReadinessReason.lowSurvivability,
+    );
+    expect(result.recommendedNextAction,
+        AutoBattleRecommendedAction.enhanceArmorOrHp);
+    expect(result.lastUnsafeProgressionStageId, '1-2');
     expect(result.lastBattleLogs.map((log) => log.message), contains('战斗胜利。'));
+  });
+
+  test('readiness lowDamage fallback recommends enhancing weapon', () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+
+    final result = await _service().runOneBattle(
+      saveData: save,
+      database: _database(
+        monsterHp: 20,
+        monsterAttack: 0,
+        secondMonsterHp: 10000,
+        secondMonsterAttack: 0,
+      ),
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 1);
+    expect(result.saveData.playerProgress.currentStageId, '1-2');
+    expect(result.farmingStageId, '1-1');
+    expect(result.lastFallbackReason, AutoBattleFallbackReason.unsafeLowDamage);
+    expect(result.lastReadinessReason, AutoBattleReadinessReason.lowDamage);
+    expect(
+      result.recommendedNextAction,
+      AutoBattleRecommendedAction.enhanceWeapon,
+    );
+  });
+
+  test('battleFailed fallback records failed progression stage', () async {
+    final save = SaveData.newGame(now: DateTime.utc(2026, 6, 24)).copyWith(
+      playerProgress: SaveData.newGame().playerProgress.copyWith(
+            currentStageId: '1-2',
+            highestClearedStageId: '1-1',
+          ),
+    );
+
+    final result = await _service(
+      readinessService: const _AlwaysSafeReadinessService(),
+    ).runOneBattle(
+      saveData: save,
+      database: _database(
+        monsterHp: 20,
+        monsterAttack: 0,
+        secondMonsterHp: 500,
+        secondMonsterAttack: 999,
+      ),
+      save: (_) async {},
+    );
+
+    expect(result.battlesCompleted, 1);
+    expect(result.saveData.playerProgress.currentStageId, '1-2');
+    expect(result.farmingBecauseBattleFailed, isTrue);
+    expect(result.lastFallbackReason, AutoBattleFallbackReason.battleFailed);
+    expect(result.lastFailedProgressionStageId, '1-2');
+    expect(result.lastActualStageId, '1-1');
+    expect(result.recommendedNextAction,
+        AutoBattleRecommendedAction.farmForMaterials);
   });
 
   test('unsafe current stage farms highest cleared stage before attempting',
